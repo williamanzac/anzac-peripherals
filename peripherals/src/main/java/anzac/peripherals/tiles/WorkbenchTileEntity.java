@@ -65,6 +65,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		return Method.methodNames();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object[] callMethod(final IComputerAccess computer, final ILuaContext context, final int method,
 			final Object[] arguments) throws Exception {
@@ -78,7 +79,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 			}
 			craftMatrix.clear();
 			final Map<Double, Double> table = (HashMap<Double, Double>) arguments[0];
-			for (Entry<Double, Double> entry : table.entrySet()) {
+			for (final Entry<Double, Double> entry : table.entrySet()) {
 				craftMatrix.setInventorySlotContents(entry.getKey().intValue(),
 						Utils.getUUID(entry.getValue().intValue(), 1));
 			}
@@ -90,7 +91,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 				if (stack != null) {
 					final int uuid = Utils.getUUID(stack);
 					if (invTab.containsKey(uuid)) {
-						int count = invTab.get(uuid);
+						final int count = invTab.get(uuid);
 						invTab.put(uuid, count + stack.stackSize);
 					} else {
 						invTab.put(uuid, stack.stackSize);

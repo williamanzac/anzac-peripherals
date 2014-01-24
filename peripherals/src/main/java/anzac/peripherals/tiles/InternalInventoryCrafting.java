@@ -1,13 +1,10 @@
 package anzac.peripherals.tiles;
 
-import java.util.Arrays;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
-import anzac.peripherals.AnzacPeripheralsCore;
 
 public class InternalInventoryCrafting extends InventoryCrafting {
 
@@ -51,12 +48,6 @@ public class InternalInventoryCrafting extends InventoryCrafting {
 			return null;
 		}
 		return super.getStackInSlot(slot);
-	}
-
-	private void loginfo() {
-		// crafting && inventory != null && bindings != null && bindings.length > 0
-		AnzacPeripheralsCore.logger.info("crafting: " + crafting + ", inventory: " + inventory + ", bindings: "
-				+ Arrays.toString(bindings));
 	}
 
 	@Override

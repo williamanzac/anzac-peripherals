@@ -11,6 +11,7 @@ import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.InventoryCraftResult;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
@@ -24,9 +25,9 @@ import dan200.computer.api.ILuaContext;
 import dan200.computer.api.IMedia;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
-import dan200.computer.shared.ItemDisk;
 
-public class RecipeStorageTileEntity extends BasePeripheralTileEntity implements IInventory {
+public class RecipeStorageTileEntity extends BasePeripheralTileEntity implements
+		IInventory, ISidedInventory {
 
 	public InventoryCrafting craftMatrix = new InternalInventoryCrafting(3);
 	public ItemStack diskSlot;
@@ -34,7 +35,7 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity implements
 	public InventoryCraftResult craftResult = new InventoryCraftResult();
 
 	private static enum Method {
-		load, store, remove, list, isDiskPresent, getDiskLabel, setDiskLabel, getDiskID;
+		load, store, remove, list, isDiskPresent, getDiskLabel, setDiskLabel;
 
 		public static String[] methodNames() {
 			final Method[] values = Method.values();
@@ -102,9 +103,6 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity implements
 			break;
 		case list:
 			return getRecipes().toArray();
-		case getDiskID:
-			ret = getDiskId();
-			break;
 		case isDiskPresent:
 			ret = diskSlot != null;
 			break;
@@ -347,7 +345,7 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity implements
 
 	@Override
 	public boolean isItemValidForSlot(final int i, final ItemStack itemstack) {
-		return itemstack.getItem() instanceof ItemDisk;
+		return itemstack.getItem() instanceof IMedia;
 	}
 
 	private synchronized IMedia getMedia() {
@@ -355,16 +353,6 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity implements
 			final Item item = diskSlot.getItem();
 			if (item instanceof IMedia) {
 				return (IMedia) item;
-			}
-		}
-		return null;
-	}
-
-	private synchronized Integer getDiskId() {
-		if (diskSlot != null) {
-			final Item item = diskSlot.getItem();
-			if (item instanceof ItemDisk) {
-				return ((ItemDisk) item).getDiskID(diskSlot);
 			}
 		}
 		return null;
@@ -386,5 +374,22 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity implements
 	private synchronized void unmountDisk() {
 		mount = null;
 		return;
+	}
+
+	@Override
+	public int[] getAccessibleSlotsFromSide(final int var1) {
+		return null;
+	}
+
+	@Override
+	public boolean canInsertItem(final int i, final ItemStack itemstack,
+			final int j) {
+		return false;
+	}
+
+	@Override
+	public boolean canExtractItem(final int i, final ItemStack itemstack,
+			final int j) {
+		return false;
 	}
 }

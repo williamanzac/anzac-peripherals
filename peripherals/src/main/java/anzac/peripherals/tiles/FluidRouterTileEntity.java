@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
@@ -19,17 +18,15 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.network.PacketHandler;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
 import dan200.computer.api.ILuaContext;
-import dan200.computer.api.IPeripheral;
 
-public class FluidRouterTileEntity extends TileEntity implements IPeripheral, IFluidHandler {
+public class FluidRouterTileEntity extends BasePeripheralTileEntity implements
+		IFluidHandler {
 
 	public FluidTank fluidTank = new FluidTank(FluidContainerRegistry.BUCKET_VOLUME);
-	private final Map<IComputerAccess, Computer> computers = new HashMap<IComputerAccess, Computer>();
 	private final Map<FluidStack, ForgeDirection> fluidRules = new HashMap<FluidStack, ForgeDirection>();
 	private ForgeDirection defaultRoute = ForgeDirection.UNKNOWN;
 	private String label;
@@ -54,16 +51,6 @@ public class FluidRouterTileEntity extends TileEntity implements IPeripheral, IF
 			}
 			return null;
 		}
-	}
-
-	private class Computer {
-		private final String name;
-
-		public Computer(final String name) {
-			this.name = name;
-		}
-
-		private String mount;
 	}
 
 	@Override
@@ -138,20 +125,15 @@ public class FluidRouterTileEntity extends TileEntity implements IPeripheral, IF
 	}
 
 	@Override
-	public boolean canAttachToSide(final int side) {
-		return true;
-	}
-
-	@Override
 	public void attach(final IComputerAccess computer) {
+		super.attach(computer);
 		AnzacPeripheralsCore.fluidRouterMap.put(computer.getID(), this);
-		computers.put(computer, new Computer(computer.getAttachmentName()));
 	}
 
 	@Override
 	public void detach(final IComputerAccess computer) {
 		AnzacPeripheralsCore.fluidRouterMap.remove(computer.getID());
-		computers.remove(computer);
+		super.detach(computer);
 	}
 
 	@Override
@@ -263,7 +245,7 @@ public class FluidRouterTileEntity extends TileEntity implements IPeripheral, IF
 		super.updateEntity();
 		if (!worldObj.isRemote) {
 			if (fluidTank != null && fluidTank.getFluid() != null && fluidTank.getFluid().amount > 0
-					&& worldObj.getTotalWorldTime() % 10 == 0) {
+					&& worldObj.getTotalWorldTime() % 10 == 0 && isConnected()) {
 				routeFluid();
 			}
 		}
@@ -297,10 +279,5 @@ public class FluidRouterTileEntity extends TileEntity implements IPeripheral, IF
 
 	protected void defaultRoute(final FluidStack copy) {
 		copy.amount -= Utils.addToRandomFluidHandler(worldObj, xCoord, yCoord, zCoord, copy);
-	}
-
-	@Override
-	public Packet getDescriptionPacket() {
-		return PacketHandler.createTileEntityPacket("anzac", PacketHandler.ID_TILE_ENTITY, this);
 	}
 }

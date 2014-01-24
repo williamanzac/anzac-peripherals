@@ -16,6 +16,7 @@ public class ClassUtils {
 		return classMap.get(classname);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> T getField(final String classname, final String name, final Class<T> type) {
 		try {
 			Class<?> clazz = getClass(classname);

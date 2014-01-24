@@ -79,7 +79,7 @@ public class PacketHandler implements IPacketHandler {
 		int z;
 		try {
 			if (readId) {
-				final int id = dis.readInt();
+				dis.readInt();
 			}
 			x = dis.readInt();
 			y = dis.readInt();

@@ -3,8 +3,10 @@ package anzac.peripherals.tiles;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.network.PacketHandler;
 import dan200.computer.api.IComputerAccess;
 import dan200.computer.api.ILuaContext;
 import dan200.computer.api.IPeripheral;
@@ -54,5 +56,10 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	protected boolean isConnected() {
 		return !computers.isEmpty();
+	}
+
+	@Override
+	public Packet getDescriptionPacket() {
+		return PacketHandler.createTileEntityPacket("anzac", PacketHandler.ID_TILE_ENTITY, this);
 	}
 }

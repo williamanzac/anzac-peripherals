@@ -21,6 +21,7 @@ public class CPUItem extends Item {
 		setUnlocalizedName("anzaccpu");
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void getSubItems(final int par1, final CreativeTabs par2CreativeTabs, final List par3List) {
 		par3List.add(new ItemStack(AnzacPeripheralsCore.cpu, 1, 0));

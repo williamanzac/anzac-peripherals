@@ -86,6 +86,7 @@ public class AnzacPeripheralsCore {
 		GameRegistry.registerTileEntity(FluidStorageTileEntity.class, "anzac.peripherals.tiles.FluidStorageTileEntity");
 	}
 
+	@SuppressWarnings("unchecked")
 	@EventHandler
 	public void postInit(final FMLPostInitializationEvent event) {
 		storageSize = 1024000; // TODO turn into property

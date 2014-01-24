@@ -12,22 +12,19 @@ import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.network.PacketHandler;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
 import dan200.computer.api.ILuaContext;
-import dan200.computer.api.IPeripheral;
 
-public class ItemRouterTileEntity extends TileEntity implements IPeripheral, IInventory, ISidedInventory {
+public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
+		IInventory, ISidedInventory {
 
 	public ItemStack itemSlot;
-	private final Map<IComputerAccess, Computer> computers = new HashMap<IComputerAccess, Computer>();
 	private final Map<ItemStack, ForgeDirection> itemRules = new HashMap<ItemStack, ForgeDirection>();
 	private ForgeDirection defaultRoute = ForgeDirection.UNKNOWN;
 	private String label;
@@ -52,16 +49,6 @@ public class ItemRouterTileEntity extends TileEntity implements IPeripheral, IIn
 			}
 			return null;
 		}
-	}
-
-	private class Computer {
-		private final String name;
-
-		public Computer(final String name) {
-			this.name = name;
-		}
-
-		private String mount;
 	}
 
 	@Override
@@ -142,20 +129,15 @@ public class ItemRouterTileEntity extends TileEntity implements IPeripheral, IIn
 	}
 
 	@Override
-	public boolean canAttachToSide(final int side) {
-		return true;
-	}
-
-	@Override
 	public void attach(final IComputerAccess computer) {
+		super.attach(computer);
 		AnzacPeripheralsCore.itemRouterMap.put(computer.getID(), this);
-		computers.put(computer, new Computer(computer.getAttachmentName()));
 	}
 
 	@Override
 	public void detach(final IComputerAccess computer) {
 		AnzacPeripheralsCore.itemRouterMap.remove(computer.getID());
-		computers.remove(computer);
+		super.detach(computer);
 	}
 
 	@Override
@@ -322,7 +304,8 @@ public class ItemRouterTileEntity extends TileEntity implements IPeripheral, IIn
 			return;
 		}
 		if (!worldObj.isRemote) {
-			if (itemSlot != null && itemSlot.stackSize > 0 && worldObj.getTotalWorldTime() % 10 == 0) {
+			if (itemSlot != null && itemSlot.stackSize > 0
+					&& worldObj.getTotalWorldTime() % 10 == 0 && isConnected()) {
 				routeItem();
 			}
 		}
@@ -365,10 +348,5 @@ public class ItemRouterTileEntity extends TileEntity implements IPeripheral, IIn
 		if (copy.stackSize > 0) {
 			copy.stackSize -= Utils.addToRandomPipe(worldObj, xCoord, yCoord, zCoord, copy);
 		}
-	}
-
-	@Override
-	public Packet getDescriptionPacket() {
-		return PacketHandler.createTileEntityPacket("anzac", PacketHandler.ID_TILE_ENTITY, this);
 	}
 }

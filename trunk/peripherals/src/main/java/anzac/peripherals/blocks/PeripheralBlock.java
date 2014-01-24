@@ -24,9 +24,9 @@ import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
 import anzac.peripherals.tiles.WorkbenchTileEntity;
 import anzac.peripherals.utils.Utils;
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import dan200.ComputerCraft;
 
 public class PeripheralBlock extends BlockContainer {
 
@@ -77,10 +77,12 @@ public class PeripheralBlock extends BlockContainer {
 			case 3:
 				return blockIcon;
 			default:
-				return ComputerCraft.Blocks.computer.getIcon(side, 1);
+				return GameRegistry.findBlock("ComputerCraft", "CC-Computer")
+						.getIcon(side, 1);
 			}
 		case 1: // recipe storage
-			return side == 1 ? workbenchIconTop : ComputerCraft.Blocks.peripheral.getIcon(side, 0);
+			return side == 1 ? workbenchIconTop : GameRegistry.findBlock(
+					"ComputerCraft", "CC-Peripheral").getIcon(side, 0);
 		case 2: // item router
 			switch (side) {
 			case 0:
@@ -106,13 +108,15 @@ public class PeripheralBlock extends BlockContainer {
 			case 5:
 				return itemStorageSide;
 			default:
-				return ComputerCraft.Blocks.peripheral.getIcon(side, 0);
+				return GameRegistry.findBlock("ComputerCraft", "CC-Peripheral")
+						.getIcon(side, 0);
 			}
 		case 5: // fluid storage
 			switch (side) {
 			case 0:
 			case 1:
-				return ComputerCraft.Blocks.peripheral.getIcon(side, 0);
+				return GameRegistry.findBlock("ComputerCraft", "CC-Peripheral")
+						.getIcon(side, 0);
 			default:
 				return fluidStorageSide;
 			}
@@ -195,6 +199,7 @@ public class PeripheralBlock extends BlockContainer {
 		return true;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void getSubBlocks(final int par1, final CreativeTabs par2CreativeTabs, final List par3List) {
 		par3List.add(new ItemStack(par1, 1, 0));

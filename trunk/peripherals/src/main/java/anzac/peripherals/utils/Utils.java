@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
@@ -110,9 +111,9 @@ public class Utils {
 	public static int addToPipe(final World world, final int x, final int y, final int z, final ForgeDirection side,
 			final ItemStack stack) {
 		final Position pos = new Position(x, y, z, side);
-		pos.moveForwards(1.0);
+		pos.moveForwards(1);
 
-		final TileEntity tile = world.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+		final TileEntity tile = world.getBlockTileEntity(pos.x, pos.y, pos.z);
 		final ForgeDirection opposite = side.getOpposite();
 		if (tile instanceof IPipeTile) {
 			final IPipeTile pipe = (IPipeTile) tile;
@@ -144,7 +145,7 @@ public class Utils {
 			inv.setInventorySlotContents(slot, stack);
 			stack.stackSize = 0;
 		} else {
-			final boolean merged = Utils.mergeItemStack(stack, stackInSlot);
+			final boolean merged = mergeItemStack(stack, stackInSlot);
 			if (merged) {
 				inv.setInventorySlotContents(slot, stackInSlot);
 			}
@@ -154,31 +155,26 @@ public class Utils {
 	public static int addToInventory(final World world, final int x, final int y, final int z,
 			final ForgeDirection side, final ItemStack stack) {
 		final Position pos = new Position(x, y, z, side);
-		pos.moveForwards(1.0);
+		pos.moveForwards(1);
 
-		final TileEntity tileInventory = world.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+		final TileEntity tileInventory = world.getBlockTileEntity(pos.x, pos.y, pos.z);
 		if (tileInventory != null && tileInventory instanceof IInventory) {
 			final IInventory inv = (IInventory) tileInventory;
 			final ItemStack copy = stack.copy();
+			final int[] availableSlots;
 			if (tileInventory instanceof ISidedInventory) {
 				final ISidedInventory sidedInventory = (ISidedInventory) inv;
 				final int opposite = side.getOpposite().ordinal();
-				final int[] availableSlots = sidedInventory.getAccessibleSlotsFromSide(opposite);
-				for (final int slot : availableSlots) {
-					if (sidedInventory.canInsertItem(slot, copy, opposite)) {
-						transferToSlot(sidedInventory, slot, copy);
-						if (copy.stackSize == 0) {
-							break;
-						}
-					}
-				}
+				availableSlots = sidedInventory
+						.getAccessibleSlotsFromSide(opposite);
 			} else {
-				for (int j = 0; j < inv.getSizeInventory(); j++) {
-					transferToSlot(inv, j, copy);
+				availableSlots = createSlotArray(0, inv.getSizeInventory());
+			}
+			for (final int slot : availableSlots) {
+				transferToSlot(inv, slot, copy);
 					if (copy.stackSize == 0) {
 						break;
 					}
-				}
 			}
 			return stack.stackSize - copy.stackSize;
 		}
@@ -188,9 +184,9 @@ public class Utils {
 	public static int addToFluidHandler(final World world, final int x, final int y, final int z,
 			final ForgeDirection side, final FluidStack stack) {
 		final Position pos = new Position(x, y, z, side);
-		pos.moveForwards(1.0);
+		pos.moveForwards(1);
 
-		final TileEntity tileInventory = world.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+		final TileEntity tileInventory = world.getBlockTileEntity(pos.x, pos.y, pos.z);
 		if (tileInventory != null && tileInventory instanceof IFluidHandler) {
 			final ForgeDirection opposite = side.getOpposite();
 			final FluidStack copy = stack.copy();
@@ -217,6 +213,9 @@ public class Utils {
 	}
 
 	public static int getUUID(final ItemStack stack) {
+		if (stack == null) {
+			return -1;
+		}
 		return (stack.getItemDamage() << 15) + stack.itemID;
 	}
 
@@ -225,12 +224,25 @@ public class Utils {
 	}
 
 	public static ItemStack getUUID(final int uuid, final int stackSize) {
+		if (uuid == -1) {
+			return null;
+		}
 		final int meta = uuid >> 15;
 		final int id = uuid & 32767;
 		return new ItemStack(id, stackSize, meta);
 	}
 
 	public static int getUUID(final FluidStack stack) {
+		if (stack == null) {
+			return -1;
+		}
 		return stack.fluidID;
+	}
+
+	public static int getUUID(final Fluid stack) {
+		if (stack == null) {
+			return -1;
+		}
+		return stack.getID();
 	}
 }

@@ -17,37 +17,16 @@ import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
-import dan200.computer.api.ILuaContext;
 
 public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory {
+	private static final List<String> METHOD_NAMES = getMethodNames(WorkbenchTileEntity.class);
 	private static final String INVENTORY = "inventory";
 	private static final String SLOT = "Slot";
 	private static final String MATRIX = "matrix";
 	private static final int[] SLOT_ARRAY = Utils.createSlotArray(0, 24);
-
-	private static enum Method {
-		craft, setRecipe, listContents;
-
-		public static String[] methodNames() {
-			final Method[] values = Method.values();
-			final String[] methods = new String[values.length];
-			for (final Method method : values) {
-				methods[method.ordinal()] = method.name();
-			}
-			return methods;
-		}
-
-		public static Method getMethod(final int ordinal) {
-			for (final Method method : Method.values()) {
-				if (method.ordinal() == ordinal) {
-					return method;
-				}
-			}
-			return null;
-		}
-	}
 
 	public InternalInventoryCrafting craftMatrix = new InternalInventoryCrafting(3, this);
 	private final ItemStack[] inventory = new ItemStack[24];
@@ -61,46 +40,10 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	}
 
 	@Override
-	public String[] getMethodNames() {
-		return Method.methodNames();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Object[] callMethod(final IComputerAccess computer, final ILuaContext context, final int method,
-			final Object[] arguments) throws Exception {
-		switch (Method.getMethod(method)) {
-		case craft:
-			craft();
-			break;
-		case setRecipe:
-			if (arguments.length == 0 || arguments[0] == null || !(arguments[0] instanceof Map)) {
-				throw new Exception("expected pattern");
-			}
-			craftMatrix.clear();
-			final Map<Double, Double> table = (HashMap<Double, Double>) arguments[0];
-			for (final Entry<Double, Double> entry : table.entrySet()) {
-				craftMatrix.setInventorySlotContents(entry.getKey().intValue(),
-						Utils.getUUID(entry.getValue().intValue(), 1));
-			}
-			return new Object[] { craftResult.getStackInSlot(0) != null };
-		case listContents:
-			final Map<Integer, Integer> invTab = new HashMap<Integer, Integer>();
-			for (int slot = 0; slot < inventory.length; slot++) {
-				final ItemStack stack = inventory[slot];
-				if (stack != null) {
-					final int uuid = Utils.getUUID(stack);
-					if (invTab.containsKey(uuid)) {
-						final int count = invTab.get(uuid);
-						invTab.put(uuid, count + stack.stackSize);
-					} else {
-						invTab.put(uuid, stack.stackSize);
-					}
-				}
-			}
-			return new Object[] { invTab };
-		}
-		return null;
+	protected List<String> methodNames() {
+		final List<String> methodNames = super.methodNames();
+		methodNames.addAll(METHOD_NAMES);
+		return methodNames;
 	}
 
 	public void updateCraftingRecipe() {
@@ -108,6 +51,40 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		craftResult.setInventorySlotContents(0, matchingRecipe);
 	}
 
+	@PeripheralMethod
+	private boolean setRecipe(final Map<Integer, Integer> recipe) {
+		craftMatrix.clear();
+		for (final Entry<Integer, Integer> entry : recipe.entrySet()) {
+			craftMatrix.setInventorySlotContents(entry.getKey(), Utils.getUUID(entry.getValue(), 1));
+		}
+		return craftResult.getStackInSlot(0) != null;
+	}
+
+	@PeripheralMethod
+	private void clear() {
+		craftMatrix.clear();
+	}
+
+	@PeripheralMethod
+	private Object contents() throws Exception {
+		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+		for (final ItemStack stackInSlot : inventory) {
+			if (stackInSlot != null) {
+				final int uuid = Utils.getUUID(stackInSlot);
+				final int amount = stackInSlot.stackSize;
+				if (table.containsKey(uuid)) {
+					final int a = table.get(uuid);
+					table.put(uuid, a + amount);
+				} else {
+					table.put(uuid, amount);
+				}
+			}
+		}
+		AnzacPeripheralsCore.logger.info("table:" + table);
+		return table;
+	}
+
+	@PeripheralMethod
 	private void craft() throws Exception {
 		if (internalPlayer == null) {
 			internalPlayer = new InternalPlayer(this);
@@ -245,12 +222,12 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 
 	@Override
 	public String getInvName() {
-		return "";
+		return getLabel();
 	}
 
 	@Override
 	public boolean isInvNameLocalized() {
-		return false;
+		return hasLabel();
 	}
 
 	@Override
@@ -348,5 +325,10 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 			}
 		}
 		tagCompound.setTag(INVENTORY, list);
+	}
+
+	@Override
+	protected boolean requiresMount() {
+		return false;
 	}
 }

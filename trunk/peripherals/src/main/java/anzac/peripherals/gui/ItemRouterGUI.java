@@ -33,7 +33,8 @@ public class ItemRouterGUI extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
-		final String title = tileEntity.isInvNameLocalized() ? tileEntity.getInvName() : "Item Router";
+		final String title = tileEntity.hasLabel() ? tileEntity.getLabel()
+				: "Item Router";
 		fontRenderer.drawString(title, 8, 6, 4210752);
 		fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, (ySize - 96) + 2, 4210752);
 	}

@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
@@ -19,6 +18,7 @@ import net.minecraftforge.common.MinecraftForge;
 import anzac.peripherals.blocks.PeripheralBlock;
 import anzac.peripherals.gui.GuiHandler;
 import anzac.peripherals.items.CPUItem;
+import anzac.peripherals.items.HDDItem;
 import anzac.peripherals.items.PeripheralItem;
 import anzac.peripherals.network.PacketHandler;
 import anzac.peripherals.tiles.BasePeripheralTileEntity;
@@ -41,18 +41,20 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
-@Mod(modid = "anzac.peripherals", name = "ANZAC Peripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;after:BuildCraft|Energy")
+@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZAC Peripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;after:BuildCraft|Energy")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "anzac" }, packetHandler = PacketHandler.class)
 public class AnzacPeripheralsCore {
+	static final String MOD_ID = "anzac.peripherals";
+
 	public static Logger logger;
 
-	@Instance(value = "anzac.peripherals")
+	@Instance(value = MOD_ID)
 	public static AnzacPeripheralsCore instance;
 
-	public Block peripheralBlock;
+	public static Block peripheralBlock;
 
 	public static Item cpu;
-	public Item hdd;
+	public static Item hdd;
 
 	public static final Map<Integer, WorkbenchTileEntity> workbenchMap = new HashMap<Integer, WorkbenchTileEntity>();
 	public static final Map<Integer, RecipeStorageTileEntity> storageMap = new HashMap<Integer, RecipeStorageTileEntity>();
@@ -65,17 +67,13 @@ public class AnzacPeripheralsCore {
 	@EventHandler
 	public void preInit(final FMLPreInitializationEvent event) {
 		logger = event.getModLog();
-		peripheralBlock = new PeripheralBlock(496, Material.rock);
-		cpu = new CPUItem(497);
-		hdd = new Item(499).setCreativeTab(CreativeTabs.tabRedstone).setMaxStackSize(64).setUnlocalizedName("hdd")
-				.setTextureName("anzac:hdd");
+		peripheralBlock = new PeripheralBlock(496, Material.rock); // TODO turn into property
+		cpu = new CPUItem(497); // TODO turn into property
+		hdd = new HDDItem(499); // TODO turn into property
 		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
-	}
 
-	@EventHandler
-	public void load(final FMLInitializationEvent event) {
 		MinecraftForge.setBlockHarvestLevel(peripheralBlock, "pickaxe", 0);
-		GameRegistry.registerBlock(peripheralBlock, PeripheralItem.class, "anzacperipheral");
+		GameRegistry.registerBlock(peripheralBlock, PeripheralItem.class, "anzacperipheral", MOD_ID);
 
 		GameRegistry.registerTileEntity(WorkbenchTileEntity.class, "anzac.peripherals.tiles.WorkbenchTitleEntity");
 		GameRegistry.registerTileEntity(RecipeStorageTileEntity.class,
@@ -84,6 +82,13 @@ public class AnzacPeripheralsCore {
 		GameRegistry.registerTileEntity(FluidRouterTileEntity.class, "anzac.peripherals.tiles.FluidRouterTileEntity");
 		GameRegistry.registerTileEntity(ItemStorageTileEntity.class, "anzac.peripherals.tiles.ItemStorageTileEntity");
 		GameRegistry.registerTileEntity(FluidStorageTileEntity.class, "anzac.peripherals.tiles.FluidStorageTileEntity");
+
+		GameRegistry.registerItem(cpu, "anzaccpu", MOD_ID);
+		GameRegistry.registerItem(hdd, "hdd", MOD_ID);
+	}
+
+	@EventHandler
+	public void load(final FMLInitializationEvent event) {
 	}
 
 	@SuppressWarnings("unchecked")
@@ -100,6 +105,8 @@ public class AnzacPeripheralsCore {
 		final ItemStack goldNuggetStack = new ItemStack(Item.goldNugget);
 		final ItemStack chestStack = new ItemStack(Block.chest);
 		final ItemStack workbenchStack = new ItemStack(Block.workbench);
+		final ItemStack enderPearlStack = new ItemStack(Item.enderPearl);
+		final ItemStack inkStack = new ItemStack(Item.dyePowder, 1, 0);
 
 		// New Items
 		final ItemStack basicStack = new ItemStack(cpu, 1, 0);
@@ -128,30 +135,34 @@ public class AnzacPeripheralsCore {
 		final Block blockAdvancedTurtle = GameRegistry.findBlock("CCTurtle", "CC-TurtleAdvanced");
 		final Item diskItem = Utils.getItem("dan200.ComputerCraft$Items", "disk");
 		final Block cableBlock = Utils.getBlock("dan200.ComputerCraft$Blocks", "cable");
-		final ItemStack monitorStack = new ItemStack(blockPeripheral, 1, 2);
-		final ItemStack advancedMonitorsStack = new ItemStack(blockPeripheral, 4, 4);
-		final ItemStack advancedMonitorStack = new ItemStack(blockPeripheral, 1, 4);
 		final ItemStack diskStack = new ItemStack(diskItem);
-		final ItemStack driveStack = new ItemStack(blockPeripheral, 1, 0);
 		final ItemStack turtleStack = new ItemStack(blockTurtle);
 		final ItemStack advancedTurtleStack = new ItemStack(blockAdvancedTurtle);
 		final ItemStack computerStack = new ItemStack(blockComputer, 1);
 		final ItemStack advancedComputerStack = new ItemStack(blockComputer, 1, 16384);
 		final ItemStack cableStack = new ItemStack(cableBlock, 1, 0);
 		final ItemStack modemStack = new ItemStack(cableBlock, 1, 1);
+		final ItemStack driveStack = new ItemStack(blockPeripheral, 1, 0);
+		final ItemStack wirelessStack = new ItemStack(blockPeripheral, 1, 1);
+		final ItemStack monitorStack = new ItemStack(blockPeripheral, 1, 2);
+		final ItemStack printerStack = new ItemStack(blockPeripheral, 1, 3);
+		final ItemStack advancedMonitorsStack = new ItemStack(blockPeripheral, 4, 4);
+		final ItemStack advancedMonitorStack = new ItemStack(blockPeripheral, 1, 4);
 
 		final boolean bceLoaded = isModLoaded("BuildCraft|Energy");
 		// final boolean bctLoaded = isModLoaded("BuildCraft|Transport");
 
 		// for (Item item : Item.itemsList) {
 		// if (item != null) {
-		// logger.info("Item: " + item.itemID + "," + item.getUnlocalizedName());
+		// logger.info("Item: " + item.itemID + "," +
+		// item.getUnlocalizedName());
 		// }
 		// }
 		//
 		// for (Block block : Block.blocksList) {
 		// if (block != null) {
-		// logger.info("Item: " + block.blockID + "," + block.getUnlocalizedName());
+		// logger.info("Item: " + block.blockID + "," +
+		// block.getUnlocalizedName());
 		// }
 		// }
 
@@ -159,7 +170,7 @@ public class AnzacPeripheralsCore {
 		GameRegistry.addShapedRecipe(benchStack, "sws", "sbs", "scs", 's', stoneStack, 'w', workbenchStack, 'b',
 				basicStack, 'c', chestStack);
 		GameRegistry.addShapedRecipe(storageStack, "sws", "sbs", "sds", 's', stoneStack, 'w', workbenchStack, 'b',
-				basicStack, 'd', driveStack);
+				basicStack, 'd', hddStack);
 		GameRegistry.addShapedRecipe(itemStorageStack, "srs", "sas", "sds", 's', stoneStack, 'r', itemRouterStack, 'a',
 				advancedStack, 'd', hddStack);
 		GameRegistry.addShapedRecipe(fluidStorageStack, "srs", "sas", "sds", 's', stoneStack, 'r', fluidRouterStack,
@@ -181,14 +192,14 @@ public class AnzacPeripheralsCore {
 				Block.dropper);
 		final ItemStack tankStack = new ItemStack(tankBlock != null ? tankBlock : Block.cauldron);
 
-		GameRegistry.addShapedRecipe(itemRouterStack, "sds", "caf", "sws", 's', stoneStack, 'd', pipeDiamondStack, 'a',
-				advancedStack, 'w', pipeWoodStack, 'c', chestStack, 'f', driveStack);
-		GameRegistry.addShapedRecipe(fluidRouterStack, "sds", "taf", "sws", 's', stoneStack, 'd', fluidIronStack, 'a',
-				advancedStack, 'w', fluidWoodStack, 't', tankStack, 'f', driveStack);
+		GameRegistry.addShapedRecipe(itemRouterStack, "sds", "cas", "sws", 's', stoneStack, 'd', pipeDiamondStack, 'a',
+				advancedStack, 'w', pipeWoodStack, 'c', chestStack);
+		GameRegistry.addShapedRecipe(fluidRouterStack, "sds", "tas", "sws", 's', stoneStack, 'd', fluidIronStack, 'a',
+				advancedStack, 'w', fluidWoodStack, 't', tankStack);
 
 		GameRegistry.addShapedRecipe(basicStack, " r ", "rir", " r ", 'r', redstoneStack, 'i', ironIngotStack);
 		GameRegistry.addShapedRecipe(advancedStack, " r ", "rgr", " r ", 'r', redstoneStack, 'g', goldIngotStack);
-		GameRegistry.addShapedRecipe(hddStack, "ddd", "ddd", "ddd", 'd', diskStack);
+		GameRegistry.addShapedRecipe(hddStack, "ddd", "dDd", "ddd", 'd', diskStack, 'D', driveStack);
 
 		// modify Recipes
 		final List<IRecipe> recipeList = CraftingManager.getInstance().getRecipeList();
@@ -203,8 +214,10 @@ public class AnzacPeripheralsCore {
 					|| recipeOutput.isItemEqual(advancedMonitorsStack)
 					|| recipeOutput.isItemEqual(monitorStack)
 					|| recipeOutput.isItemEqual(modemStack)
+					|| recipeOutput.isItemEqual(wirelessStack)
 					|| recipeOutput.isItemEqual(cableStack)
 					|| recipeOutput.isItemEqual(driveStack)
+					|| recipeOutput.isItemEqual(printerStack)
 					|| (bceLoaded && (recipeOutput.isItemEqual(turtleStack) || recipeOutput
 							.isItemEqual(advancedTurtleStack)))) {
 				i.remove();
@@ -219,7 +232,11 @@ public class AnzacPeripheralsCore {
 		GameRegistry.addShapedRecipe(advancedComputerStack, "XDX", "XYX", "XZX", 'X', goldIngotStack, 'Y',
 				advancedStack, 'Z', advancedMonitorStack, 'D', hddStack);
 		GameRegistry.addShapedRecipe(driveStack, "XXX", "XYX", "X X", 'X', stoneStack, 'Y', basicStack);
+		GameRegistry
+				.addShapedRecipe(printerStack, "XXX", "XYX", "XIX", 'X', stoneStack, 'Y', basicStack, 'I', inkStack);
 		GameRegistry.addShapedRecipe(modemStack, "XXX", "XYX", "XXX", 'X', stoneStack, 'Y', basicStack);
+		GameRegistry.addShapedRecipe(wirelessStack, "XXX", "XYX", "XEX", 'X', stoneStack, 'Y', basicStack, 'E',
+				enderPearlStack);
 		GameRegistry.addShapedRecipe(cableStack, "XXX", "YYY", "XXX", 'X', stoneStack, 'Y', redstoneStack);
 
 		if (bceLoaded) {

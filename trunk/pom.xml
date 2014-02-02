@@ -9,10 +9,14 @@
 	<url>http://anzacgaming.co.uk</url>
 	<modules>
 		<module>peripherals</module>
-		<!-- <module>forge/mcp/eclipse/Minecraft</module> -->
 	</modules>
 	<properties>
-		<forge.version>1.6.4-9.11.1.965</forge.version>
+		<mcp.version>1.6.4</mcp.version>
+		<forge.version>9.11.1.965</forge.version>
+		<buildcraft.version>4.2.2</buildcraft.version>
+		<computercraft.version>1.58</computercraft.version>
+		<forge.full.version>${mcp.version}-${forge.version}</forge.full.version>
+		<buildcraft.full.version>A-${mcp.version}-${buildcraft.version}</buildcraft.full.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -42,13 +46,13 @@
 			<dependency>
 				<groupId>maven.net.minecraftforge</groupId>
 				<artifactId>forge</artifactId>
-				<version>${forge.version}</version>
+				<version>${forge.full.version}</version>
 				<classifier>universal</classifier>
 			</dependency>
 			<dependency>
 				<groupId>maven.net.minecraftforge</groupId>
 				<artifactId>forge</artifactId>
-				<version>${forge.version}</version>
+				<version>${forge.full.version}</version>
 				<classifier>src</classifier>
 				<type>zip</type>
 				<scope>provided</scope>
@@ -56,12 +60,12 @@
 			<dependency>
 				<groupId>buildcraft</groupId>
 				<artifactId>buildcraft</artifactId>
-				<version>A-1.6.4-4.2.2</version>
+				<version>${buildcraft.full.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>computercraft</groupId>
 				<artifactId>ComputerCraft</artifactId>
-				<version>1.58</version>
+				<version>${computercraft.version}</version>
 				<type>zip</type>
 			</dependency>
 		</dependencies>

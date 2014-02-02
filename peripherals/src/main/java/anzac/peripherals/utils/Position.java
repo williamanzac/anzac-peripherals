@@ -4,14 +4,15 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 
 public class Position {
-	public double x, y, z;
+	public int x, y, z;
 	public ForgeDirection orientation;
 
-	public Position(final double x, final double y, final double z) {
+	public Position(final int x, final int y, final int z) {
 		this(x, y, z, ForgeDirection.UNKNOWN);
 	}
 
-	public Position(final double x, final double y, final double z, final ForgeDirection orientation) {
+	public Position(final int x, final int y, final int z,
+			final ForgeDirection orientation) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -26,7 +27,7 @@ public class Position {
 		this(tile.xCoord, tile.yCoord, tile.zCoord);
 	}
 
-	public void moveRight(final double step) {
+	public void moveRight(final int step) {
 		switch (orientation) {
 		case SOUTH:
 			x = x - step;
@@ -44,11 +45,11 @@ public class Position {
 		}
 	}
 
-	public void moveLeft(final double step) {
+	public void moveLeft(final int step) {
 		moveRight(-step);
 	}
 
-	public void moveForwards(final double step) {
+	public void moveForwards(final int step) {
 		switch (orientation) {
 		case UP:
 			y = y + step;
@@ -72,11 +73,11 @@ public class Position {
 		}
 	}
 
-	public void moveBackwards(final double step) {
+	public void moveBackwards(final int step) {
 		moveForwards(-step);
 	}
 
-	public void moveUp(final double step) {
+	public void moveUp(final int step) {
 		switch (orientation) {
 		case SOUTH:
 		case NORTH:
@@ -88,7 +89,7 @@ public class Position {
 		}
 	}
 
-	public void moveDown(final double step) {
+	public void moveDown(final int step) {
 		moveUp(-step);
 	}
 
@@ -109,14 +110,11 @@ public class Position {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((orientation == null) ? 0 : orientation.hashCode());
-		long temp;
-		temp = Double.doubleToLongBits(x);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(y);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(z);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result
+				+ ((orientation == null) ? 0 : orientation.hashCode());
+		result = prime * result + x;
+		result = prime * result + y;
+		result = prime * result + z;
 		return result;
 	}
 
@@ -131,11 +129,11 @@ public class Position {
 		Position other = (Position) obj;
 		// if (orientation != other.orientation)
 		// return false;
-		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
+		if (x != other.x)
 			return false;
-		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
+		if (y != other.y)
 			return false;
-		if (Double.doubleToLongBits(z) != Double.doubleToLongBits(other.z))
+		if (z != other.z)
 			return false;
 		return true;
 	}

@@ -8,15 +8,18 @@ import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
 
 import anzac.peripherals.inventory.RecipeStorageContainer;
+import anzac.peripherals.tiles.BasePeripheralTileEntity;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
 
 public class RecipeStorageGUI extends GuiContainer {
 
 	public static final ResourceLocation gui = new ResourceLocation("anzac", "textures/gui/storage.png");
+	private final BasePeripheralTileEntity tileEntity;
 
 	public RecipeStorageGUI(final InventoryPlayer inventoryPlayer, final RecipeStorageTileEntity tileEntity) {
 		super(new RecipeStorageContainer(inventoryPlayer, tileEntity));
-		ySize = 199;
+		ySize = 170;
+		this.tileEntity = tileEntity;
 	}
 
 	@Override
@@ -30,7 +33,10 @@ public class RecipeStorageGUI extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
-		fontRenderer.drawString("Recipe Storage", 8, 6, 4210752);
-		fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, (ySize - 96) + 2, 4210752);
+		fontRenderer.drawString(tileEntity.hasLabel() ? tileEntity.getLabel()
+				: "Recipe Storage", 8, 6, 4210752);
+		fontRenderer.drawString(
+				StatCollector.translateToLocal("container.inventory"), 8,
+				(ySize - 96) + 2, 4210752);
 	}
 }

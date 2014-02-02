@@ -104,5 +104,4 @@ public class WorkbenchContainer extends BaseItemContainer {
 	private WorkbenchTileEntity getTileEntity() {
 		return (WorkbenchTileEntity) te;
 	}
-
 }

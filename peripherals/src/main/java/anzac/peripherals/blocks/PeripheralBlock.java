@@ -24,7 +24,6 @@ import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
 import anzac.peripherals.tiles.WorkbenchTileEntity;
 import anzac.peripherals.utils.Utils;
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -35,11 +34,7 @@ public class PeripheralBlock extends BlockContainer {
 	@SideOnly(Side.CLIENT)
 	private Icon workbenchIconFront;
 	@SideOnly(Side.CLIENT)
-	private Icon routerIcon;
-	@SideOnly(Side.CLIENT)
 	private Icon routerIconSide;
-	@SideOnly(Side.CLIENT)
-	private Icon routerFluidIcon;
 	@SideOnly(Side.CLIENT)
 	private Icon routerFluidIconSide;
 	@SideOnly(Side.CLIENT)
@@ -48,6 +43,8 @@ public class PeripheralBlock extends BlockContainer {
 	private Icon itemStorageFront;
 	@SideOnly(Side.CLIENT)
 	private Icon fluidStorageSide;
+	@SideOnly(Side.CLIENT)
+	private Icon genericSide;
 
 	public PeripheralBlock(final int blockId, final Material material) {
 		super(blockId, material);
@@ -76,29 +73,13 @@ public class PeripheralBlock extends BlockContainer {
 				return workbenchIconFront;
 			case 3:
 				return blockIcon;
-			default:
-				return GameRegistry.findBlock("ComputerCraft", "CC-Computer")
-						.getIcon(side, 1);
 			}
 		case 1: // recipe storage
-			return side == 1 ? workbenchIconTop : GameRegistry.findBlock(
-					"ComputerCraft", "CC-Peripheral").getIcon(side, 0);
+			return side == 1 ? workbenchIconTop : genericSide;
 		case 2: // item router
-			switch (side) {
-			case 0:
-			case 1:
-				return routerIcon;
-			default:
 				return routerIconSide;
-			}
 		case 3: // fluid router
-			switch (side) {
-			case 0:
-			case 1:
-				return routerFluidIcon;
-			default:
 				return routerFluidIconSide;
-			}
 		case 4: // item storage
 			switch (side) {
 			case 2:
@@ -107,21 +88,17 @@ public class PeripheralBlock extends BlockContainer {
 			case 4:
 			case 5:
 				return itemStorageSide;
-			default:
-				return GameRegistry.findBlock("ComputerCraft", "CC-Peripheral")
-						.getIcon(side, 0);
 			}
 		case 5: // fluid storage
 			switch (side) {
-			case 0:
-			case 1:
-				return GameRegistry.findBlock("ComputerCraft", "CC-Peripheral")
-						.getIcon(side, 0);
-			default:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
 				return fluidStorageSide;
 			}
 		}
-		return null;
+		return genericSide;
 	}
 
 	@Override
@@ -130,13 +107,12 @@ public class PeripheralBlock extends BlockContainer {
 		blockIcon = par1IconRegister.registerIcon(this.getTextureName() + "_side");
 		workbenchIconTop = par1IconRegister.registerIcon(this.getTextureName() + "_top");
 		workbenchIconFront = par1IconRegister.registerIcon(this.getTextureName() + "_front");
-		routerIcon = par1IconRegister.registerIcon("anzac:router");
 		routerIconSide = par1IconRegister.registerIcon("anzac:router_side");
-		routerFluidIcon = par1IconRegister.registerIcon("anzac:router_fluid");
 		routerFluidIconSide = par1IconRegister.registerIcon("anzac:router_fluid_side");
 		itemStorageSide = par1IconRegister.registerIcon("anzac:storage_side");
 		itemStorageFront = par1IconRegister.registerIcon("anzac:storage_front");
 		fluidStorageSide = par1IconRegister.registerIcon("anzac:fluid_storage_side");
+		genericSide = par1IconRegister.registerIcon("anzac:generic_side");
 	}
 
 	@Override

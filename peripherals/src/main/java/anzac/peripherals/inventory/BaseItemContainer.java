@@ -19,7 +19,8 @@ public abstract class BaseItemContainer extends Container {
 		return te.isUseableByPlayer(par1EntityPlayer);
 	}
 
-	private boolean tryMergeItemStack(final ItemStack stackToShift, final int numSlots) {
+	protected boolean tryMergeItemStack(final ItemStack stackToShift,
+			final int numSlots) {
 		for (int machineIndex = 0; machineIndex < numSlots - 9 * 4; machineIndex++) {
 			final Slot slot = (Slot) inventorySlots.get(machineIndex);
 			// if (slot instanceof SlotBase && !((SlotBase) slot).canShift()) {

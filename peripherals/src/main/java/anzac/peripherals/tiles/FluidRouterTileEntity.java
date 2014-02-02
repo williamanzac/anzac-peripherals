@@ -1,57 +1,28 @@
 package anzac.peripherals.tiles;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
-import dan200.computer.api.ILuaContext;
 
-public class FluidRouterTileEntity extends BasePeripheralTileEntity implements
-		IFluidHandler {
+public class FluidRouterTileEntity extends BasePeripheralTileEntity implements IFluidHandler {
 
+	private static final List<String> METHOD_NAMES = getMethodNames(FluidRouterTileEntity.class);
 	public FluidTank fluidTank = new FluidTank(FluidContainerRegistry.BUCKET_VOLUME);
-	private final Map<FluidStack, ForgeDirection> fluidRules = new HashMap<FluidStack, ForgeDirection>();
-	private ForgeDirection defaultRoute = ForgeDirection.UNKNOWN;
-	private String label;
-
-	private static enum Method {
-		addRule, removeRule, listRules, setDefault, extract, getLabel, setLabel;
-
-		public static String[] methodNames() {
-			final Method[] values = Method.values();
-			final String[] methods = new String[values.length];
-			for (final Method method : values) {
-				methods[method.ordinal()] = method.name();
-			}
-			return methods;
-		}
-
-		public static Method getMethod(final int ordinal) {
-			for (final Method method : Method.values()) {
-				if (method.ordinal() == ordinal) {
-					return method;
-				}
-			}
-			return null;
-		}
-	}
 
 	@Override
 	public String getType() {
@@ -59,69 +30,92 @@ public class FluidRouterTileEntity extends BasePeripheralTileEntity implements
 	}
 
 	@Override
-	public String[] getMethodNames() {
-		return Method.methodNames();
+	protected List<String> methodNames() {
+		final List<String> methodNames = super.methodNames();
+		methodNames.addAll(METHOD_NAMES);
+		return methodNames;
 	}
 
-	@Override
-	public Object[] callMethod(final IComputerAccess computer, final ILuaContext context, final int method,
-			final Object[] arguments) throws Exception {
-		Object ret = null;
-		switch (Method.getMethod(method)) {
-		case addRule:
-			ret = false;
-			fluidRules.put(new FluidStack(((Double) arguments[0]).intValue(), 1),
-					ForgeDirection.getOrientation(((Double) arguments[1]).intValue()));
-			ret = true;
-			break;
-		case removeRule:
-			final Integer id = ((Double) arguments[0]).intValue();
-			ret = false;
-			for (final Entry<FluidStack, ForgeDirection> entry : fluidRules.entrySet()) {
-				final FluidStack key = entry.getKey();
-				if (key.fluidID == id) {
-					fluidRules.remove(key);
-					ret = true;
-					break;
-				}
-			}
-			break;
-		case listRules:
-			final List<String> lines = new ArrayList<String>();
-			for (final Entry<FluidStack, ForgeDirection> entry : fluidRules.entrySet()) {
-				lines.add(entry.getKey().fluidID + "=>" + entry.getValue());
-			}
-			return lines.toArray();
-		case setDefault:
-			defaultRoute = ForgeDirection.getOrientation(((Double) arguments[0]).intValue());
-			ret = true;
-			break;
-		case extract:
-			final ForgeDirection fromDir = ForgeDirection.getOrientation(((Double) arguments[0]).intValue());
-			final int extractId = ((Double) arguments[1]).intValue();
-			final int amount = ((Double) arguments[2]).intValue();
-			final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
+	@PeripheralMethod
+	private Object tankInfo() throws Exception {
+		return tankInfo(ForgeDirection.UNKNOWN);
+	}
+
+	@PeripheralMethod
+	private Object tankInfo(final ForgeDirection direction) throws Exception {
+		final TileEntity te;
+		if (direction == ForgeDirection.UNKNOWN) {
+			te = this;
+		} else {
+			final Position pos = new Position(xCoord, yCoord, zCoord, direction);
 			pos.moveForwards(1);
-			final TileEntity te = worldObj.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+			te = worldObj.getBlockTileEntity(pos.x, pos.y, pos.z);
 			if (te == null || !(te instanceof IFluidHandler)) {
 				throw new Exception("Fluid Handler not found");
 			}
-			final IFluidHandler inv = (IFluidHandler) te;
-			final ForgeDirection opposite = fromDir.getOpposite();
-			if (inv.canDrain(opposite, FluidRegistry.getFluid(extractId))) {
-				final FluidStack fluidStack = inv.drain(opposite, amount, true);
-				fill(fromDir, fluidStack, true);
-				ret = fluidStack.amount;
-			}
-			break;
-		case getLabel:
-			ret = label;
-			break;
-		case setLabel:
-			label = (String) arguments[0];
-			break;
 		}
-		return ret == null ? null : new Object[] { ret };
+		final IFluidHandler handler = (IFluidHandler) te;
+		final ForgeDirection opposite = direction.getOpposite();
+		final FluidTankInfo[] tankInfo = handler.getTankInfo(opposite);
+		final Map<Integer, Map<Integer, Integer>> table = new HashMap<Integer, Map<Integer, Integer>>();
+		for (final FluidTankInfo info : tankInfo) {
+			if (info != null) {
+				final FluidStack fluid = info.fluid;
+				final int uuid = Utils.getUUID(fluid);
+				final int amountI = fluid == null ? 0 : fluid.amount;
+				final int capacity = info.capacity;
+				if (table.containsKey(uuid)) {
+					final Map<Integer, Integer> map = table.get(uuid);
+					map.put(0, map.get(0) + amountI);
+					map.put(1, map.get(1) + capacity);
+				} else {
+					final Map<Integer, Integer> list = new HashMap<Integer, Integer>();
+					table.put(uuid, list);
+					list.put(0, amountI);
+					list.put(1, capacity);
+				}
+			}
+		}
+		AnzacPeripheralsCore.logger.info("table:" + table);
+		return table;
+	}
+
+	@PeripheralMethod
+	private Object routeFrom(final ForgeDirection fromDir, final int amount) throws Exception {
+		final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
+		pos.moveForwards(1);
+		final TileEntity te = worldObj.getBlockTileEntity(pos.x, pos.y, pos.z);
+		if (te == null || !(te instanceof IFluidHandler)) {
+			throw new Exception("Fluid Handler not found");
+		}
+		final IFluidHandler handler = (IFluidHandler) te;
+		final ForgeDirection opposite = fromDir.getOpposite();
+		AnzacPeripheralsCore.logger.info("opposite:" + opposite);
+		final int canDrain = handler.drain(opposite, amount, false).amount;
+		AnzacPeripheralsCore.logger.info("canDrain:" + canDrain);
+		if (canDrain > 0) {
+			final FluidStack fluidStack = handler.drain(opposite, amount, true);
+			AnzacPeripheralsCore.logger.info("fluidStack:" + fluidStack);
+			fill(fromDir, fluidStack, true);
+			AnzacPeripheralsCore.logger.info("amount:" + fluidStack.amount);
+			return fluidStack.amount;
+		}
+		return null;
+	}
+
+	@PeripheralMethod
+	private int routeTo(final ForgeDirection toDir, final int amount) {
+		final FluidStack copy = fluidTank.getFluid().copy();
+		copy.amount = amount;
+		AnzacPeripheralsCore.logger.info("copy:" + copy);
+		final int amount1 = copy.amount;
+		copy.amount -= Utils.addToFluidHandler(worldObj, xCoord, yCoord, zCoord, toDir, copy);
+		final int toDrain = amount1 - copy.amount;
+		if (toDrain > 0) {
+			internalDrain(toDir, toDrain, true);
+		}
+		AnzacPeripheralsCore.logger.info("amount:" + copy.amount);
+		return amount - copy.amount;
 	}
 
 	@Override
@@ -140,28 +134,10 @@ public class FluidRouterTileEntity extends BasePeripheralTileEntity implements
 	public void readFromNBT(final NBTTagCompound tagCompound) {
 		super.readFromNBT(tagCompound);
 
-		// read label
-		if (tagCompound.hasKey("label")) {
-			label = tagCompound.getString("label");
-		}
-
 		// read tank
 		if (tagCompound.hasKey("fluid")) {
 			final NBTTagCompound tagFluid = (NBTTagCompound) tagCompound.getTag("fluid");
 			fluidTank.readFromNBT(tagFluid);
-		}
-
-		// read default Route
-		final int d = tagCompound.getInteger("default");
-		defaultRoute = ForgeDirection.getOrientation(d);
-
-		// read rules
-		final NBTTagList ruleList = tagCompound.getTagList("rules");
-		for (byte entry = 0; entry < ruleList.tagCount(); entry++) {
-			final NBTTagCompound fluidTag = (NBTTagCompound) ruleList.tagAt(entry);
-			final int direction = fluidTag.getInteger("direction");
-			final FluidStack stack = FluidStack.loadFluidStackFromNBT(fluidTag);
-			fluidRules.put(stack, ForgeDirection.getOrientation(direction));
 		}
 	}
 
@@ -169,44 +145,30 @@ public class FluidRouterTileEntity extends BasePeripheralTileEntity implements
 	public void writeToNBT(final NBTTagCompound tagCompound) {
 		super.writeToNBT(tagCompound);
 
-		// write label
-		if (label != null) {
-			tagCompound.setString("label", label);
-		}
-
 		// write tank
 		if (fluidTank != null) {
 			final NBTTagCompound tagFluid = new NBTTagCompound();
 			fluidTank.writeToNBT(tagFluid);
 			tagCompound.setTag("fluid", tagFluid);
 		}
-
-		// write default Route
-		tagCompound.setInteger("default", defaultRoute.ordinal());
-
-		// write rules
-		final NBTTagList ruleList = new NBTTagList();
-		for (final Entry<FluidStack, ForgeDirection> entry : fluidRules.entrySet()) {
-			final NBTTagCompound fluidTag = new NBTTagCompound();
-			fluidTag.setInteger("direction", entry.getValue().ordinal());
-			entry.getKey().writeToNBT(fluidTag);
-			ruleList.appendTag(fluidTag);
-		}
-		tagCompound.setTag("rules", ruleList);
 	}
 
 	@Override
 	public int fill(final ForgeDirection from, final FluidStack resource, final boolean doFill) {
-		if (resource == null) {
+		if (resource == null || !isAllowed(resource.getFluid())) {
 			return 0;
 		}
-		final int fill = fluidTank.fill(resource, doFill);
+		final int fill = internalFill(resource, doFill);
 		if (fill > 0 && doFill) {
 			for (final IComputerAccess computer : computers.keySet()) {
-				computer.queueEvent("fluid_sort", new Object[] { resource.fluidID, resource.amount });
+				computer.queueEvent("fluid_sort", new Object[] { Utils.getUUID(resource), resource.amount });
 			}
 		}
 		return fill;
+	}
+
+	protected int internalFill(final FluidStack resource, final boolean doFill) {
+		return fluidTank.fill(resource, doFill);
 	}
 
 	@Override
@@ -215,14 +177,32 @@ public class FluidRouterTileEntity extends BasePeripheralTileEntity implements
 		return null;
 	}
 
+	protected FluidStack internalDrain(final ForgeDirection from, final FluidStack resource, final boolean doDrain) {
+		if (resource == null) {
+			return null;
+		}
+		if (!resource.isFluidEqual(fluidTank.getFluid())) {
+			return null;
+		}
+		return internalDrain(from, resource.amount, doDrain);
+	}
+
 	@Override
 	public FluidStack drain(final ForgeDirection from, final int maxDrain, final boolean doDrain) {
 		// cannot drain
 		return null;
 	}
 
+	protected FluidStack internalDrain(final ForgeDirection from, final int maxDrain, final boolean doDrain) {
+		return fluidTank.drain(maxDrain, doDrain);
+	}
+
 	@Override
 	public boolean canFill(final ForgeDirection from, final Fluid fluid) {
+		return isConnected() && isAllowed(fluid);
+	}
+
+	protected boolean isAllowed(final Fluid fluid) {
 		return true;
 	}
 
@@ -246,38 +226,13 @@ public class FluidRouterTileEntity extends BasePeripheralTileEntity implements
 		if (!worldObj.isRemote) {
 			if (fluidTank != null && fluidTank.getFluid() != null && fluidTank.getFluid().amount > 0
 					&& worldObj.getTotalWorldTime() % 10 == 0 && isConnected()) {
-				routeFluid();
+				// routeFluid();
 			}
 		}
 	}
 
-	private void routeFluid() {
-		ForgeDirection side = defaultRoute;
-		final FluidStack copy = fluidTank.getFluid().copy();
-		copy.amount = 10;
-		for (final Entry<FluidStack, ForgeDirection> entry : fluidRules.entrySet()) {
-			final FluidStack key = entry.getKey();
-			if (Utils.stacksMatch(key, copy)) {
-				side = entry.getValue();
-				break;
-			}
-		}
-
-		if (side == ForgeDirection.UNKNOWN) {
-			defaultRoute(copy);
-		} else {
-			routeTo(side, copy);
-		}
-		if (copy.amount == 0) {
-			fluidTank.drain(10, true);
-		}
-	}
-
-	protected void routeTo(final ForgeDirection side, final FluidStack copy) {
-		copy.amount -= Utils.addToFluidHandler(worldObj, xCoord, yCoord, zCoord, side, copy);
-	}
-
-	protected void defaultRoute(final FluidStack copy) {
-		copy.amount -= Utils.addToRandomFluidHandler(worldObj, xCoord, yCoord, zCoord, copy);
+	@Override
+	protected boolean requiresMount() {
+		return false;
 	}
 }

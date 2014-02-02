@@ -20,10 +20,9 @@ public class ClassUtils {
 	public static <T> T getField(final String classname, final String name, final Class<T> type) {
 		try {
 			Class<?> clazz = getClass(classname);
-			Field field = null;
 			do {
 				try {
-					field = clazz.getDeclaredField(name);
+					final Field field = clazz.getDeclaredField(name);
 					field.setAccessible(true);
 					return (T) field.get(null);
 				} catch (final Throwable e) {

@@ -1,55 +1,27 @@
 package anzac.peripherals.tiles;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
-import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
-import dan200.computer.api.ILuaContext;
 
-public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
-		IInventory, ISidedInventory {
+public class ItemRouterTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory {
 
-	public ItemStack itemSlot;
-	private final Map<ItemStack, ForgeDirection> itemRules = new HashMap<ItemStack, ForgeDirection>();
-	private ForgeDirection defaultRoute = ForgeDirection.UNKNOWN;
-	private String label;
+	private static final List<String> METHOD_NAMES = getMethodNames(ItemRouterTileEntity.class);
 
-	protected static enum Method {
-		addRule, removeRule, listRules, setDefault, extract, getLabel, setLabel;
-
-		public static String[] methodNames() {
-			final Method[] values = Method.values();
-			final String[] methods = new String[values.length];
-			for (final Method method : values) {
-				methods[method.ordinal()] = method.name();
-			}
-			return methods;
-		}
-
-		public static Method getMethod(final int ordinal) {
-			for (final Method method : Method.values()) {
-				if (method.ordinal() == ordinal) {
-					return method;
-				}
-			}
-			return null;
-		}
-	}
+	private ItemStack itemSlot;
 
 	@Override
 	public String getType() {
@@ -57,75 +29,88 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 	}
 
 	@Override
-	public String[] getMethodNames() {
-		return Method.methodNames();
+	protected List<String> methodNames() {
+		final List<String> methodNames = super.methodNames();
+		methodNames.addAll(METHOD_NAMES);
+		return methodNames;
 	}
 
-	@Override
-	public Object[] callMethod(final IComputerAccess computer, final ILuaContext context, final int method,
-			final Object[] arguments) throws Exception {
-		Object ret = null;
-		switch (Method.getMethod(method)) {
-		case addRule:
-			ret = false;
-			itemRules.put(new ItemStack(((Double) arguments[0]).intValue(), 1, OreDictionary.WILDCARD_VALUE),
-					ForgeDirection.getOrientation(((Double) arguments[1]).intValue()));
-			ret = true;
-			break;
-		case removeRule:
-			final Integer id = ((Double) arguments[0]).intValue();
-			ret = false;
-			for (final Entry<ItemStack, ForgeDirection> entry : itemRules.entrySet()) {
-				final ItemStack key = entry.getKey();
-				if (key.itemID == id) {
-					itemRules.remove(key);
-					ret = true;
-					break;
-				}
-			}
-			break;
-		case listRules:
-			final List<String> lines = new ArrayList<String>();
-			for (final Entry<ItemStack, ForgeDirection> entry : itemRules.entrySet()) {
-				lines.add(entry.getKey().itemID + "=>" + entry.getValue());
-			}
-			return lines.toArray();
-		case setDefault:
-			defaultRoute = ForgeDirection.getOrientation(((Double) arguments[0]).intValue());
-			ret = true;
-			break;
-		case extract:
-			final ForgeDirection fromDir = ForgeDirection.getOrientation(((Double) arguments[0]).intValue());
-			final int extractId = ((Double) arguments[1]).intValue();
-			final int meta = ((Double) arguments[2]).intValue();
-			final int amount = ((Double) arguments[3]).intValue();
-			final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
+	@PeripheralMethod
+	private Object contents() throws Exception {
+		return contents(ForgeDirection.UNKNOWN);
+	}
+
+	@PeripheralMethod
+	private Object contents(final ForgeDirection direction) throws Exception {
+		final TileEntity te;
+		if (direction == ForgeDirection.UNKNOWN) {
+			te = this;
+		} else {
+			final Position pos = new Position(xCoord, yCoord, zCoord, direction);
 			pos.moveForwards(1);
-			final TileEntity te = worldObj.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+			te = worldObj.getBlockTileEntity(pos.x, pos.y, pos.z);
 			if (te == null || !(te instanceof IInventory)) {
 				throw new Exception("Inventory not found");
 			}
-			final IInventory inv = (IInventory) te;
-			final ItemStack stackToFind = new ItemStack(extractId, amount, meta != -1 ? meta
-					: OreDictionary.WILDCARD_VALUE);
-			for (int i = 0; i < inv.getSizeInventory(); i++) {
-				final ItemStack stackInSlot = inv.getStackInSlot(i);
-				if (Utils.stacksMatch(stackInSlot, stackToFind)) {
-					final ItemStack extracted = inv.decrStackSize(i, amount);
-					setInventorySlotContents(0, extracted);
-					ret = extracted.stackSize;
-					break;
+		}
+		final IInventory handler = (IInventory) te;
+		final ForgeDirection opposite = direction.getOpposite();
+		final int[] slots;
+		if (handler instanceof ISidedInventory) {
+			slots = ((ISidedInventory) handler).getAccessibleSlotsFromSide(opposite.ordinal());
+		} else {
+			slots = Utils.createSlotArray(0, handler.getSizeInventory());
+		}
+		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+		for (final int i : slots) {
+			final ItemStack stackInSlot = handler.getStackInSlot(i);
+			if (stackInSlot != null) {
+				final int uuid = Utils.getUUID(stackInSlot);
+				final int amount = stackInSlot.stackSize;
+				if (table.containsKey(uuid)) {
+					final int a = table.get(uuid);
+					table.put(uuid, a + amount);
+				} else {
+					table.put(uuid, amount);
 				}
 			}
-			break;
-		case getLabel:
-			ret = label;
-			break;
-		case setLabel:
-			label = (String) arguments[0];
-			break;
 		}
-		return ret == null ? null : new Object[] { ret };
+		AnzacPeripheralsCore.logger.info("table:" + table);
+		return table;
+	}
+
+	@PeripheralMethod
+	private Object routeFrom(final ForgeDirection fromDir, final int uuid, final int amount) throws Exception {
+		final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
+		pos.moveForwards(1);
+		final TileEntity te = worldObj.getBlockTileEntity(pos.x, pos.y, pos.z);
+		if (te == null || !(te instanceof IInventory)) {
+			throw new Exception("Inventory not found");
+		}
+		final IInventory inv = (IInventory) te;
+		final ItemStack stackToFind = Utils.getUUID(uuid);
+		for (int i = 0; i < inv.getSizeInventory(); i++) {
+			final ItemStack stackInSlot = inv.getStackInSlot(i);
+			if (Utils.stacksMatch(stackInSlot, stackToFind)) {
+				final ItemStack extracted = inv.decrStackSize(i, amount);
+				setInventorySlotContents(0, extracted);
+				return extracted.stackSize;
+			}
+		}
+		return null;
+	}
+
+	@PeripheralMethod
+	private int routeTo(final ForgeDirection toDir, final int amount) {
+		final ItemStack copy = itemSlot.copy();
+		copy.stackSize = amount;
+		final int amount1 = copy.stackSize;
+		routeTo(toDir, copy);
+		final int toDec = amount1 - copy.stackSize;
+		if (toDec > 0) {
+			decrStackSize(0, toDec);
+		}
+		return amount - copy.stackSize;
 	}
 
 	@Override
@@ -144,28 +129,10 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 	public void readFromNBT(final NBTTagCompound tagCompound) {
 		super.readFromNBT(tagCompound);
 
-		// read label
-		if (tagCompound.hasKey("label")) {
-			label = tagCompound.getString("label");
-		}
-
 		// read disk slot
 		if (tagCompound.hasKey("item")) {
 			final NBTTagCompound tagItem = (NBTTagCompound) tagCompound.getTag("item");
 			itemSlot = ItemStack.loadItemStackFromNBT(tagItem);
-		}
-
-		// read default Route
-		final int d = tagCompound.getInteger("default");
-		defaultRoute = ForgeDirection.getOrientation(d);
-
-		// read rules
-		final NBTTagList ruleList = tagCompound.getTagList("rules");
-		for (byte entry = 0; entry < ruleList.tagCount(); entry++) {
-			final NBTTagCompound itemTag = (NBTTagCompound) ruleList.tagAt(entry);
-			final int direction = itemTag.getInteger("direction");
-			final ItemStack stack = ItemStack.loadItemStackFromNBT(itemTag);
-			itemRules.put(stack, ForgeDirection.getOrientation(direction));
 		}
 	}
 
@@ -173,30 +140,16 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 	public void writeToNBT(final NBTTagCompound tagCompound) {
 		super.writeToNBT(tagCompound);
 
-		// write label
-		if (label != null) {
-			tagCompound.setString("label", label);
-		}
-
 		// write item slot
 		if (itemSlot != null) {
 			final NBTTagCompound tagItem = new NBTTagCompound();
 			itemSlot.writeToNBT(tagItem);
 			tagCompound.setTag("item", tagItem);
 		}
+	}
 
-		// write default Route
-		tagCompound.setInteger("default", defaultRoute.ordinal());
-
-		// write rules
-		final NBTTagList ruleList = new NBTTagList();
-		for (final Entry<ItemStack, ForgeDirection> entry : itemRules.entrySet()) {
-			final NBTTagCompound itemTag = new NBTTagCompound();
-			itemTag.setInteger("direction", entry.getValue().ordinal());
-			entry.getKey().writeToNBT(itemTag);
-			ruleList.appendTag(itemTag);
-		}
-		tagCompound.setTag("rules", ruleList);
+	protected boolean isAllowed(final ItemStack itemStack) {
+		return true;
 	}
 
 	@Override
@@ -219,7 +172,7 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 			stack.stackSize = getInventoryStackLimit();
 		}
 		for (final IComputerAccess computer : computers.keySet()) {
-			computer.queueEvent("item_sort", new Object[] { stack.itemID, stack.stackSize });
+			computer.queueEvent("item_sort", new Object[] { Utils.getUUID(stack), stack.stackSize });
 		}
 		onInventoryChanged();
 	}
@@ -251,12 +204,12 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 
 	@Override
 	public String getInvName() {
-		return label == null ? "" : label;
+		return getLabel();
 	}
 
 	@Override
 	public boolean isInvNameLocalized() {
-		return label == null ? false : true;
+		return hasLabel();
 	}
 
 	@Override
@@ -266,7 +219,7 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 
 	@Override
 	public boolean isUseableByPlayer(final EntityPlayer entityplayer) {
-		return worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
+		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
 				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
 	}
 
@@ -280,21 +233,22 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 
 	@Override
 	public boolean isItemValidForSlot(final int i, final ItemStack itemstack) {
-		return true;
+		return isConnected() && isAllowed(itemstack);
 	}
 
 	@Override
 	public int[] getAccessibleSlotsFromSide(final int var1) {
-		return new int[] { 0 };
+		return isConnected() ? new int[] { 0 } : new int[0];
 	}
 
 	@Override
 	public boolean canInsertItem(final int i, final ItemStack itemstack, final int j) {
-		return true;
+		return isConnected() && isAllowed(itemstack);
 	}
 
 	@Override
 	public boolean canExtractItem(final int i, final ItemStack itemstack, final int j) {
+		// cannot extract
 		return false;
 	}
 
@@ -303,34 +257,11 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 		if (worldObj == null) { // sanity check
 			return;
 		}
-		if (!worldObj.isRemote) {
-			if (itemSlot != null && itemSlot.stackSize > 0
-					&& worldObj.getTotalWorldTime() % 10 == 0 && isConnected()) {
-				routeItem();
-			}
-		}
 		super.updateEntity();
-	}
-
-	protected void routeItem() {
-		ForgeDirection side = defaultRoute;
-		final ItemStack copy = itemSlot.copy();
-		copy.stackSize = 1;
-		for (final Entry<ItemStack, ForgeDirection> entry : itemRules.entrySet()) {
-			final ItemStack key = entry.getKey();
-			if (Utils.stacksMatch(key, copy)) {
-				side = entry.getValue();
-				break;
+		if (!worldObj.isRemote) {
+			if (itemSlot != null && itemSlot.stackSize > 0 && worldObj.getTotalWorldTime() % 10 == 0 && isConnected()) {
+				// routeItem();
 			}
-		}
-
-		if (side == ForgeDirection.UNKNOWN) {
-			defaultRoute(copy);
-		} else {
-			routeTo(side, copy);
-		}
-		if (copy.stackSize == 0) {
-			decrStackSize(0, 1);
 		}
 	}
 
@@ -342,11 +273,8 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements
 		}
 	}
 
-	protected void defaultRoute(final ItemStack copy) {
-		copy.stackSize -= Utils.addToRandomInventory(worldObj, xCoord, yCoord, zCoord, copy);
-
-		if (copy.stackSize > 0) {
-			copy.stackSize -= Utils.addToRandomPipe(worldObj, xCoord, yCoord, zCoord, copy);
-		}
+	@Override
+	protected boolean requiresMount() {
+		return false;
 	}
 }

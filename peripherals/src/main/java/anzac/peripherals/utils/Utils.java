@@ -14,9 +14,11 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
+import buildcraft.api.inventory.ISpecialInventory;
 import buildcraft.api.transport.IPipeTile;
 import buildcraft.api.transport.IPipeTile.PipeType;
 
@@ -45,18 +47,13 @@ public class Utils {
 	 * merges provided ItemStack with the first avaliable one in the container/player inventory
 	 */
 	public static boolean mergeItemStack(final ItemStack sourceStack, final ItemStack targetStack) {
-		return mergeItemStack(sourceStack, targetStack, false);
-	}
-
-	public static boolean mergeItemStack(final ItemStack sourceStack, final ItemStack targetStack,
-			final boolean ignoreMax) {
 		boolean merged = false;
 
 		if (sourceStack.isStackable()) {
 			if (stacksMatch(targetStack, sourceStack)) {
 				final int l = targetStack.stackSize + sourceStack.stackSize;
 
-				if (ignoreMax || l <= sourceStack.getMaxStackSize()) {
+				if (l <= sourceStack.getMaxStackSize()) {
 					sourceStack.stackSize = 0;
 					targetStack.stackSize = l;
 					merged = true;
@@ -142,8 +139,9 @@ public class Utils {
 	public static void transferToSlot(final IInventory inv, final int slot, final ItemStack stack) {
 		final ItemStack stackInSlot = inv.getStackInSlot(slot);
 		if (stackInSlot == null) {
-			inv.setInventorySlotContents(slot, stack);
-			stack.stackSize = 0;
+			final ItemStack targetStack = stack.copy();
+			inv.setInventorySlotContents(slot, targetStack);
+			stack.stackSize -= targetStack.stackSize;
 		} else {
 			final boolean merged = mergeItemStack(stack, stackInSlot);
 			if (merged) {
@@ -154,6 +152,11 @@ public class Utils {
 
 	public static int addToInventory(final World world, final int x, final int y, final int z,
 			final ForgeDirection side, final ItemStack stack) {
+		return addToInventory(world, x, y, z, side, side.getOpposite(), stack);
+	}
+
+	public static int addToInventory(final World world, final int x, final int y, final int z,
+			final ForgeDirection side, final ForgeDirection insertSide, final ItemStack stack) {
 		final Position pos = new Position(x, y, z, side);
 		pos.moveForwards(1);
 
@@ -162,19 +165,19 @@ public class Utils {
 			final IInventory inv = (IInventory) tileInventory;
 			final ItemStack copy = stack.copy();
 			final int[] availableSlots;
-			if (tileInventory instanceof ISidedInventory) {
+			if (tileInventory instanceof ISpecialInventory) {
+				return ((ISpecialInventory) tileInventory).addItem(copy, true, insertSide);
+			} else if (tileInventory instanceof ISidedInventory) {
 				final ISidedInventory sidedInventory = (ISidedInventory) inv;
-				final int opposite = side.getOpposite().ordinal();
-				availableSlots = sidedInventory
-						.getAccessibleSlotsFromSide(opposite);
+				availableSlots = sidedInventory.getAccessibleSlotsFromSide(insertSide.ordinal());
 			} else {
 				availableSlots = createSlotArray(0, inv.getSizeInventory());
 			}
 			for (final int slot : availableSlots) {
 				transferToSlot(inv, slot, copy);
-					if (copy.stackSize == 0) {
-						break;
-					}
+				if (copy.stackSize == 0) {
+					break;
+				}
 			}
 			return stack.stackSize - copy.stackSize;
 		}
@@ -183,16 +186,20 @@ public class Utils {
 
 	public static int addToFluidHandler(final World world, final int x, final int y, final int z,
 			final ForgeDirection side, final FluidStack stack) {
+		return addToFluidHandler(world, x, y, z, side, side.getOpposite(), stack);
+	}
+
+	public static int addToFluidHandler(final World world, final int x, final int y, final int z,
+			final ForgeDirection side, final ForgeDirection insertSide, final FluidStack stack) {
 		final Position pos = new Position(x, y, z, side);
 		pos.moveForwards(1);
 
 		final TileEntity tileInventory = world.getBlockTileEntity(pos.x, pos.y, pos.z);
 		if (tileInventory != null && tileInventory instanceof IFluidHandler) {
-			final ForgeDirection opposite = side.getOpposite();
 			final FluidStack copy = stack.copy();
 			final IFluidHandler tank = (IFluidHandler) tileInventory;
-			if (tank.canFill(opposite, copy.getFluid())) {
-				copy.amount -= tank.fill(opposite, copy, true);
+			if (tank.canFill(insertSide, copy.getFluid())) {
+				copy.amount -= tank.fill(insertSide, copy, true);
 			}
 			return stack.amount - copy.amount;
 		}
@@ -219,30 +226,47 @@ public class Utils {
 		return (stack.getItemDamage() << 15) + stack.itemID;
 	}
 
-	public static ItemStack getUUID(final int uuid) {
-		return getUUID(uuid, 1);
+	public static ItemStack getItemStack(final int uuid) {
+		return getItemStack(uuid, 1);
 	}
 
-	public static ItemStack getUUID(final int uuid, final int stackSize) {
+	public static ItemStack getItemStack(final int uuid, final int stackSize) {
 		if (uuid == -1) {
 			return null;
 		}
-		final int meta = uuid >> 15;
-		final int id = uuid & 32767;
+		final int meta = getMeta(uuid);
+		final int id = getId(uuid);
 		return new ItemStack(id, stackSize, meta);
+	}
+
+	public static int getId(final int uuid) {
+		return uuid & 32767;
+	}
+
+	public static int getMeta(final int uuid) {
+		return uuid >> 15;
+	}
+
+	public static FluidStack getFluidStack(final int uuid, final int amount) {
+		if (uuid == -1) {
+			return null;
+		}
+		final Block block = Block.blocksList[uuid];
+		final Fluid fluid = FluidRegistry.lookupFluidForBlock(block);
+		return new FluidStack(fluid, amount);
 	}
 
 	public static int getUUID(final FluidStack stack) {
 		if (stack == null) {
 			return -1;
 		}
-		return stack.fluidID;
+		return getUUID(stack.getFluid());
 	}
 
-	public static int getUUID(final Fluid stack) {
-		if (stack == null) {
+	public static int getUUID(final Fluid fluid) {
+		if (fluid == null) {
 			return -1;
 		}
-		return stack.getID();
+		return fluid.getBlockID();
 	}
 }

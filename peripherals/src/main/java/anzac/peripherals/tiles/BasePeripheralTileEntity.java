@@ -1,5 +1,8 @@
 package anzac.peripherals.tiles;
 
+import static java.lang.reflect.Modifier.isAbstract;
+
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +24,6 @@ import dan200.computer.api.IPeripheral;
 
 public abstract class BasePeripheralTileEntity extends TileEntity implements IPeripheral {
 
-	private static final List<String> METHOD_NAMES = getMethodNames(BasePeripheralTileEntity.class);
 	protected final Map<IComputerAccess, Computer> computers = new HashMap<IComputerAccess, Computer>();
 
 	private class Computer {
@@ -44,7 +46,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 	}
 
 	protected List<String> methodNames() {
-		return METHOD_NAMES;
+		return getMethodNames(BasePeripheralTileEntity.class);
 	}
 
 	@Override
@@ -67,18 +69,31 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		for (int i = 0; i < arguments.length; i++) {
 			parameters[i] = convertArgument(arguments[i], method.getParameterTypes()[i]);
 		}
-		return method.invoke(this, parameters);
+		try {
+			return method.invoke(this, parameters);
+		} catch (final InvocationTargetException e) {
+			throw (Exception) e.getCause();
+		}
 	}
 
 	private Object convertArgument(final Object object, final Class<?> toClass) throws Exception {
-		if (toClass.isAssignableFrom(String.class)) {
+		if (toClass.isAssignableFrom(object.getClass())) {
+			// no converting needed
+			return object;
+		} else if (toClass.isAssignableFrom(String.class)) {
 			return convertToString(object);
 		} else if (toClass.isAssignableFrom(Integer.class) || toClass.isAssignableFrom(int.class)) {
 			return convertToInt(object);
+		} else if (toClass.isAssignableFrom(Long.class) || toClass.isAssignableFrom(long.class)) {
+			return convertToLong(object);
+		} else if (toClass.isAssignableFrom(Boolean.class) || toClass.isAssignableFrom(boolean.class)) {
+			return convertToBoolean(object);
 		} else if (toClass.isAssignableFrom(ForgeDirection.class)) {
 			return convertToDirection(object);
+		} else if (toClass.isEnum()) {
+			return convertToEnum(object, toClass);
 		}
-		throw new Exception("Expected argument of type " + toClass.getName());
+		throw new Exception("Expected argument of type " + toClass.getName() + " got " + object.getClass());
 	}
 
 	@Override
@@ -91,12 +106,14 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		AnzacPeripheralsCore.computerPeripheralMap.put(computer.getID(), this);
 		computers.put(computer, new Computer(computer.getAttachmentName()));
 		createMount();
+		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 	}
 
 	@Override
 	public void detach(final IComputerAccess computer) {
 		AnzacPeripheralsCore.computerPeripheralMap.remove(computer.getID());
 		computers.remove(computer);
+		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 	}
 
 	protected boolean isConnected() {
@@ -127,7 +144,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		if (nbtTagCompound.hasKey("hddId")) {
 			id = nbtTagCompound.getInteger("hddId");
 		}
-		if (id >= 0 && isConnected() && mount == null && requiresMount()) {
+		if (id >= 0 && mount == null && requiresMount()) {
 			createMount();
 		}
 
@@ -167,27 +184,42 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 	}
 
 	@PeripheralMethod
-	protected void setLabel(final String label) {
+	public void setLabel(final String label) {
 		this.label = label;
 	}
 
-	protected String convertToString(final Object argument) throws Exception {
-		if (argument instanceof String) {
-			return (String) argument;
-		}
-		throw new Exception("Expected a String");
+	private String convertToString(final Object argument) throws Exception {
+		return argument.toString();
 	}
 
-	protected int convertToInt(final Object argument) throws Exception {
+	private int convertToInt(final Object argument) throws Exception {
 		if (argument instanceof Number) {
 			return ((Number) argument).intValue();
 		} else if (argument instanceof String) {
-			return Integer.parseInt(((String) argument).toUpperCase());
+			return Integer.parseInt((String) argument);
 		}
 		throw new Exception("Expected a Number");
 	}
 
-	protected ForgeDirection convertToDirection(final Object argument) throws Exception {
+	private boolean convertToBoolean(final Object argument) throws Exception {
+		if (argument instanceof Boolean) {
+			return ((Boolean) argument).booleanValue();
+		} else if (argument instanceof String) {
+			return Boolean.parseBoolean((String) argument);
+		}
+		throw new Exception("Expected a Boolean");
+	}
+
+	private long convertToLong(final Object argument) throws Exception {
+		if (argument instanceof Number) {
+			return ((Number) argument).longValue();
+		} else if (argument instanceof String) {
+			return Long.parseLong((String) argument);
+		}
+		throw new Exception("Expected a Number");
+	}
+
+	private ForgeDirection convertToDirection(final Object argument) throws Exception {
 		if (argument instanceof Number) {
 			return ForgeDirection.getOrientation(((Number) argument).intValue());
 		} else if (argument instanceof String) {
@@ -196,9 +228,28 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		throw new Exception("Expected a Direction");
 	}
 
+	@SuppressWarnings("unchecked")
+	private <E extends Enum<?>> E convertToEnum(final Object argument, final Class<?> eClass) throws Exception {
+		final E[] enumConstants = (E[]) eClass.getEnumConstants();
+		if (argument instanceof Number) {
+			final int ord = ((Number) argument).intValue();
+			if (ord >= 0 && ord < enumConstants.length) {
+				return enumConstants[ord];
+			}
+		} else if (argument instanceof String) {
+			final String name = ((String) argument).toUpperCase();
+			for (final E e : enumConstants) {
+				if (e.name().equals(name)) {
+					return e;
+				}
+			}
+		}
+		throw new Exception("Unexpected value");
+	}
+
 	protected static <T extends BasePeripheralTileEntity> List<Method> getPeripheralMethods(final Class<T> pClass) {
 		final List<Method> methods = new ArrayList<Method>();
-		for (final Method method : pClass.getDeclaredMethods()) {
+		for (final Method method : pClass.getMethods()) {
 			if (method.isAnnotationPresent(PeripheralMethod.class)) {
 				methods.add(method);
 			}
@@ -208,7 +259,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	protected static <T extends BasePeripheralTileEntity> List<String> getMethodNames(final Class<T> pClass) {
 		final List<String> methods = new ArrayList<String>();
-		for (final Method method : pClass.getDeclaredMethods()) {
+		for (final Method method : pClass.getMethods()) {
 			if (method.isAnnotationPresent(PeripheralMethod.class) && !methods.contains(method.getName())) {
 				methods.add(method.getName());
 			}
@@ -218,12 +269,21 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	protected static <T extends BasePeripheralTileEntity> Method getMethodByName(final Class<T> pClass,
 			final String name, final int argCount) throws Exception {
-		for (final Method method : pClass.getDeclaredMethods()) {
-			if (method.isAnnotationPresent(PeripheralMethod.class) && method.getName().equals(name)
-					&& method.getParameterTypes().length == argCount) {
+		for (final Method method : pClass.getMethods()) {
+			if (method.isAnnotationPresent(PeripheralMethod.class) && !isAbstract(method.getModifiers())
+					&& method.getName().equals(name) && method.getParameterTypes().length == argCount) {
 				return method;
 			}
 		}
 		throw new Exception("Unable to find a method called " + name + " with " + argCount + " arguments");
+	}
+
+	@PeripheralMethod
+	public int getId() {
+		return id;
+	}
+
+	public void setId(final int id) {
+		this.id = id;
 	}
 }

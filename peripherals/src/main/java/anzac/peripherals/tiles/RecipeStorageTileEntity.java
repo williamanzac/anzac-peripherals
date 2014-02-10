@@ -15,14 +15,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
 import dan200.computer.api.IWritableMount;
 
 public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
-	private static final List<String> METHOD_NAMES = getMethodNames(RecipeStorageTileEntity.class);
 
 	public InventoryCrafting craftMatrix = new InternalInventoryCrafting(3);
 	public InventoryCraftResult craftResult = new InventoryCraftResult();
@@ -37,7 +35,7 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 	}
 
 	@PeripheralMethod
-	private Object[] getRecipes() throws Exception {
+	public Object[] getRecipes() throws Exception {
 		final List<String> recipes = new ArrayList<String>();
 		if (mount == null) {
 			throw new Exception("No disk loaded");
@@ -53,13 +51,11 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 
 	@Override
 	protected List<String> methodNames() {
-		final List<String> methodNames = super.methodNames();
-		methodNames.addAll(METHOD_NAMES);
-		return methodNames;
+		return getMethodNames(RecipeStorageTileEntity.class);
 	}
 
 	@PeripheralMethod
-	private Map<Integer, Integer> loadRecipe(final int id) throws Exception {
+	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
 		if (mount == null) {
 			throw new Exception("No disk loaded");
 		}
@@ -80,7 +76,7 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 	}
 
 	@PeripheralMethod
-	private boolean removeRecipe(final int id) throws Exception {
+	public boolean removeRecipe(final int id) throws Exception {
 		if (mount == null) {
 			throw new Exception("No disk loaded");
 		}
@@ -89,7 +85,7 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 	}
 
 	@PeripheralMethod
-	private boolean storeRecipe() throws Exception {
+	public boolean storeRecipe() throws Exception {
 		if (mount == null) {
 			throw new Exception("No disk loaded");
 		}
@@ -109,18 +105,6 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		} finally {
 			out.close();
 		}
-	}
-
-	@Override
-	public void attach(final IComputerAccess computer) {
-		super.attach(computer);
-		AnzacPeripheralsCore.storageMap.put(computer.getID(), this);
-	}
-
-	@Override
-	public void detach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.storageMap.remove(computer.getID());
-		super.detach(computer);
 	}
 
 	@Override

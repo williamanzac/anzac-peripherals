@@ -56,10 +56,6 @@ public class AnzacPeripheralsCore {
 	public static Item cpu;
 	public static Item hdd;
 
-	public static final Map<Integer, WorkbenchTileEntity> workbenchMap = new HashMap<Integer, WorkbenchTileEntity>();
-	public static final Map<Integer, RecipeStorageTileEntity> storageMap = new HashMap<Integer, RecipeStorageTileEntity>();
-	public static final Map<Integer, ItemRouterTileEntity> itemRouterMap = new HashMap<Integer, ItemRouterTileEntity>();
-	public static final Map<Integer, FluidRouterTileEntity> fluidRouterMap = new HashMap<Integer, FluidRouterTileEntity>();
 	public static final Map<Integer, BasePeripheralTileEntity> computerPeripheralMap = new HashMap<Integer, BasePeripheralTileEntity>();
 
 	public static int storageSize;
@@ -149,6 +145,24 @@ public class AnzacPeripheralsCore {
 		final ItemStack advancedMonitorsStack = new ItemStack(blockPeripheral, 4, 4);
 		final ItemStack advancedMonitorStack = new ItemStack(blockPeripheral, 1, 4);
 
+		// optional BuildCraft items
+		final Item itemPipeWood = Utils.getItem("buildcraft.BuildCraftTransport", "pipeItemsWood");
+		final Item itemPipeDiamond = Utils.getItem("buildcraft.BuildCraftTransport", "pipeItemsDiamond");
+		final Item fluidPipeWood = Utils.getItem("buildcraft.BuildCraftTransport", "pipeFluidsWood");
+		final Item fluidPipeIron = Utils.getItem("buildcraft.BuildCraftTransport", "pipeFluidsIron");
+		final Block tankBlock = Utils.getBlock("buildcraft.BuildCraftFactory", "tankBlock");
+
+		// swap for Vanilla items if needed
+		final ItemStack pipeWoodStack = itemPipeWood != null ? new ItemStack(itemPipeWood) : new ItemStack(
+				Block.hopperBlock);
+		final ItemStack pipeDiamondStack = itemPipeDiamond != null ? new ItemStack(itemPipeDiamond) : new ItemStack(
+				Block.dropper);
+		final ItemStack fluidWoodStack = fluidPipeWood != null ? new ItemStack(fluidPipeWood) : new ItemStack(
+				Block.hopperBlock);
+		final ItemStack fluidIronStack = fluidPipeIron != null ? new ItemStack(fluidPipeIron) : new ItemStack(
+				Block.dropper);
+		final ItemStack tankStack = new ItemStack(tankBlock != null ? tankBlock : Block.cauldron);
+
 		final boolean bceLoaded = isModLoaded("BuildCraft|Energy");
 		// final boolean bctLoaded = isModLoaded("BuildCraft|Transport");
 
@@ -167,39 +181,23 @@ public class AnzacPeripheralsCore {
 		// }
 
 		// new recipes
+		GameRegistry.addShapedRecipe(basicStack, " r ", "rir", " r ", 'r', redstoneStack, 'i', ironIngotStack);
+		GameRegistry.addShapedRecipe(advancedStack, " r ", "rgr", " r ", 'r', redstoneStack, 'g', goldIngotStack);
+		GameRegistry.addShapedRecipe(hddStack, "ddd", "dDd", "ddd", 'd', diskStack, 'D', driveStack);
+
 		GameRegistry.addShapedRecipe(benchStack, "sws", "sbs", "scs", 's', stoneStack, 'w', workbenchStack, 'b',
 				basicStack, 'c', chestStack);
 		GameRegistry.addShapedRecipe(storageStack, "sws", "sbs", "sds", 's', stoneStack, 'w', workbenchStack, 'b',
 				basicStack, 'd', hddStack);
-		GameRegistry.addShapedRecipe(itemStorageStack, "srs", "sas", "sds", 's', stoneStack, 'r', itemRouterStack, 'a',
+		GameRegistry.addShapedRecipe(itemStorageStack, "scs", "sas", "sds", 's', stoneStack, 'c', chestStack, 'a',
 				advancedStack, 'd', hddStack);
-		GameRegistry.addShapedRecipe(fluidStorageStack, "srs", "sas", "sds", 's', stoneStack, 'r', fluidRouterStack,
-				'a', advancedStack, 'd', hddStack);
+		GameRegistry.addShapedRecipe(fluidStorageStack, "sts", "sas", "sds", 's', stoneStack, 't', tankStack, 'a',
+				advancedStack, 'd', hddStack);
 
-		final Item itemPipeWood = Utils.getItem("buildcraft.BuildCraftTransport", "pipeItemsWood");
-		final Item itemPipeDiamond = Utils.getItem("buildcraft.BuildCraftTransport", "pipeItemsDiamond");
-		final Item fluidPipeWood = Utils.getItem("buildcraft.BuildCraftTransport", "pipeFluidsWood");
-		final Item fluidPipeIron = Utils.getItem("buildcraft.BuildCraftTransport", "pipeFluidsIron");
-		final Block tankBlock = Utils.getBlock("buildcraft.BuildCraftFactory", "tankBlock");
-
-		final ItemStack pipeWoodStack = itemPipeWood != null ? new ItemStack(itemPipeWood) : new ItemStack(
-				Block.hopperBlock);
-		final ItemStack pipeDiamondStack = itemPipeDiamond != null ? new ItemStack(itemPipeDiamond) : new ItemStack(
-				Block.dropper);
-		final ItemStack fluidWoodStack = fluidPipeWood != null ? new ItemStack(fluidPipeWood) : new ItemStack(
-				Block.hopperBlock);
-		final ItemStack fluidIronStack = fluidPipeIron != null ? new ItemStack(fluidPipeIron) : new ItemStack(
-				Block.dropper);
-		final ItemStack tankStack = new ItemStack(tankBlock != null ? tankBlock : Block.cauldron);
-
-		GameRegistry.addShapedRecipe(itemRouterStack, "sds", "cas", "sws", 's', stoneStack, 'd', pipeDiamondStack, 'a',
-				advancedStack, 'w', pipeWoodStack, 'c', chestStack);
-		GameRegistry.addShapedRecipe(fluidRouterStack, "sds", "tas", "sws", 's', stoneStack, 'd', fluidIronStack, 'a',
-				advancedStack, 'w', fluidWoodStack, 't', tankStack);
-
-		GameRegistry.addShapedRecipe(basicStack, " r ", "rir", " r ", 'r', redstoneStack, 'i', ironIngotStack);
-		GameRegistry.addShapedRecipe(advancedStack, " r ", "rgr", " r ", 'r', redstoneStack, 'g', goldIngotStack);
-		GameRegistry.addShapedRecipe(hddStack, "ddd", "dDd", "ddd", 'd', diskStack, 'D', driveStack);
+		GameRegistry.addShapedRecipe(itemRouterStack, "sds", "sbs", "sws", 's', stoneStack, 'd', pipeDiamondStack, 'b',
+				basicStack, 'w', pipeWoodStack);
+		GameRegistry.addShapedRecipe(fluidRouterStack, "sds", "sbs", "sws", 's', stoneStack, 'd', fluidIronStack, 'b',
+				basicStack, 'w', fluidWoodStack);
 
 		// modify Recipes
 		final List<IRecipe> recipeList = CraftingManager.getInstance().getRecipeList();
@@ -209,17 +207,12 @@ public class AnzacPeripheralsCore {
 			if (recipeOutput == null) {
 				continue;
 			}
-			if (recipeOutput.isItemEqual(computerStack)
-					|| recipeOutput.isItemEqual(advancedComputerStack)
-					|| recipeOutput.isItemEqual(advancedMonitorsStack)
-					|| recipeOutput.isItemEqual(monitorStack)
-					|| recipeOutput.isItemEqual(modemStack)
-					|| recipeOutput.isItemEqual(wirelessStack)
-					|| recipeOutput.isItemEqual(cableStack)
-					|| recipeOutput.isItemEqual(driveStack)
-					|| recipeOutput.isItemEqual(printerStack)
-					|| (bceLoaded && (recipeOutput.isItemEqual(turtleStack) || recipeOutput
-							.isItemEqual(advancedTurtleStack)))) {
+			if (recipeOutput.isItemEqual(computerStack) || recipeOutput.isItemEqual(advancedComputerStack)
+					|| recipeOutput.isItemEqual(advancedMonitorsStack) || recipeOutput.isItemEqual(monitorStack)
+					|| recipeOutput.isItemEqual(modemStack) || recipeOutput.isItemEqual(wirelessStack)
+					|| recipeOutput.isItemEqual(cableStack) || recipeOutput.isItemEqual(driveStack)
+					|| recipeOutput.isItemEqual(printerStack) || bceLoaded
+					&& (recipeOutput.isItemEqual(turtleStack) || recipeOutput.isItemEqual(advancedTurtleStack))) {
 				i.remove();
 			}
 		}

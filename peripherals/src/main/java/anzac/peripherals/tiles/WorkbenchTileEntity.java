@@ -22,7 +22,7 @@ import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
 
 public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory {
-	private static final List<String> METHOD_NAMES = getMethodNames(WorkbenchTileEntity.class);
+
 	private static final String INVENTORY = "inventory";
 	private static final String SLOT = "Slot";
 	private static final String MATRIX = "matrix";
@@ -41,9 +41,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 
 	@Override
 	protected List<String> methodNames() {
-		final List<String> methodNames = super.methodNames();
-		methodNames.addAll(METHOD_NAMES);
-		return methodNames;
+		return getMethodNames(WorkbenchTileEntity.class);
 	}
 
 	public void updateCraftingRecipe() {
@@ -52,21 +50,23 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	}
 
 	@PeripheralMethod
-	private boolean setRecipe(final Map<Integer, Integer> recipe) {
+	public boolean setRecipe(final Map<Double, Double> recipe) {
 		craftMatrix.clear();
-		for (final Entry<Integer, Integer> entry : recipe.entrySet()) {
-			craftMatrix.setInventorySlotContents(entry.getKey(), Utils.getUUID(entry.getValue(), 1));
+		for (final Entry<Double, Double> entry : recipe.entrySet()) {
+			craftMatrix.setInventorySlotContents(entry.getKey().intValue(),
+					Utils.getItemStack(entry.getValue().intValue(), 1));
 		}
+		updateCraftingRecipe();
 		return craftResult.getStackInSlot(0) != null;
 	}
 
 	@PeripheralMethod
-	private void clear() {
+	public void clear() {
 		craftMatrix.clear();
 	}
 
 	@PeripheralMethod
-	private Object contents() throws Exception {
+	public Object contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
 		for (final ItemStack stackInSlot : inventory) {
 			if (stackInSlot != null) {
@@ -85,7 +85,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	}
 
 	@PeripheralMethod
-	private void craft() throws Exception {
+	public void craft() throws Exception {
 		if (internalPlayer == null) {
 			internalPlayer = new InternalPlayer(this);
 			craftSlot = new SlotCrafting(internalPlayer, craftMatrix, craftResult, 0, 0, 0);
@@ -163,18 +163,6 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 			return false;
 		}
 		return true;
-	}
-
-	@Override
-	public void attach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.workbenchMap.put(computer.getID(), this);
-		super.attach(computer);
-	}
-
-	@Override
-	public void detach(final IComputerAccess computer) {
-		super.detach(computer);
-		AnzacPeripheralsCore.workbenchMap.remove(computer.getID());
 	}
 
 	@Override

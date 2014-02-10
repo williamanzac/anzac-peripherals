@@ -1,35 +1,31 @@
 package anzac.peripherals.tiles;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
-import dan200.computer.api.IWritableMount;
 
-public class ItemStorageTileEntity extends ItemRouterTileEntity {
+public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory {
 
-	private final int[] SLOT_ARRAY = Utils.createSlotArray(0, getSizeInventory());
+	private static final String INVENTORY = "inventory";
+	private static final String SLOT = "Slot";
+	private static final int maxStackSize = 640;
+	private static final int maxCount = AnzacPeripheralsCore.storageSize / maxStackSize;
+	private static final int[] SLOT_ARRAY = Utils.createSlotArray(0, maxCount);
 
-	private static final List<String> METHOD_NAMES = getMethodNames(ItemStorageTileEntity.class);
-
-	private final Map<Integer, ItemStack> inventory = new HashMap<Integer, ItemStack>();
-	private static final int maxCount = AnzacPeripheralsCore.storageSize / 64;
-	private final Set<Integer> filter = new HashSet<Integer>();
+	private final ItemStack[] inventory = new ItemStack[maxCount];
+	private boolean useOreDict;
+	private boolean ignoreMeta;
 
 	// private List<Position> multiblock = null;
 	// private boolean multiblockDirty = false;
@@ -38,15 +34,53 @@ public class ItemStorageTileEntity extends ItemRouterTileEntity {
 	}
 
 	@Override
-	protected List<String> methodNames() {
-		final List<String> methodNames = super.methodNames();
-		methodNames.addAll(METHOD_NAMES);
-		return methodNames;
+	public String getType() {
+		return "ItemStorage";
 	}
 
 	@Override
-	public String getType() {
-		return "ItemStorage";
+	protected List<String> methodNames() {
+		return getMethodNames(ItemStorageTileEntity.class);
+	}
+
+	@Override
+	@PeripheralMethod
+	public Object contents() throws Exception {
+		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+		for (final ItemStack stack : inventory) {
+			if (stack != null) {
+				final int uuid = Utils.getUUID(stack);
+				final int amount = stack.stackSize;
+				if (table.containsKey(uuid)) {
+					final int a = table.get(uuid);
+					table.put(uuid, a + amount);
+				} else {
+					table.put(uuid, amount);
+				}
+			}
+		}
+		AnzacPeripheralsCore.logger.info("table:" + table);
+		return table;
+	}
+
+	protected boolean isAllowed(final ItemStack stack) {
+		final int id = getId(stack);
+		return isAllowed(id);
+	}
+
+	private int getId(final ItemStack stack) {
+		int id = -1;
+		if (useOreDict) {
+			id = OreDictionary.getOreID(stack);
+		}
+		if (id == -1) {
+			if (ignoreMeta) {
+				id = stack.itemID;
+			} else {
+				id = Utils.getUUID(stack);
+			}
+		}
+		return id;
 	}
 
 	@Override
@@ -64,43 +98,14 @@ public class ItemStorageTileEntity extends ItemRouterTileEntity {
 		// multiblock = null;
 		// }
 
-		if (mount != null) {
-			// read tanks
-			final List<String> slots = new ArrayList<String>();
-			try {
-				mount.list("inventory", slots);
-				inventory.clear();
-				for (String slot : slots) {
-					final InputStream in = mount.openForRead("inventory/" + slot);
-					final DataInputStream dis = new DataInputStream(in);
-					try {
-						final int uuid = dis.readInt();
-						if (uuid != -1) {
-							int amount = dis.readInt();
-							inventory.put(Integer.parseInt(slot), Utils.getUUID(uuid, amount));
-						}
-					} finally {
-						dis.close();
-					}
-				}
-			} catch (IOException e) {
-				// ignore this
-			}
-
-			// read filter
-			try {
-				final InputStream in = mount.openForRead("filter");
-				final DataInputStream din = new DataInputStream(in);
-				filter.clear();
-				try {
-					filter.add(din.readInt());
-				} catch (final EOFException e1) {
-					// ignore this will happen
-				} finally {
-					din.close();
-				}
-			} catch (final IOException e) {
-				// ignore this
+		// read inventory slots
+		final NBTTagList list = nbtRoot.getTagList(INVENTORY);
+		for (byte entry = 0; entry < list.tagCount(); entry++) {
+			final NBTTagCompound itemTag = (NBTTagCompound) list.tagAt(entry);
+			final int slot = itemTag.getInteger(SLOT);
+			if (slot >= 0 && slot < getSizeInventory()) {
+				final ItemStack stack = ItemStack.loadItemStackFromNBT(itemTag);
+				inventory[slot] = stack;
 			}
 		}
 	}
@@ -121,44 +126,18 @@ public class ItemStorageTileEntity extends ItemRouterTileEntity {
 		// nbtRoot.setIntArray("multiblock", vals);
 		// }
 
-		if (mount != null) {
-			// write tanks
-			try {
-				((IWritableMount) mount).delete("inventory");
-				for (final Entry<Integer, ItemStack> entry : inventory.entrySet()) {
-					final OutputStream out = ((IWritableMount) mount).openForWrite("inventory/" + entry.getKey());
-					final DataOutputStream dos = new DataOutputStream(out);
-					try {
-						final ItemStack stack = entry.getValue();
-						final int id = Utils.getUUID(stack);
-						dos.writeInt(id);
-						if (id != -1) {
-							final int amount = stack.stackSize;
-							dos.writeInt(amount);
-						}
-					} finally {
-						dos.close();
-					}
-				}
-			} catch (final IOException e) {
-				// ignore this
-			}
-
-			// write filter
-			try {
-				final OutputStream out = ((IWritableMount) mount).openForWrite("filter");
-				final DataOutputStream dos = new DataOutputStream(out);
-				try {
-					for (final Integer id : filter) {
-						dos.writeInt(id);
-					}
-				} finally {
-					dos.close();
-				}
-			} catch (final IOException e) {
-				// ignore this
+		// write craft slots
+		final NBTTagList list = new NBTTagList();
+		for (int slot = 0; slot < inventory.length; slot++) {
+			final ItemStack stack = inventory[slot];
+			if (stack != null) {
+				final NBTTagCompound itemTag = new NBTTagCompound();
+				itemTag.setInteger(SLOT, slot);
+				stack.writeToNBT(itemTag);
+				list.appendTag(itemTag);
 			}
 		}
+		nbtRoot.setTag(INVENTORY, list);
 	}
 
 	@Override
@@ -187,17 +166,18 @@ public class ItemStorageTileEntity extends ItemRouterTileEntity {
 
 	@Override
 	public ItemStack getStackInSlot(final int i) {
-		return inventory.get(i);
+		return inventory[i];
 	}
 
 	@Override
 	public void setInventorySlotContents(final int slot, final ItemStack stack) {
-		inventory.put(slot, stack);
+		inventory[slot] = stack;
 		if (stack == null) {
 			return;
 		}
-		if (stack.stackSize > getInventoryStackLimit()) {
-			stack.stackSize = getInventoryStackLimit();
+		final int inventoryStackLimit = getInventoryStackLimit();
+		if (stack.stackSize > inventoryStackLimit) {
+			stack.stackSize = inventoryStackLimit;
 		}
 		onInventoryChanged();
 	}
@@ -239,7 +219,7 @@ public class ItemStorageTileEntity extends ItemRouterTileEntity {
 
 	@Override
 	public int[] getAccessibleSlotsFromSide(final int var1) {
-		return isConnected() ? SLOT_ARRAY : new int[0];
+		return SLOT_ARRAY;
 	}
 
 	// public void onBlockAdded() {
@@ -374,40 +354,74 @@ public class ItemStorageTileEntity extends ItemRouterTileEntity {
 	// }
 
 	@Override
-	protected boolean isAllowed(final ItemStack stack) {
-		if (mount == null) {
-			return false;
-		}
-		final int id = Utils.getUUID(stack);
-		return filter.contains(id);
-	}
-
-	@PeripheralMethod
-	private Set<Integer> listFilter() throws Exception {
-		if (mount == null) {
-			throw new Exception("No disk loaded");
-		}
-		return filter;
-	}
-
-	@PeripheralMethod
-	private void removeFilter(final int id) throws Exception {
-		if (mount == null) {
-			throw new Exception("No disk loaded");
-		}
-		filter.remove(id);
-	}
-
-	@PeripheralMethod
-	private void addFilter(final int id) throws Exception {
-		if (mount == null) {
-			throw new Exception("No disk loaded");
-		}
-		filter.add(id);
+	public boolean canInsertItem(final int i, final ItemStack itemstack, final int j) {
+		return isConnected() && isAllowed(itemstack);
 	}
 
 	@Override
-	protected boolean requiresMount() {
-		return true;
+	public boolean canExtractItem(final int i, final ItemStack itemstack, final int j) {
+		// cannot extract
+		return false;
+	}
+
+	@Override
+	public int getInventoryStackLimit() {
+		return maxStackSize;
+	}
+
+	@Override
+	public boolean isUseableByPlayer(final EntityPlayer entityplayer) {
+		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
+				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
+	}
+
+	@Override
+	public void openChest() {
+	}
+
+	@Override
+	public void closeChest() {
+	}
+
+	@Override
+	public boolean isItemValidForSlot(final int i, final ItemStack itemstack) {
+		return isConnected() && isAllowed(itemstack);
+	}
+
+	@Override
+	@PeripheralMethod
+	public void addFilter(final int id) throws Exception {
+		int uuid = id;
+		if (useOreDict) {
+			final ItemStack itemStack = Utils.getItemStack(uuid);
+			final int oreid = OreDictionary.getOreID(itemStack);
+			if (oreid != -1) {
+				uuid = oreid;
+			}
+		}
+		if (ignoreMeta) {
+			uuid = Utils.getId(uuid);
+		}
+		super.addFilter(uuid);
+	}
+
+	@PeripheralMethod
+	public boolean isUseOreDict() {
+		return useOreDict;
+	}
+
+	@PeripheralMethod
+	public void setUseOreDict(boolean useOreDict) {
+		this.useOreDict = useOreDict;
+	}
+
+	@PeripheralMethod
+	public boolean isIgnoreMeta() {
+		return ignoreMeta;
+	}
+
+	@PeripheralMethod
+	public void setIgnoreMeta(boolean ignoreMeta) {
+		this.ignoreMeta = ignoreMeta;
 	}
 }

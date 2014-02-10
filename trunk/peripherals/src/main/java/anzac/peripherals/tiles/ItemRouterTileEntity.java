@@ -17,11 +17,9 @@ import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
 
-public class ItemRouterTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory {
+public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory {
 
-	private static final List<String> METHOD_NAMES = getMethodNames(ItemRouterTileEntity.class);
-
-	private ItemStack itemSlot;
+	ItemStack itemSlot;
 
 	@Override
 	public String getType() {
@@ -30,18 +28,22 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 
 	@Override
 	protected List<String> methodNames() {
-		final List<String> methodNames = super.methodNames();
-		methodNames.addAll(METHOD_NAMES);
-		return methodNames;
+		return getMethodNames(ItemRouterTileEntity.class);
 	}
 
-	@PeripheralMethod
-	private Object contents() throws Exception {
-		return contents(ForgeDirection.UNKNOWN);
+	private int[] accessibleSlots(final ForgeDirection extractSide, final IInventory inv) {
+		final int[] slots;
+		if (inv instanceof ISidedInventory) {
+			slots = ((ISidedInventory) inv).getAccessibleSlotsFromSide(extractSide.ordinal());
+		} else {
+			slots = Utils.createSlotArray(0, inv.getSizeInventory());
+		}
+		return slots;
 	}
 
+	@Override
 	@PeripheralMethod
-	private Object contents(final ForgeDirection direction) throws Exception {
+	public Object contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
 		final TileEntity te;
 		if (direction == ForgeDirection.UNKNOWN) {
 			te = this;
@@ -54,13 +56,7 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 			}
 		}
 		final IInventory handler = (IInventory) te;
-		final ForgeDirection opposite = direction.getOpposite();
-		final int[] slots;
-		if (handler instanceof ISidedInventory) {
-			slots = ((ISidedInventory) handler).getAccessibleSlotsFromSide(opposite.ordinal());
-		} else {
-			slots = Utils.createSlotArray(0, handler.getSizeInventory());
-		}
+		final int[] slots = accessibleSlots(dir, handler);
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
 		for (final int i : slots) {
 			final ItemStack stackInSlot = handler.getStackInSlot(i);
@@ -79,8 +75,10 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 		return table;
 	}
 
+	@Override
 	@PeripheralMethod
-	private Object routeFrom(final ForgeDirection fromDir, final int uuid, final int amount) throws Exception {
+	public Object extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
+			final ForgeDirection extractSide) throws Exception {
 		final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
 		pos.moveForwards(1);
 		final TileEntity te = worldObj.getBlockTileEntity(pos.x, pos.y, pos.z);
@@ -88,8 +86,9 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 			throw new Exception("Inventory not found");
 		}
 		final IInventory inv = (IInventory) te;
-		final ItemStack stackToFind = Utils.getUUID(uuid);
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
+		final ItemStack stackToFind = Utils.getItemStack(uuid);
+		final int[] slots = accessibleSlots(extractSide, inv);
+		for (final int i : slots) {
 			final ItemStack stackInSlot = inv.getStackInSlot(i);
 			if (Utils.stacksMatch(stackInSlot, stackToFind)) {
 				final ItemStack extracted = inv.decrStackSize(i, amount);
@@ -100,29 +99,22 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 		return null;
 	}
 
+	@Override
 	@PeripheralMethod
-	private int routeTo(final ForgeDirection toDir, final int amount) {
+	public int routeTo(final ForgeDirection toDir, final ForgeDirection insertDir, final int amount) {
 		final ItemStack copy = itemSlot.copy();
 		copy.stackSize = amount;
 		final int amount1 = copy.stackSize;
-		routeTo(toDir, copy);
+		copy.stackSize -= Utils.addToInventory(worldObj, xCoord, yCoord, zCoord, toDir, insertDir, copy);
+
+		if (copy.stackSize > 0) {
+			copy.stackSize -= Utils.addToPipe(worldObj, xCoord, yCoord, zCoord, toDir, copy);
+		}
 		final int toDec = amount1 - copy.stackSize;
 		if (toDec > 0) {
 			decrStackSize(0, toDec);
 		}
 		return amount - copy.stackSize;
-	}
-
-	@Override
-	public void attach(final IComputerAccess computer) {
-		super.attach(computer);
-		AnzacPeripheralsCore.itemRouterMap.put(computer.getID(), this);
-	}
-
-	@Override
-	public void detach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.itemRouterMap.remove(computer.getID());
-		super.detach(computer);
 	}
 
 	@Override
@@ -148,10 +140,6 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 		}
 	}
 
-	protected boolean isAllowed(final ItemStack itemStack) {
-		return true;
-	}
-
 	@Override
 	public int getSizeInventory() {
 		return 1;
@@ -172,7 +160,8 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 			stack.stackSize = getInventoryStackLimit();
 		}
 		for (final IComputerAccess computer : computers.keySet()) {
-			computer.queueEvent("item_sort", new Object[] { Utils.getUUID(stack), stack.stackSize });
+			computer.queueEvent("item_route", new Object[] { computer.getAttachmentName(), Utils.getUUID(stack),
+					stack.stackSize });
 		}
 		onInventoryChanged();
 	}
@@ -233,48 +222,22 @@ public class ItemRouterTileEntity extends BasePeripheralTileEntity implements II
 
 	@Override
 	public boolean isItemValidForSlot(final int i, final ItemStack itemstack) {
-		return isConnected() && isAllowed(itemstack);
+		return isConnected();
 	}
 
 	@Override
 	public int[] getAccessibleSlotsFromSide(final int var1) {
-		return isConnected() ? new int[] { 0 } : new int[0];
+		return new int[] { 0 };
 	}
 
 	@Override
 	public boolean canInsertItem(final int i, final ItemStack itemstack, final int j) {
-		return isConnected() && isAllowed(itemstack);
+		return isConnected();
 	}
 
 	@Override
 	public boolean canExtractItem(final int i, final ItemStack itemstack, final int j) {
 		// cannot extract
-		return false;
-	}
-
-	@Override
-	public void updateEntity() {
-		if (worldObj == null) { // sanity check
-			return;
-		}
-		super.updateEntity();
-		if (!worldObj.isRemote) {
-			if (itemSlot != null && itemSlot.stackSize > 0 && worldObj.getTotalWorldTime() % 10 == 0 && isConnected()) {
-				// routeItem();
-			}
-		}
-	}
-
-	protected void routeTo(final ForgeDirection side, final ItemStack copy) {
-		copy.stackSize -= Utils.addToInventory(worldObj, xCoord, yCoord, zCoord, side, copy);
-
-		if (copy.stackSize > 0) {
-			copy.stackSize -= Utils.addToPipe(worldObj, xCoord, yCoord, zCoord, side, copy);
-		}
-	}
-
-	@Override
-	protected boolean requiresMount() {
 		return false;
 	}
 }

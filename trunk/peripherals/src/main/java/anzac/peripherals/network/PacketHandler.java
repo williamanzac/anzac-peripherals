@@ -60,7 +60,6 @@ public class PacketHandler implements IPacketHandler {
 			final NBTTagCompound root = new NBTTagCompound();
 			te.writeToNBT(root);
 			writeNBTTagCompound(root, dos);
-
 		} catch (final IOException e) {
 			// never thrown
 		}

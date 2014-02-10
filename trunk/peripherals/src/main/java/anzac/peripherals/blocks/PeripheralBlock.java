@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.tiles.FluidRouterTileEntity;
@@ -77,9 +78,9 @@ public class PeripheralBlock extends BlockContainer {
 		case 1: // recipe storage
 			return side == 1 ? workbenchIconTop : genericSide;
 		case 2: // item router
-				return routerIconSide;
+			return routerIconSide;
 		case 3: // fluid router
-				return routerFluidIconSide;
+			return routerFluidIconSide;
 		case 4: // item storage
 			switch (side) {
 			case 2:
@@ -143,29 +144,32 @@ public class PeripheralBlock extends BlockContainer {
 					return true;
 				} else {
 					// Handle empty containers
-					final FluidStack available = tank.getTankInfo(ForgeDirection.UNKNOWN)[0].fluid;
-					if (available != null) {
-						final ItemStack filled = FluidContainerRegistry.fillFluidContainer(available, current);
+					final FluidTankInfo[] tankInfo = tank.getTankInfo(ForgeDirection.UNKNOWN);
+					if (tankInfo != null && tankInfo.length != 0) {
+						final FluidStack available = tankInfo[0].fluid;
+						if (available != null) {
+							final ItemStack filled = FluidContainerRegistry.fillFluidContainer(available, current);
 
-						liquid = FluidContainerRegistry.getFluidForFilledItem(filled);
+							liquid = FluidContainerRegistry.getFluidForFilledItem(filled);
 
-						if (liquid != null) {
-							if (!player.capabilities.isCreativeMode) {
-								if (current.stackSize > 1) {
-									if (!player.inventory.addItemStackToInventory(filled))
-										return false;
-									else {
+							if (liquid != null) {
+								if (!player.capabilities.isCreativeMode) {
+									if (current.stackSize > 1) {
+										if (!player.inventory.addItemStackToInventory(filled))
+											return false;
+										else {
+											player.inventory.setInventorySlotContents(player.inventory.currentItem,
+													Utils.consumeItem(current));
+										}
+									} else {
 										player.inventory.setInventorySlotContents(player.inventory.currentItem,
 												Utils.consumeItem(current));
+										player.inventory.setInventorySlotContents(player.inventory.currentItem, filled);
 									}
-								} else {
-									player.inventory.setInventorySlotContents(player.inventory.currentItem,
-											Utils.consumeItem(current));
-									player.inventory.setInventorySlotContents(player.inventory.currentItem, filled);
 								}
+								tank.drain(ForgeDirection.UNKNOWN, liquid.amount, true);
+								return true;
 							}
-							tank.drain(ForgeDirection.UNKNOWN, liquid.amount, true);
-							return true;
 						}
 					}
 				}

@@ -5,6 +5,8 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
+import anzac.peripherals.utils.Utils;
 
 public class InternalInventoryCrafting extends InventoryCrafting {
 
@@ -90,19 +92,21 @@ public class InternalInventoryCrafting extends InventoryCrafting {
 		int i, j;
 		boolean foundMatch = false;
 		for (i = 0; i < getSizeInventory(); i++) {
-			ItemStack stackInSlot = getStackInSlot(i);
+			final ItemStack stackInSlot = getStackInSlot(i);
 			if (stackInSlot == null) {
 				bindings[i] = -1;
 				continue;
 			}
 			foundMatch = false;
 			for (j = 0; j < inventory.getSizeInventory(); j++) {
-				ItemStack invStack = inventory.getStackInSlot(j);
+				final ItemStack invStack = inventory.getStackInSlot(j);
 				if (invStack == null) {
 					continue;
 				}
-				boolean itemEqual = invStack.isItemEqual(stackInSlot);
-				boolean b = counts[j] < invStack.stackSize;
+				final ItemStack copy = invStack.copy();
+				copy.setItemDamage(OreDictionary.WILDCARD_VALUE);
+				final boolean itemEqual = Utils.stacksMatch(copy, stackInSlot);
+				final boolean b = counts[j] < invStack.stackSize;
 				if (itemEqual && b) {
 					bindings[i] = j;
 					counts[j]++;
@@ -114,7 +118,7 @@ public class InternalInventoryCrafting extends InventoryCrafting {
 		return foundMatch;
 	}
 
-	public void setCrafting(boolean crafting) {
+	public void setCrafting(final boolean crafting) {
 		this.crafting = crafting;
 		if (!crafting) {
 			counts = null;

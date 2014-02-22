@@ -8,6 +8,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
@@ -91,13 +92,7 @@ public class PeripheralBlock extends BlockContainer {
 				return itemStorageSide;
 			}
 		case 5: // fluid storage
-			switch (side) {
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-				return fluidStorageSide;
-			}
+			return side > 1 ? fluidStorageSide : genericSide;
 		}
 		return genericSide;
 	}
@@ -128,55 +123,67 @@ public class PeripheralBlock extends BlockContainer {
 		}
 		if (tileEntity instanceof IFluidHandler) {
 			final IFluidHandler tank = (IFluidHandler) tileEntity;
-			final ItemStack current = player.inventory.getCurrentItem();
-			if (current != null) {
-				FluidStack liquid = FluidContainerRegistry.getFluidForFilledItem(current);
+			return handleFluids(player, tank);
+		}
+		if (tileEntity instanceof IInventory) {
+			final IInventory inventory = (IInventory) tileEntity;
+			return handleItems(player, inventory);
+		}
+		player.openGui(AnzacPeripheralsCore.instance, 0, world, x, y, z);
+		return true;
+	}
 
-				// Handle filled containers
-				if (liquid != null) {
-					final int qty = tank.fill(ForgeDirection.UNKNOWN, liquid, true);
+	private boolean handleItems(final EntityPlayer player, final IInventory inventory) {
+		return false;
+	}
 
-					if (qty != 0 && !player.capabilities.isCreativeMode) {
-						player.inventory.setInventorySlotContents(player.inventory.currentItem,
-								Utils.consumeItem(current));
-					}
+	private boolean handleFluids(final EntityPlayer player, IFluidHandler tank) {
+		final ItemStack current = player.inventory.getCurrentItem();
+		if (current != null) {
+			FluidStack liquid = FluidContainerRegistry.getFluidForFilledItem(current);
 
-					return true;
-				} else {
-					// Handle empty containers
-					final FluidTankInfo[] tankInfo = tank.getTankInfo(ForgeDirection.UNKNOWN);
-					if (tankInfo != null && tankInfo.length != 0) {
-						final FluidStack available = tankInfo[0].fluid;
-						if (available != null) {
-							final ItemStack filled = FluidContainerRegistry.fillFluidContainer(available, current);
+			// Handle filled containers
+			if (liquid != null) {
+				final int qty = tank.fill(ForgeDirection.UNKNOWN, liquid, true);
 
-							liquid = FluidContainerRegistry.getFluidForFilledItem(filled);
+				if (qty != 0 && !player.capabilities.isCreativeMode) {
+					player.inventory.setInventorySlotContents(player.inventory.currentItem, Utils.consumeItem(current));
+				}
 
-							if (liquid != null) {
-								if (!player.capabilities.isCreativeMode) {
-									if (current.stackSize > 1) {
-										if (!player.inventory.addItemStackToInventory(filled))
-											return false;
-										else {
-											player.inventory.setInventorySlotContents(player.inventory.currentItem,
-													Utils.consumeItem(current));
-										}
-									} else {
+				return true;
+			} else {
+				// Handle empty containers
+				final FluidTankInfo[] tankInfo = tank.getTankInfo(ForgeDirection.UNKNOWN);
+				if (tankInfo != null && tankInfo.length != 0) {
+					final FluidStack available = tankInfo[0].fluid;
+					if (available != null) {
+						final ItemStack filled = FluidContainerRegistry.fillFluidContainer(available, current);
+
+						liquid = FluidContainerRegistry.getFluidForFilledItem(filled);
+
+						if (liquid != null) {
+							if (!player.capabilities.isCreativeMode) {
+								if (current.stackSize > 1) {
+									if (!player.inventory.addItemStackToInventory(filled))
+										return false;
+									else {
 										player.inventory.setInventorySlotContents(player.inventory.currentItem,
 												Utils.consumeItem(current));
-										player.inventory.setInventorySlotContents(player.inventory.currentItem, filled);
 									}
+								} else {
+									player.inventory.setInventorySlotContents(player.inventory.currentItem,
+											Utils.consumeItem(current));
+									player.inventory.setInventorySlotContents(player.inventory.currentItem, filled);
 								}
-								tank.drain(ForgeDirection.UNKNOWN, liquid.amount, true);
-								return true;
 							}
+							tank.drain(ForgeDirection.UNKNOWN, liquid.amount, true);
+							return true;
 						}
 					}
 				}
 			}
 		}
-		player.openGui(AnzacPeripheralsCore.instance, 0, world, x, y, z);
-		return true;
+		return false;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -33,10 +33,14 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 			final ForgeDirection extractSide) throws Exception;
 
 	@PeripheralMethod
-	public final int routeTo(final ForgeDirection toDir, final int amount) {
+	public final int routeTo(final ForgeDirection toDir, final int amount) throws Exception {
 		return routeTo(toDir, toDir.getOpposite(), amount);
 	}
 
 	@PeripheralMethod
-	public abstract int routeTo(final ForgeDirection toDir, final ForgeDirection insertDir, final int amount);
+	public abstract int routeTo(final ForgeDirection toDir, final ForgeDirection insertDir, final int amount)
+			throws Exception;
+
+	@PeripheralMethod
+	public abstract int sendTo(final String label, final int amount) throws Exception;
 }

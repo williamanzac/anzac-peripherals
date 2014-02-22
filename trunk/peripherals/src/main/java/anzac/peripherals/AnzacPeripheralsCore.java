@@ -3,9 +3,11 @@ package anzac.peripherals;
 import static cpw.mods.fml.common.Loader.isModLoaded;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import net.minecraft.block.Block;
@@ -15,6 +17,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.common.MinecraftForge;
+
+import org.apache.commons.lang3.StringUtils;
+
 import anzac.peripherals.blocks.PeripheralBlock;
 import anzac.peripherals.gui.GuiHandler;
 import anzac.peripherals.items.CPUItem;
@@ -56,9 +61,38 @@ public class AnzacPeripheralsCore {
 	public static Item cpu;
 	public static Item hdd;
 
-	public static final Map<Integer, BasePeripheralTileEntity> computerPeripheralMap = new HashMap<Integer, BasePeripheralTileEntity>();
+	public static final Map<Integer, Set<String>> computerLabels = new HashMap<Integer, Set<String>>();
+	public static final Map<String, BasePeripheralTileEntity> peripheralLabels = new HashMap<String, BasePeripheralTileEntity>();
 
 	public static int storageSize;
+
+	public static void addPeripheralLabel(final int computerId, final String label,
+			final BasePeripheralTileEntity entity) {
+		AnzacPeripheralsCore.logger.info("addPeripheralLabel; id: " + computerId + ", label: " + label + ", entity: "
+				+ entity);
+		if (StringUtils.isNotBlank(label)) {
+			AnzacPeripheralsCore.logger.info("not blank");
+			if (!computerLabels.containsKey(computerId)) {
+				AnzacPeripheralsCore.logger.info("create new set");
+				computerLabels.put(computerId, new HashSet<String>());
+			}
+			AnzacPeripheralsCore.logger.info("adding label => computer");
+			computerLabels.get(computerId).add(label);
+			AnzacPeripheralsCore.logger.info("adding entity => label");
+			peripheralLabels.put(label, entity);
+		}
+	}
+
+	public static void removePeripheralLabel(final int computerId, final String label) {
+		AnzacPeripheralsCore.logger.info("removePeripheralLabel; id: " + computerId + ", label:" + label);
+		if (StringUtils.isNotBlank(label)) {
+			peripheralLabels.remove(label);
+			final Set<String> set = computerLabels.get(computerId);
+			if (set != null) {
+				set.remove(label);
+			}
+		}
+	}
 
 	@EventHandler
 	public void preInit(final FMLPreInitializationEvent event) {

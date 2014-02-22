@@ -140,8 +140,9 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 				throw new Exception("Not enough space left in output: " + itemStack.stackSize);
 			}
 		}
-		for (final IComputerAccess computer : computers.keySet()) {
-			computer.queueEvent("crafted", new Object[] { Utils.getUUID(notifyStack), notifyStack.stackSize });
+		for (final IComputerAccess computer : computers) {
+			computer.queueEvent("crafted", new Object[] { computer.getAttachmentName(), Utils.getUUID(notifyStack),
+					notifyStack.stackSize });
 		}
 	}
 

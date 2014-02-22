@@ -29,7 +29,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 
 	@Override
 	@PeripheralMethod
-	public int routeTo(final ForgeDirection toDir, final ForgeDirection insetDir, final int amount) {
+	public int routeTo(final ForgeDirection toDir, final ForgeDirection insetDir, final int amount) throws Exception {
 		final FluidStack copy = fluidTank.getFluid().copy();
 		copy.amount = amount;
 		AnzacPeripheralsCore.logger.info("copy:" + copy);
@@ -73,7 +73,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		}
 		final int fill = fluidTank.fill(resource, doFill);
 		if (fill > 0 && doFill) {
-			for (final IComputerAccess computer : computers.keySet()) {
+			for (final IComputerAccess computer : computers) {
 				computer.queueEvent("fluid_route", new Object[] { computer.getAttachmentName(),
 						Utils.getUUID(resource), resource.amount });
 			}
@@ -167,5 +167,36 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 			return fluidStack.amount;
 		}
 		return null;
+	}
+
+	@Override
+	public int sendTo(String label, int amount) throws Exception {
+		if (fluidTank.getFluid() == null) {
+			throw new Exception("No fluid to transfer");
+		}
+		if (amount <= 0) {
+			throw new Exception("Amount must be greater than 0");
+		}
+		final BasePeripheralTileEntity entity = AnzacPeripheralsCore.peripheralLabels.get(label);
+		if (entity == null) {
+			throw new Exception("No entity found with label " + label);
+		}
+		if (!(entity instanceof IFluidHandler)) {
+			throw new Exception("Invalid target for label " + label);
+		}
+		final IFluidHandler tank = (IFluidHandler) entity;
+		final FluidStack copy = fluidTank.getFluid().copy();
+		if (amount < fluidTank.getFluidAmount()) {
+			copy.amount = amount;
+		}
+		AnzacPeripheralsCore.logger.info("copy:" + copy);
+		final int amount1 = copy.amount;
+		copy.amount -= tank.fill(ForgeDirection.UNKNOWN, copy, true);
+		final int toDrain = amount1 - copy.amount;
+		if (toDrain > 0) {
+			fluidTank.drain(toDrain, true);
+		}
+		AnzacPeripheralsCore.logger.info("amount:" + copy.amount);
+		return amount - copy.amount;
 	}
 }

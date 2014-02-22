@@ -29,8 +29,8 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		final ItemStack matchingRecipe = CraftingManager.getInstance().findMatchingRecipe(craftMatrix, worldObj);
 		craftResult.setInventorySlotContents(0, matchingRecipe);
 		final int uuid = Utils.getUUID(craftResult.getStackInSlot(0));
-		for (final IComputerAccess computer : computers.keySet()) {
-			computer.queueEvent("recipe_changed", new Object[] { uuid });
+		for (final IComputerAccess computer : computers) {
+			computer.queueEvent("recipe_changed", new Object[] { computer.getAttachmentName(), uuid });
 		}
 	}
 

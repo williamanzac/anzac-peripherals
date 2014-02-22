@@ -159,7 +159,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		if (stack.stackSize > getInventoryStackLimit()) {
 			stack.stackSize = getInventoryStackLimit();
 		}
-		for (final IComputerAccess computer : computers.keySet()) {
+		for (final IComputerAccess computer : computers) {
 			computer.queueEvent("item_route", new Object[] { computer.getAttachmentName(), Utils.getUUID(stack),
 					stack.stackSize });
 		}
@@ -239,5 +239,33 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	public boolean canExtractItem(final int i, final ItemStack itemstack, final int j) {
 		// cannot extract
 		return false;
+	}
+
+	@Override
+	public int sendTo(final String label, final int amount) throws Exception {
+		if (itemSlot == null || itemSlot.stackSize == 0) {
+			throw new Exception("No Items to transfer");
+		}
+		if (amount <= 0) {
+			throw new Exception("Amount must be greater than 0");
+		}
+		final BasePeripheralTileEntity entity = AnzacPeripheralsCore.peripheralLabels.get(label);
+		if (entity == null) {
+			throw new Exception("No entity found with label " + label);
+		}
+		if (!(entity instanceof IInventory)) {
+			throw new Exception("Invalid target for label " + label);
+		}
+		final ItemStack copy = itemSlot.copy();
+		if (amount < itemSlot.stackSize) {
+			copy.stackSize = amount;
+		}
+		final int amount1 = copy.stackSize;
+		copy.stackSize -= Utils.addToInventory(ForgeDirection.UNKNOWN, copy, (IInventory) entity);
+		final int toDec = amount1 - copy.stackSize;
+		if (toDec > 0) {
+			decrStackSize(0, toDec);
+		}
+		return amount - copy.stackSize;
 	}
 }

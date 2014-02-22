@@ -29,15 +29,25 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<id>ANZAC Gaming</id>
+			<url>http://files.anzacgaming.co.uk/maven/repository</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 	<distributionManagement>
 		<repository>
 			<id>anzac-peripherals</id>
-			<url>dav:https://anzac-peripherals.googlecode.com/svn/maven/repository</url>
+			<url>ftp://ftp.anzacgaming.co.uk/maven/repository</url>
 		</repository>
 		<snapshotRepository>
 			<id>anzac-peripherals-snapshots</id>
-			<url>dav:https://anzac-peripherals.googlecode.com/svn/maven/repository-snapshot</url>
+			<url>ftp://ftp.anzacgaming.co.uk/maven/repository-snapshot</url>
 			<uniqueVersion>false</uniqueVersion>
 		</snapshotRepository>
 	</distributionManagement>
@@ -122,6 +132,11 @@
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>
 				<artifactId>wagon-http</artifactId>
+				<version>2.5</version>
+			</extension>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ftp</artifactId>
 				<version>2.5</version>
 			</extension>
 		</extensions>

@@ -163,25 +163,29 @@ public class Utils {
 		final TileEntity tileInventory = world.getBlockTileEntity(pos.x, pos.y, pos.z);
 		if (tileInventory != null && tileInventory instanceof IInventory) {
 			final IInventory inv = (IInventory) tileInventory;
-			final ItemStack copy = stack.copy();
-			final int[] availableSlots;
-			if (tileInventory instanceof ISpecialInventory) {
-				return ((ISpecialInventory) tileInventory).addItem(copy, true, insertSide);
-			} else if (tileInventory instanceof ISidedInventory) {
-				final ISidedInventory sidedInventory = (ISidedInventory) inv;
-				availableSlots = sidedInventory.getAccessibleSlotsFromSide(insertSide.ordinal());
-			} else {
-				availableSlots = createSlotArray(0, inv.getSizeInventory());
-			}
-			for (final int slot : availableSlots) {
-				transferToSlot(inv, slot, copy);
-				if (copy.stackSize == 0) {
-					break;
-				}
-			}
-			return stack.stackSize - copy.stackSize;
+			return addToInventory(insertSide, stack, inv);
 		}
 		return 0;
+	}
+
+	public static int addToInventory(final ForgeDirection insertSide, final ItemStack stack, final IInventory inv) {
+		final ItemStack copy = stack.copy();
+		final int[] availableSlots;
+		if (inv instanceof ISpecialInventory) {
+			return ((ISpecialInventory) inv).addItem(copy, true, insertSide);
+		} else if (inv instanceof ISidedInventory) {
+			final ISidedInventory sidedInventory = (ISidedInventory) inv;
+			availableSlots = sidedInventory.getAccessibleSlotsFromSide(insertSide.ordinal());
+		} else {
+			availableSlots = createSlotArray(0, inv.getSizeInventory());
+		}
+		for (final int slot : availableSlots) {
+			transferToSlot(inv, slot, copy);
+			if (copy.stackSize == 0) {
+				break;
+			}
+		}
+		return stack.stackSize - copy.stackSize;
 	}
 
 	public static int addToFluidHandler(final World world, final int x, final int y, final int z,

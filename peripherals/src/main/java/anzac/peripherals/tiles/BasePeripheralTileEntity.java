@@ -5,14 +5,17 @@ import static java.lang.reflect.Modifier.isAbstract;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
+
+import org.apache.commons.lang3.StringUtils;
+
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.network.PacketHandler;
@@ -24,17 +27,7 @@ import dan200.computer.api.IPeripheral;
 
 public abstract class BasePeripheralTileEntity extends TileEntity implements IPeripheral {
 
-	protected final Map<IComputerAccess, Computer> computers = new HashMap<IComputerAccess, Computer>();
-
-	private class Computer {
-		private final String name;
-
-		public Computer(final String name) {
-			this.name = name;
-		}
-
-		private String mount;
-	}
+	protected final Set<IComputerAccess> computers = new HashSet<IComputerAccess>();
 
 	protected IMount mount;
 	private int id = -1;
@@ -103,15 +96,18 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	@Override
 	public void attach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.computerPeripheralMap.put(computer.getID(), this);
-		computers.put(computer, new Computer(computer.getAttachmentName()));
+		AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, this);
+		computers.add(computer);
 		createMount();
 		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 	}
 
 	@Override
 	public void detach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.computerPeripheralMap.remove(computer.getID());
+		AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), label);
+		if (hasLabel()) {
+			AnzacPeripheralsCore.peripheralLabels.remove(label);
+		}
 		computers.remove(computer);
 		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 	}
@@ -151,6 +147,9 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		// read label
 		if (nbtTagCompound.hasKey("label")) {
 			label = nbtTagCompound.getString("label");
+			for (final IComputerAccess computer : computers) {
+				AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, this);
+			}
 		}
 	}
 
@@ -175,17 +174,27 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 	}
 
 	public boolean hasLabel() {
-		return label != null;
+		boolean notBlank = StringUtils.isNotBlank(label);
+		AnzacPeripheralsCore.logger.info("has Label: " + notBlank);
+		return notBlank;
 	}
 
 	@PeripheralMethod
 	public String getLabel() {
+		AnzacPeripheralsCore.logger.info("label: " + label);
 		return label;
 	}
 
 	@PeripheralMethod
 	public void setLabel(final String label) {
+		AnzacPeripheralsCore.logger.info("set label: " + label);
+		for (final IComputerAccess computer : computers) {
+			AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), label);
+		}
 		this.label = label;
+		for (final IComputerAccess computer : computers) {
+			AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, this);
+		}
 	}
 
 	private String convertToString(final Object argument) throws Exception {

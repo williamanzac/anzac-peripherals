@@ -36,6 +36,16 @@
 				<enabled>true</enabled>
 			</releases>
 			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>ANZAC Gaming snapshots</id>
+			<url>http://files.anzacgaming.co.uk/maven/repository-snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
@@ -82,7 +92,25 @@
 	</dependencyManagement>
 	<build>
 		<plugins>
-			<plugin>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>buildnumber-maven-plugin</artifactId>
+		</plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-source-plugin</artifactId>
+			<executions>
+				<execution>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+				</execution>
+			</executions>
+			<configuration>
+				<attach>true</attach>
+			</configuration>
+		</plugin>
+		<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
@@ -110,6 +138,10 @@
 					</execution>
 				</executions>
 			</plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-release-plugin</artifactId>
+		</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -119,6 +151,24 @@
 					<configuration>
 						<source>1.6</source>
 						<target>1.6</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>buildnumber-maven-plugin</artifactId>
+					<version>1.2</version>
+					<executions>
+						<execution>
+							<phase>validate</phase>
+							<goals>
+								<goal>create</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<doCheck>false</doCheck>
+						<doUpdate>false</doUpdate>
+						<getRevisionOnlyOnce>true</getRevisionOnlyOnce>
 					</configuration>
 				</plugin>
 			</plugins>

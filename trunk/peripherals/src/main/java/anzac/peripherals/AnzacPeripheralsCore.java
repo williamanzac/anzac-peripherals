@@ -16,7 +16,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.Property;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,10 +48,15 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
-@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZAC Peripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;after:BuildCraft|Energy")
+@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZACPeripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;after:BuildCraft|Energy")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "anzac" }, packetHandler = PacketHandler.class)
 public class AnzacPeripheralsCore {
-	static final String MOD_ID = "anzac.peripherals";
+	private static final int DEFAULT_HDD_ID = 4339;
+	private static final int DEFAULT_CPU_ID = 4337;
+	private static final int DEFAULT_PERIPHERAL_ID = 4336;
+	private static final int DEFAULT_STORAGE_SIZE = 1024000;
+
+	static final String MOD_ID = "ANZACPeripherals";
 
 	public static Logger logger;
 
@@ -68,23 +75,23 @@ public class AnzacPeripheralsCore {
 
 	public static void addPeripheralLabel(final int computerId, final String label,
 			final BasePeripheralTileEntity entity) {
-		AnzacPeripheralsCore.logger.info("addPeripheralLabel; id: " + computerId + ", label: " + label + ", entity: "
-				+ entity);
+		// AnzacPeripheralsCore.logger.info("addPeripheralLabel; id: " + computerId + ", label: " + label + ", entity: "
+		// + entity);
 		if (StringUtils.isNotBlank(label)) {
 			AnzacPeripheralsCore.logger.info("not blank");
 			if (!computerLabels.containsKey(computerId)) {
-				AnzacPeripheralsCore.logger.info("create new set");
+				// AnzacPeripheralsCore.logger.info("create new set");
 				computerLabels.put(computerId, new HashSet<String>());
 			}
-			AnzacPeripheralsCore.logger.info("adding label => computer");
+			// AnzacPeripheralsCore.logger.info("adding label => computer");
 			computerLabels.get(computerId).add(label);
-			AnzacPeripheralsCore.logger.info("adding entity => label");
+			// AnzacPeripheralsCore.logger.info("adding entity => label");
 			peripheralLabels.put(label, entity);
 		}
 	}
 
 	public static void removePeripheralLabel(final int computerId, final String label) {
-		AnzacPeripheralsCore.logger.info("removePeripheralLabel; id: " + computerId + ", label:" + label);
+		// AnzacPeripheralsCore.logger.info("removePeripheralLabel; id: " + computerId + ", label:" + label);
 		if (StringUtils.isNotBlank(label)) {
 			peripheralLabels.remove(label);
 			final Set<String> set = computerLabels.get(computerId);
@@ -96,14 +103,35 @@ public class AnzacPeripheralsCore {
 
 	@EventHandler
 	public void preInit(final FMLPreInitializationEvent event) {
+		Configuration configuration = new Configuration(event.getSuggestedConfigurationFile());
 		logger = event.getModLog();
-		peripheralBlock = new PeripheralBlock(496, Material.rock); // TODO turn into property
-		cpu = new CPUItem(497); // TODO turn into property
-		hdd = new HDDItem(499); // TODO turn into property
-		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
 
-		MinecraftForge.setBlockHarvestLevel(peripheralBlock, "pickaxe", 0);
-		GameRegistry.registerBlock(peripheralBlock, PeripheralItem.class, "anzacperipheral", MOD_ID);
+		try {
+			configuration.load();
+
+			Property propertySize = configuration.get("general", "hdd.size", DEFAULT_STORAGE_SIZE,
+					"The disk space limit for Hard Disk Drives");
+			storageSize = propertySize.getInt(DEFAULT_STORAGE_SIZE);
+
+			Property propertyId = configuration.getBlock("peripheral.id", DEFAULT_PERIPHERAL_ID,
+					"The Block ID for the peripherals");
+			peripheralBlock = new PeripheralBlock(propertyId.getInt(DEFAULT_PERIPHERAL_ID), Material.rock);
+			MinecraftForge.setBlockHarvestLevel(peripheralBlock, "pickaxe", 0);
+			GameRegistry.registerBlock(peripheralBlock, PeripheralItem.class, "anzacperipheral", MOD_ID);
+
+			Property propertyCPUId = configuration.getItem("cpu.id", DEFAULT_CPU_ID, "The Item Id for CPUs");
+			cpu = new CPUItem(propertyCPUId.getInt(DEFAULT_CPU_ID));
+			GameRegistry.registerItem(cpu, "anzaccpu", MOD_ID);
+
+			Property propertyHDDId = configuration.getItem("hdd.id", DEFAULT_HDD_ID, "The Item Id for HDDs");
+			hdd = new HDDItem(propertyHDDId.getInt(DEFAULT_HDD_ID));
+			GameRegistry.registerItem(hdd, "hdd", MOD_ID);
+		} finally {
+			if (configuration.hasChanged()) {
+				configuration.save();
+			}
+		}
+		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
 
 		GameRegistry.registerTileEntity(WorkbenchTileEntity.class, "anzac.peripherals.tiles.WorkbenchTitleEntity");
 		GameRegistry.registerTileEntity(RecipeStorageTileEntity.class,
@@ -112,9 +140,6 @@ public class AnzacPeripheralsCore {
 		GameRegistry.registerTileEntity(FluidRouterTileEntity.class, "anzac.peripherals.tiles.FluidRouterTileEntity");
 		GameRegistry.registerTileEntity(ItemStorageTileEntity.class, "anzac.peripherals.tiles.ItemStorageTileEntity");
 		GameRegistry.registerTileEntity(FluidStorageTileEntity.class, "anzac.peripherals.tiles.FluidStorageTileEntity");
-
-		GameRegistry.registerItem(cpu, "anzaccpu", MOD_ID);
-		GameRegistry.registerItem(hdd, "hdd", MOD_ID);
 	}
 
 	@EventHandler
@@ -124,8 +149,6 @@ public class AnzacPeripheralsCore {
 	@SuppressWarnings("unchecked")
 	@EventHandler
 	public void postInit(final FMLPostInitializationEvent event) {
-		storageSize = 1024000; // TODO turn into property
-
 		// Vanilla items
 		final ItemStack stoneStack = new ItemStack(Block.stone);
 		final ItemStack goldIngotStack = new ItemStack(Item.ingotGold);
@@ -171,6 +194,7 @@ public class AnzacPeripheralsCore {
 		final ItemStack computerStack = new ItemStack(blockComputer, 1);
 		final ItemStack advancedComputerStack = new ItemStack(blockComputer, 1, 16384);
 		final ItemStack cableStack = new ItemStack(cableBlock, 1, 0);
+		final ItemStack cablesStack = new ItemStack(cableBlock, 3, 0);
 		final ItemStack modemStack = new ItemStack(cableBlock, 1, 1);
 		final ItemStack driveStack = new ItemStack(blockPeripheral, 1, 0);
 		final ItemStack wirelessStack = new ItemStack(blockPeripheral, 1, 1);
@@ -192,9 +216,9 @@ public class AnzacPeripheralsCore {
 		final ItemStack pipeDiamondStack = itemPipeDiamond != null ? new ItemStack(itemPipeDiamond) : new ItemStack(
 				Block.dropper);
 		final ItemStack fluidWoodStack = fluidPipeWood != null ? new ItemStack(fluidPipeWood) : new ItemStack(
-				Block.hopperBlock);
+				Item.bucketEmpty);
 		final ItemStack fluidIronStack = fluidPipeIron != null ? new ItemStack(fluidPipeIron) : new ItemStack(
-				Block.dropper);
+				Item.bucketEmpty);
 		final ItemStack tankStack = new ItemStack(tankBlock != null ? tankBlock : Block.cauldron);
 
 		final boolean bceLoaded = isModLoaded("BuildCraft|Energy");
@@ -264,7 +288,7 @@ public class AnzacPeripheralsCore {
 		GameRegistry.addShapedRecipe(modemStack, "XXX", "XYX", "XXX", 'X', stoneStack, 'Y', basicStack);
 		GameRegistry.addShapedRecipe(wirelessStack, "XXX", "XYX", "XEX", 'X', stoneStack, 'Y', basicStack, 'E',
 				enderPearlStack);
-		GameRegistry.addShapedRecipe(cableStack, "XXX", "YYY", "XXX", 'X', stoneStack, 'Y', redstoneStack);
+		GameRegistry.addShapedRecipe(cablesStack, "XXX", "YYY", "XXX", 'X', stoneStack, 'Y', redstoneStack);
 
 		if (bceLoaded) {
 			final boolean turtlesNeedFuel = ClassUtils.getField("dan200.CCTurtle", "turtlesNeedFuel", boolean.class);

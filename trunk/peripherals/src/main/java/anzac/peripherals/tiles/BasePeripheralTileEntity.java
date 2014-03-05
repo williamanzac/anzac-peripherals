@@ -175,19 +175,27 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	public boolean hasLabel() {
 		boolean notBlank = StringUtils.isNotBlank(label);
-		AnzacPeripheralsCore.logger.info("has Label: " + notBlank);
 		return notBlank;
 	}
 
+	/**
+	 * Get the label for this peripheral
+	 * 
+	 * @return the label
+	 */
 	@PeripheralMethod
 	public String getLabel() {
-		AnzacPeripheralsCore.logger.info("label: " + label);
 		return label;
 	}
 
+	/**
+	 * Sets the label for this peripheral
+	 * 
+	 * @param label
+	 *            The label to use
+	 */
 	@PeripheralMethod
 	public void setLabel(final String label) {
-		AnzacPeripheralsCore.logger.info("set label: " + label);
 		for (final IComputerAccess computer : computers) {
 			AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), label);
 		}
@@ -256,7 +264,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		throw new Exception("Unexpected value");
 	}
 
-	protected static <T extends BasePeripheralTileEntity> List<Method> getPeripheralMethods(final Class<T> pClass) {
+	public static <T extends BasePeripheralTileEntity> List<Method> getPeripheralMethods(final Class<T> pClass) {
 		final List<Method> methods = new ArrayList<Method>();
 		for (final Method method : pClass.getMethods()) {
 			if (method.isAnnotationPresent(PeripheralMethod.class)) {
@@ -266,7 +274,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		return methods;
 	}
 
-	protected static <T extends BasePeripheralTileEntity> List<String> getMethodNames(final Class<T> pClass) {
+	public static <T extends BasePeripheralTileEntity> List<String> getMethodNames(final Class<T> pClass) {
 		final List<String> methods = new ArrayList<String>();
 		for (final Method method : pClass.getMethods()) {
 			if (method.isAnnotationPresent(PeripheralMethod.class) && !methods.contains(method.getName())) {
@@ -276,8 +284,8 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		return methods;
 	}
 
-	protected static <T extends BasePeripheralTileEntity> Method getMethodByName(final Class<T> pClass,
-			final String name, final int argCount) throws Exception {
+	public static <T extends BasePeripheralTileEntity> Method getMethodByName(final Class<T> pClass, final String name,
+			final int argCount) throws Exception {
 		for (final Method method : pClass.getMethods()) {
 			if (method.isAnnotationPresent(PeripheralMethod.class) && !isAbstract(method.getModifiers())
 					&& method.getName().equals(name) && method.getParameterTypes().length == argCount) {
@@ -287,6 +295,11 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		throw new Exception("Unable to find a method called " + name + " with " + argCount + " arguments");
 	}
 
+	/**
+	 * Get the id for this peripheral
+	 * 
+	 * @return the id
+	 */
 	@PeripheralMethod
 	public int getId() {
 		return id;

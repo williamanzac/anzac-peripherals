@@ -187,21 +187,21 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 	@Override
 	@PeripheralMethod
 	public Object contents() throws Exception {
-		AnzacPeripheralsCore.logger.info("fluid storage contents");
+		// AnzacPeripheralsCore.logger.info("fluid storage contents");
 		final Map<Integer, Map<Integer, Integer>> table = new HashMap<Integer, Map<Integer, Integer>>();
 		for (final FluidTank tank : fluidTanks) {
-			AnzacPeripheralsCore.logger.info("tank: " + tank);
+			// AnzacPeripheralsCore.logger.info("tank: " + tank);
 			if (tank == null) {
 				continue;
 			}
 			final FluidStack fluid = tank.getFluid();
-			AnzacPeripheralsCore.logger.info("fluid: " + fluid);
+			// AnzacPeripheralsCore.logger.info("fluid: " + fluid);
 			final int uuid = Utils.getUUID(fluid);
-			AnzacPeripheralsCore.logger.info("uuid: " + uuid);
+			// AnzacPeripheralsCore.logger.info("uuid: " + uuid);
 			final int amount = fluid == null ? 0 : fluid.amount;
-			AnzacPeripheralsCore.logger.info("amount: " + amount);
+			// AnzacPeripheralsCore.logger.info("amount: " + amount);
 			final int capacity = tank.getCapacity();
-			AnzacPeripheralsCore.logger.info("capacity: " + capacity);
+			// AnzacPeripheralsCore.logger.info("capacity: " + capacity);
 			if (table.containsKey(uuid)) {
 				final Map<Integer, Integer> map = table.get(uuid);
 				map.put(0, map.get(0) + amount);

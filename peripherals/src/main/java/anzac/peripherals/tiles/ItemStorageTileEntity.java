@@ -10,12 +10,15 @@ import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
+import buildcraft.api.inventory.ISpecialInventory;
 
-public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory {
+public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory,
+		ISpecialInventory {
 
 	private static final String INVENTORY = "inventory";
 	private static final String SLOT = "Slot";
@@ -411,7 +414,7 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	}
 
 	@PeripheralMethod
-	public void setUseOreDict(boolean useOreDict) {
+	public void setUseOreDict(final boolean useOreDict) {
 		this.useOreDict = useOreDict;
 	}
 
@@ -421,7 +424,62 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	}
 
 	@PeripheralMethod
-	public void setIgnoreMeta(boolean ignoreMeta) {
+	public void setIgnoreMeta(final boolean ignoreMeta) {
 		this.ignoreMeta = ignoreMeta;
+	}
+
+	@Override
+	public int addItem(final ItemStack stack, final boolean doAdd, final ForgeDirection from) {
+		final ItemStack copy;
+		if (doAdd) {
+			copy = stack;
+		} else {
+			copy = stack.copy();
+		}
+		if (isAllowed(copy)) {
+			for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
+				final ItemStack stackInSlot = getStackInSlot(slot);
+				if (stackInSlot != null && Utils.stacksMatch(stackInSlot, copy)) {
+					final int l = stackInSlot.stackSize + copy.stackSize;
+					final int inventoryStackLimit = getInventoryStackLimit();
+					if (l <= inventoryStackLimit) {
+						copy.stackSize = 0;
+						stackInSlot.stackSize = l;
+					} else if (stackInSlot.stackSize < inventoryStackLimit) {
+						copy.stackSize -= inventoryStackLimit - stackInSlot.stackSize;
+						stackInSlot.stackSize = inventoryStackLimit;
+					}
+				}
+				if (copy.stackSize == 0) {
+					break;
+				}
+			}
+			if (copy.stackSize > 0) {
+				for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
+					final ItemStack stackInSlot = getStackInSlot(slot);
+					if (stackInSlot == null) {
+						final ItemStack target = copy.copy();
+						inventory[slot] = target;
+						final int inventoryStackLimit = getInventoryStackLimit();
+						if (target.stackSize > inventoryStackLimit) {
+							target.stackSize = inventoryStackLimit;
+						}
+						copy.stackSize -= target.stackSize;
+					}
+					if (copy.stackSize == 0) {
+						break;
+					}
+				}
+			}
+			onInventoryChanged();
+			return stack.stackSize - copy.stackSize;
+		}
+		return 0;
+	}
+
+	@Override
+	public ItemStack[] extractItem(final boolean doRemove, final ForgeDirection from, final int maxItemCount) {
+		// cannot extract return empty array
+		return new ItemStack[0];
 	}
 }

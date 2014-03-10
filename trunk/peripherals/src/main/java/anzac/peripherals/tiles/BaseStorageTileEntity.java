@@ -13,7 +13,7 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 	}
 
 	protected final Set<Integer> filter = new HashSet<Integer>();
-	protected FilterMode filterMode;
+	protected FilterMode filterMode = FilterMode.NONE;
 
 	@Override
 	protected boolean requiresMount() {

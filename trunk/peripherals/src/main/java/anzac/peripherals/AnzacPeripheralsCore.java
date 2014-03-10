@@ -1,7 +1,5 @@
 package anzac.peripherals;
 
-import static cpw.mods.fml.common.Loader.isModLoaded;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,7 +46,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
-@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZACPeripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;after:BuildCraft|Energy")
+@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZACPeripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;required-after:BuildCraft|Energy")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "anzac" }, packetHandler = PacketHandler.class)
 public class AnzacPeripheralsCore {
 	private static final int DEFAULT_HDD_ID = 4339;
@@ -210,18 +208,13 @@ public class AnzacPeripheralsCore {
 		final Item fluidPipeIron = Utils.getItem("buildcraft.BuildCraftTransport", "pipeFluidsIron");
 		final Block tankBlock = Utils.getBlock("buildcraft.BuildCraftFactory", "tankBlock");
 
-		// swap for Vanilla items if needed
-		final ItemStack pipeWoodStack = itemPipeWood != null ? new ItemStack(itemPipeWood) : new ItemStack(
-				Block.hopperBlock);
-		final ItemStack pipeDiamondStack = itemPipeDiamond != null ? new ItemStack(itemPipeDiamond) : new ItemStack(
-				Block.dropper);
-		final ItemStack fluidWoodStack = fluidPipeWood != null ? new ItemStack(fluidPipeWood) : new ItemStack(
-				Item.bucketEmpty);
-		final ItemStack fluidIronStack = fluidPipeIron != null ? new ItemStack(fluidPipeIron) : new ItemStack(
-				Item.bucketEmpty);
-		final ItemStack tankStack = new ItemStack(tankBlock != null ? tankBlock : Block.cauldron);
+		final ItemStack pipeWoodStack = new ItemStack(itemPipeWood);
+		final ItemStack pipeDiamondStack = new ItemStack(itemPipeDiamond);
+		final ItemStack fluidWoodStack = new ItemStack(fluidPipeWood);
+		final ItemStack fluidIronStack = new ItemStack(fluidPipeIron);
+		final ItemStack tankStack = new ItemStack(tankBlock);
 
-		final boolean bceLoaded = isModLoaded("BuildCraft|Energy");
+		// final boolean bceLoaded = isModLoaded("BuildCraft|Energy");
 		// final boolean bctLoaded = isModLoaded("BuildCraft|Transport");
 
 		// for (Item item : Item.itemsList) {
@@ -252,10 +245,10 @@ public class AnzacPeripheralsCore {
 		GameRegistry.addShapedRecipe(fluidStorageStack, "sts", "sas", "sds", 's', stoneStack, 't', tankStack, 'a',
 				advancedStack, 'd', hddStack);
 
-		GameRegistry.addShapedRecipe(itemRouterStack, "sds", "sbs", "sws", 's', stoneStack, 'd', pipeDiamondStack, 'b',
-				basicStack, 'w', pipeWoodStack);
-		GameRegistry.addShapedRecipe(fluidRouterStack, "sds", "sbs", "sws", 's', stoneStack, 'd', fluidIronStack, 'b',
-				basicStack, 'w', fluidWoodStack);
+		GameRegistry.addShapedRecipe(itemRouterStack, "sds", "sas", "sws", 's', stoneStack, 'd', pipeDiamondStack, 'a',
+				advancedStack, 'w', pipeWoodStack);
+		GameRegistry.addShapedRecipe(fluidRouterStack, "sds", "sas", "sws", 's', stoneStack, 'd', fluidIronStack, 'a',
+				advancedStack, 'w', fluidWoodStack);
 
 		// modify Recipes
 		final List<IRecipe> recipeList = CraftingManager.getInstance().getRecipeList();
@@ -269,8 +262,8 @@ public class AnzacPeripheralsCore {
 					|| recipeOutput.isItemEqual(advancedMonitorsStack) || recipeOutput.isItemEqual(monitorStack)
 					|| recipeOutput.isItemEqual(modemStack) || recipeOutput.isItemEqual(wirelessStack)
 					|| recipeOutput.isItemEqual(cableStack) || recipeOutput.isItemEqual(driveStack)
-					|| recipeOutput.isItemEqual(printerStack) || bceLoaded
-					&& (recipeOutput.isItemEqual(turtleStack) || recipeOutput.isItemEqual(advancedTurtleStack))) {
+					|| recipeOutput.isItemEqual(printerStack) || recipeOutput.isItemEqual(turtleStack)
+					|| recipeOutput.isItemEqual(advancedTurtleStack)) {
 				i.remove();
 			}
 		}
@@ -290,14 +283,12 @@ public class AnzacPeripheralsCore {
 				enderPearlStack);
 		GameRegistry.addShapedRecipe(cablesStack, "XXX", "YYY", "XXX", 'X', stoneStack, 'Y', redstoneStack);
 
-		if (bceLoaded) {
-			final boolean turtlesNeedFuel = ClassUtils.getField("dan200.CCTurtle", "turtlesNeedFuel", boolean.class);
-			final Block engineBlock = GameRegistry.findBlock("BuildCraft|Energy", "engineBlock");
-			final ItemStack engineStack = new ItemStack(engineBlock, turtlesNeedFuel ? 1 : 0, 1);
-			GameRegistry.addShapedRecipe(turtleStack, "xcx", "xex", "x@x", 'x', ironIngotStack, 'c', chestStack, 'e',
-					engineStack, '@', computerStack);
-			GameRegistry.addShapedRecipe(advancedTurtleStack, "xcx", "xex", "x@x", 'x', goldIngotStack, 'c',
-					chestStack, 'e', engineStack, '@', advancedComputerStack);
-		}
+		final boolean turtlesNeedFuel = ClassUtils.getField("dan200.CCTurtle", "turtlesNeedFuel", boolean.class);
+		final Block engineBlock = GameRegistry.findBlock("BuildCraft|Energy", "engineBlock");
+		final ItemStack engineStack = new ItemStack(engineBlock, turtlesNeedFuel ? 1 : 0, 1);
+		GameRegistry.addShapedRecipe(turtleStack, "xcx", "xex", "x@x", 'x', ironIngotStack, 'c', chestStack, 'e',
+				engineStack, '@', computerStack);
+		GameRegistry.addShapedRecipe(advancedTurtleStack, "xcx", "xex", "x@x", 'x', goldIngotStack, 'c', chestStack,
+				'e', engineStack, '@', advancedComputerStack);
 	}
 }

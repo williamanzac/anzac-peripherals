@@ -21,6 +21,15 @@
 			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>buildcraft</groupId>
+			<artifactId>buildcraft</artifactId>
+			</dependency>
+		<dependency>
+			<groupId>computercraft</groupId>
+			<artifactId>ComputerCraft</artifactId>
+			<type>zip</type>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

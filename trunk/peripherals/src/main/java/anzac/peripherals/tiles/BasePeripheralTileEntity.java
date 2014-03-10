@@ -122,7 +122,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 	}
 
 	protected synchronized void createMount() {
-		if (requiresMount()) {
+		if (requiresMount() && hasWorldObj() && !worldObj.isRemote) {
 			if (id < 0) {
 				id = ComputerCraftAPI.createUniqueNumberedSaveDir(worldObj, "anzac/hdd");
 			}

@@ -15,11 +15,13 @@ import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
+import buildcraft.api.inventory.ISpecialInventory;
 import dan200.computer.api.IComputerAccess;
 
-public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory {
+public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory,
+		ISpecialInventory {
 
-	ItemStack itemSlot;
+	private ItemStack itemSlot;
 
 	@Override
 	public String getType() {
@@ -79,6 +81,9 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	@PeripheralMethod
 	public Object extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
 			final ForgeDirection extractSide) throws Exception {
+		if (itemSlot != null) {
+			throw new Exception("Internal cache is not empty");
+		}
 		final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
 		pos.moveForwards(1);
 		final TileEntity te = worldObj.getBlockTileEntity(pos.x, pos.y, pos.z);
@@ -242,6 +247,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	@Override
+	@PeripheralMethod
 	public int sendTo(final String label, final int amount) throws Exception {
 		if (itemSlot == null || itemSlot.stackSize == 0) {
 			throw new Exception("No Items to transfer");
@@ -257,15 +263,80 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 			throw new Exception("Invalid target for label " + label);
 		}
 		final ItemStack copy = itemSlot.copy();
-		if (amount < itemSlot.stackSize) {
+		if (amount < copy.stackSize) {
 			copy.stackSize = amount;
 		}
+		int size = copy.stackSize;
 		final int amount1 = copy.stackSize;
 		copy.stackSize -= Utils.addToInventory(ForgeDirection.UNKNOWN, copy, (IInventory) entity);
 		final int toDec = amount1 - copy.stackSize;
 		if (toDec > 0) {
 			decrStackSize(0, toDec);
 		}
-		return amount - copy.stackSize;
+		return size - copy.stackSize;
+	}
+
+	@Override
+	@PeripheralMethod
+	public int requestFrom(final String label, final int uuid, final int amount) throws Exception {
+		if (amount <= 0) {
+			throw new Exception("Amount must be greater than 0");
+		}
+		final BasePeripheralTileEntity entity = AnzacPeripheralsCore.peripheralLabels.get(label);
+		if (entity == null) {
+			throw new Exception("No entity found with label " + label);
+		}
+		if (!(entity instanceof IInventory)) {
+			throw new Exception("Invalid target for label " + label);
+		}
+		final IInventory inv = (IInventory) entity;
+		final ItemStack stackToFind = Utils.getItemStack(uuid);
+		final int[] slots = accessibleSlots(ForgeDirection.UNKNOWN, inv);
+		for (final int i : slots) {
+			final ItemStack stackInSlot = inv.getStackInSlot(i);
+			if (Utils.stacksMatch(stackInSlot, stackToFind)) {
+				final ItemStack extracted = inv.decrStackSize(i, amount);
+				setInventorySlotContents(0, extracted);
+				return extracted.stackSize;
+			}
+		}
+		return 0;
+	}
+
+	@Override
+	public int addItem(ItemStack stack, boolean doAdd, ForgeDirection from) {
+		final ItemStack copy;
+		final int size = stack.stackSize;
+		if (doAdd) {
+			copy = stack;
+		} else {
+			copy = stack.copy();
+		}
+		if (itemSlot == null) {
+			itemSlot = copy.copy();
+			final int inventoryStackLimit = getInventoryStackLimit();
+			if (itemSlot.stackSize > inventoryStackLimit) {
+				itemSlot.stackSize = inventoryStackLimit;
+			}
+			copy.stackSize -= itemSlot.stackSize;
+		} else if (Utils.stacksMatch(itemSlot, copy)) {
+			final int l = itemSlot.stackSize + copy.stackSize;
+			final int inventoryStackLimit = getInventoryStackLimit();
+			if (l <= inventoryStackLimit) {
+				copy.stackSize = 0;
+				itemSlot.stackSize = l;
+			} else if (itemSlot.stackSize < inventoryStackLimit) {
+				copy.stackSize -= inventoryStackLimit - itemSlot.stackSize;
+				itemSlot.stackSize = inventoryStackLimit;
+			}
+		}
+		onInventoryChanged();
+		return size - copy.stackSize;
+	}
+
+	@Override
+	public ItemStack[] extractItem(boolean doRemove, ForgeDirection from, int maxItemCount) {
+		// cannot extract
+		return null;
 	}
 }

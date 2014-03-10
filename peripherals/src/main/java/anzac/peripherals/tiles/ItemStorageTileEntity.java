@@ -107,7 +107,12 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 			final NBTTagCompound itemTag = (NBTTagCompound) list.tagAt(entry);
 			final int slot = itemTag.getInteger(SLOT);
 			if (slot >= 0 && slot < getSizeInventory()) {
-				final ItemStack stack = ItemStack.loadItemStackFromNBT(itemTag);
+				final int uuid = itemTag.getInteger("uuid");
+				final int size = itemTag.getInteger("count");
+				final ItemStack stack = Utils.getItemStack(uuid, size);
+				if (itemTag.hasKey("tag")) {
+					stack.stackTagCompound = itemTag.getCompoundTag("tag");
+				}
 				inventory[slot] = stack;
 			}
 		}
@@ -136,7 +141,11 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 			if (stack != null) {
 				final NBTTagCompound itemTag = new NBTTagCompound();
 				itemTag.setInteger(SLOT, slot);
-				stack.writeToNBT(itemTag);
+				itemTag.setInteger("uuid", Utils.getUUID(stack));
+				itemTag.setInteger("count", stack.stackSize);
+				if (stack.hasTagCompound()) {
+					itemTag.setTag("tag", stack.stackTagCompound);
+				}
 				list.appendTag(itemTag);
 			}
 		}
@@ -431,6 +440,7 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	@Override
 	public int addItem(final ItemStack stack, final boolean doAdd, final ForgeDirection from) {
 		final ItemStack copy;
+		final int size = stack.stackSize;
 		if (doAdd) {
 			copy = stack;
 		} else {
@@ -472,7 +482,7 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 				}
 			}
 			onInventoryChanged();
-			return stack.stackSize - copy.stackSize;
+			return size - copy.stackSize;
 		}
 		return 0;
 	}

@@ -109,6 +109,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 	}
 
 	@Override
+	@PeripheralMethod
 	public Object contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
 		final TileEntity te;
 		if (direction == ForgeDirection.UNKNOWN) {
@@ -147,6 +148,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 	}
 
 	@Override
+	@PeripheralMethod
 	public Object extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
 			final ForgeDirection extractSide) throws Exception {
 		final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
@@ -170,6 +172,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 	}
 
 	@Override
+	@PeripheralMethod
 	public int sendTo(String label, int amount) throws Exception {
 		if (fluidTank.getFluid() == null) {
 			throw new Exception("No fluid to transfer");
@@ -198,5 +201,32 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		}
 		// AnzacPeripheralsCore.logger.info("amount:" + copy.amount);
 		return amount - copy.amount;
+	}
+
+	@Override
+	@PeripheralMethod
+	public int requestFrom(String label, int uuid, int amount) throws Exception {
+		if (amount <= 0) {
+			throw new Exception("Amount must be greater than 0");
+		}
+		final BasePeripheralTileEntity entity = AnzacPeripheralsCore.peripheralLabels.get(label);
+		if (entity == null) {
+			throw new Exception("No entity found with label " + label);
+		}
+		if (!(entity instanceof IFluidHandler)) {
+			throw new Exception("Invalid target for label " + label);
+		}
+		final IFluidHandler handler = (IFluidHandler) entity;
+		// AnzacPeripheralsCore.logger.info("opposite:" + extractSide);
+		final int canDrain = handler.drain(ForgeDirection.UNKNOWN, amount, false).amount;
+		// AnzacPeripheralsCore.logger.info("canDrain:" + canDrain);
+		if (canDrain > 0) {
+			final FluidStack fluidStack = handler.drain(ForgeDirection.UNKNOWN, amount, true);
+			// AnzacPeripheralsCore.logger.info("fluidStack:" + fluidStack);
+			fill(ForgeDirection.UNKNOWN, fluidStack, true);
+			// AnzacPeripheralsCore.logger.info("amount:" + fluidStack.amount);
+			return fluidStack.amount;
+		}
+		return 0;
 	}
 }

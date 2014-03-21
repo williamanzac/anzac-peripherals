@@ -7,17 +7,17 @@ import net.minecraft.util.StatCollector;
 
 import org.lwjgl.opengl.GL11;
 
-import anzac.peripherals.inventory.RecipeStorageContainer;
-import anzac.peripherals.tiles.BasePeripheralTileEntity;
-import anzac.peripherals.tiles.RecipeStorageTileEntity;
+import anzac.peripherals.inventory.CraftingRouterContainer;
+import anzac.peripherals.tiles.CraftingRouterTileEntity;
 
-public class RecipeStorageGUI extends GuiContainer {
+public class CraftingRouterGUI extends GuiContainer {
 
 	public static final ResourceLocation gui = new ResourceLocation("anzac", "textures/gui/recipe_storage.png");
-	private final BasePeripheralTileEntity tileEntity;
 
-	public RecipeStorageGUI(final InventoryPlayer inventoryPlayer, final RecipeStorageTileEntity tileEntity) {
-		super(new RecipeStorageContainer(inventoryPlayer, tileEntity));
+	private final CraftingRouterTileEntity tileEntity;
+
+	public CraftingRouterGUI(final InventoryPlayer inventoryPlayer, final CraftingRouterTileEntity tileEntity) {
+		super(new CraftingRouterContainer(inventoryPlayer, tileEntity));
 		ySize = 170;
 		this.tileEntity = tileEntity;
 	}
@@ -33,7 +33,8 @@ public class RecipeStorageGUI extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
-		fontRenderer.drawString(tileEntity.hasLabel() ? tileEntity.getLabel() : "Recipe Storage", 8, 6, 4210752);
+		final String title = tileEntity.hasLabel() ? tileEntity.getLabel() : "Crafting Router";
+		fontRenderer.drawString(title, 8, 6, 4210752);
 		fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, (ySize - 96) + 2, 4210752);
 	}
 }

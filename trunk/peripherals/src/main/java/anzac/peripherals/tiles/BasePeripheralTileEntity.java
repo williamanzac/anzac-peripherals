@@ -13,13 +13,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
-
-import org.apache.commons.lang3.StringUtils;
-
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.network.PacketHandler;
-import dan200.computer.api.ComputerCraftAPI;
 import dan200.computer.api.IComputerAccess;
 import dan200.computer.api.ILuaContext;
 import dan200.computer.api.IMount;
@@ -29,9 +25,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	protected final Set<IComputerAccess> computers = new HashSet<IComputerAccess>();
 
-	protected IMount mount;
-	private int id = -1;
-	protected String label;
+	public SimpleDiscInventory discInv = new SimpleDiscInventory(this);
 
 	@Override
 	public String[] getMethodNames() {
@@ -49,10 +43,14 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 		final Object ret = callMethod(methodName, arguments);
 
+		// AnzacPeripheralsCore.logger.info("returning: " + ret);
+		if (ret == null) {
+			return null;
+		}
 		if (ret.getClass().isArray()) {
 			return (Object[]) ret;
 		}
-		return ret == null ? null : new Object[] { ret };
+		return new Object[] { ret };
 	}
 
 	private Object callMethod(final String methodName, final Object[] arguments) throws Exception {
@@ -96,18 +94,14 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	@Override
 	public void attach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, this);
+		AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), getLabel(), this);
 		computers.add(computer);
-		createMount();
 		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 	}
 
 	@Override
 	public void detach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), label);
-		if (hasLabel()) {
-			AnzacPeripheralsCore.peripheralLabels.remove(label);
-		}
+		AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), getLabel());
 		computers.remove(computer);
 		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 	}
@@ -121,35 +115,13 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		return PacketHandler.createTileEntityPacket("anzac", PacketHandler.ID_TILE_ENTITY, this);
 	}
 
-	protected synchronized void createMount() {
-		if (requiresMount() && hasWorldObj() && !worldObj.isRemote) {
-			if (id < 0) {
-				id = ComputerCraftAPI.createUniqueNumberedSaveDir(worldObj, "anzac/hdd");
-			}
-			mount = ComputerCraftAPI.createSaveDirMount(worldObj, "anzac/hdd/" + id, AnzacPeripheralsCore.storageSize);
-		}
-	}
-
-	protected abstract boolean requiresMount();
-
 	@Override
 	public void readFromNBT(final NBTTagCompound nbtTagCompound) {
 		super.readFromNBT(nbtTagCompound);
 
-		// read id
-		if (nbtTagCompound.hasKey("hddId")) {
-			id = nbtTagCompound.getInteger("hddId");
-		}
-		if (id >= 0 && mount == null && requiresMount()) {
-			createMount();
-		}
-
-		// read label
-		if (nbtTagCompound.hasKey("label")) {
-			label = nbtTagCompound.getString("label");
-			for (final IComputerAccess computer : computers) {
-				AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, this);
-			}
+		// read disc
+		if (nbtTagCompound.hasKey("disc")) {
+			discInv.readFromNBT(nbtTagCompound.getCompoundTag("disc"));
 		}
 	}
 
@@ -157,25 +129,14 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 	public void writeToNBT(final NBTTagCompound nbtTagCompound) {
 		super.writeToNBT(nbtTagCompound);
 
-		// write id
-		if (requiresMount()) {
-			nbtTagCompound.setInteger("hddId", id);
-		}
-
-		// write label
-		if (label != null) {
-			nbtTagCompound.setString("label", label);
-		}
-	}
-
-	protected synchronized void unmountDisk() {
-		mount = null;
-		return;
+		// write disc
+		final NBTTagCompound discTag = new NBTTagCompound();
+		discInv.writeToNBT(discTag);
+		nbtTagCompound.setCompoundTag("disc", discTag);
 	}
 
 	public boolean hasLabel() {
-		boolean notBlank = StringUtils.isNotBlank(label);
-		return notBlank;
+		return discInv.hasLabel();
 	}
 
 	/**
@@ -185,7 +146,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 	 */
 	@PeripheralMethod
 	public String getLabel() {
-		return label;
+		return discInv.getLabel();
 	}
 
 	/**
@@ -197,12 +158,16 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 	@PeripheralMethod
 	public void setLabel(final String label) {
 		for (final IComputerAccess computer : computers) {
-			AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), label);
+			AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), getLabel());
 		}
-		this.label = label;
+		discInv.setLabel(label);
 		for (final IComputerAccess computer : computers) {
 			AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, this);
 		}
+	}
+
+	protected IMount getMount() {
+		return discInv.getMount();
 	}
 
 	private String convertToString(final Object argument) throws Exception {
@@ -293,19 +258,5 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 			}
 		}
 		throw new Exception("Unable to find a method called " + name + " with " + argCount + " arguments");
-	}
-
-	/**
-	 * Get the id for this peripheral
-	 * 
-	 * @return the id
-	 */
-	@PeripheralMethod
-	public int getId() {
-		return id;
-	}
-
-	public void setId(final int id) {
-		this.id = id;
 	}
 }

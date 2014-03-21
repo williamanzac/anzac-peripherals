@@ -1,6 +1,7 @@
 package anzac.peripherals.blocks;
 
 import java.util.List;
+import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
@@ -11,7 +12,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Facing;
 import net.minecraft.util.Icon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.FluidContainerRegistry;
@@ -19,12 +22,15 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.tiles.CraftingRouterTileEntity;
 import anzac.peripherals.tiles.FluidRouterTileEntity;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
 import anzac.peripherals.tiles.ItemRouterTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
+import anzac.peripherals.tiles.RedstoneTileEntity;
 import anzac.peripherals.tiles.WorkbenchTileEntity;
+import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -47,6 +53,8 @@ public class PeripheralBlock extends BlockContainer {
 	private Icon fluidStorageSide;
 	@SideOnly(Side.CLIENT)
 	private Icon genericSide;
+	@SideOnly(Side.CLIENT)
+	private Icon redstoneSide;
 
 	public PeripheralBlock(final int blockId, final Material material) {
 		super(blockId, material);
@@ -93,6 +101,15 @@ public class PeripheralBlock extends BlockContainer {
 			}
 		case 5: // fluid storage
 			return side > 1 ? fluidStorageSide : genericSide;
+		case 6: // redstone
+			return redstoneSide;
+		case 7: // crafting router
+			switch (side) {
+			case 1:
+				return workbenchIconTop;
+			default:
+				return routerIconSide;
+			}
 		}
 		return genericSide;
 	}
@@ -109,25 +126,30 @@ public class PeripheralBlock extends BlockContainer {
 		itemStorageFront = par1IconRegister.registerIcon("anzac:storage_front");
 		fluidStorageSide = par1IconRegister.registerIcon("anzac:fluid_storage_side");
 		genericSide = par1IconRegister.registerIcon("anzac:generic_side");
+		redstoneSide = par1IconRegister.registerIcon("anzac:redstone_side");
 	}
 
 	@Override
 	public boolean onBlockActivated(final World world, final int x, final int y, final int z,
 			final EntityPlayer player, final int metadata, final float what, final float these, final float are) {
-		if (world.isRemote) {
-			return true;
-		}
+		// if (world.isRemote) {
+		// return true;
+		// }
 		final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
 		if (tileEntity == null || player.isSneaking()) {
 			return false;
 		}
-		if (tileEntity instanceof IFluidHandler) {
+		if (tileEntity instanceof FluidStorageTileEntity) {
 			final IFluidHandler tank = (IFluidHandler) tileEntity;
-			return handleFluids(player, tank);
+			if (handleFluids(player, tank)) {
+				return true;
+			}
 		}
-		if (tileEntity instanceof IInventory) {
+		if (tileEntity instanceof ItemStorageTileEntity) {
 			final IInventory inventory = (IInventory) tileEntity;
-			return handleItems(player, inventory);
+			if (handleItems(player, inventory)) {
+				return true;
+			}
 		}
 		player.openGui(AnzacPeripheralsCore.instance, 0, world, x, y, z);
 		return true;
@@ -137,7 +159,7 @@ public class PeripheralBlock extends BlockContainer {
 		return false;
 	}
 
-	private boolean handleFluids(final EntityPlayer player, IFluidHandler tank) {
+	private boolean handleFluids(final EntityPlayer player, final IFluidHandler tank) {
 		final ItemStack current = player.inventory.getCurrentItem();
 		if (current != null) {
 			FluidStack liquid = FluidContainerRegistry.getFluidForFilledItem(current);
@@ -195,6 +217,8 @@ public class PeripheralBlock extends BlockContainer {
 		par3List.add(new ItemStack(par1, 1, 3));
 		par3List.add(new ItemStack(par1, 1, 4));
 		par3List.add(new ItemStack(par1, 1, 5));
+		par3List.add(new ItemStack(par1, 1, 6));
+		par3List.add(new ItemStack(par1, 1, 7));
 	}
 
 	@Override
@@ -212,9 +236,96 @@ public class PeripheralBlock extends BlockContainer {
 			return new ItemStorageTileEntity();
 		case 5:
 			return new FluidStorageTileEntity();
+		case 6:
+			return new RedstoneTileEntity();
+		case 7:
+			return new CraftingRouterTileEntity();
 		}
 		return null;
 	}
+
+	@Override
+	public boolean isBlockNormalCube(World world, int x, int y, int z) {
+		return true;
+	}
+
+	@Override
+	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
+		final TileEntity entity = world.getBlockTileEntity(x, y, z);
+		if (entity instanceof RedstoneTileEntity) {
+			return true;
+		}
+		return super.canConnectRedstone(world, x, y, z, side);
+	}
+
+	@Override
+	public int isProvidingWeakPower(final IBlockAccess world, final int x, final int y, final int z, final int side) {
+		final TileEntity entity = world.getBlockTileEntity(x, y, z);
+		if (entity instanceof RedstoneTileEntity) {
+			return ((RedstoneTileEntity) entity).getOutput(Facing.oppositeSide[side]);
+		}
+		return super.isProvidingWeakPower(world, x, y, z, side);
+	}
+
+	@Override
+	public void onNeighborBlockChange(final World world, final int x, final int y, final int z, final int neighborId) {
+		super.onNeighborBlockChange(world, x, y, z, neighborId);
+		final TileEntity entity = world.getBlockTileEntity(x, y, z);
+		if (entity instanceof RedstoneTileEntity) {
+			for (final ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
+				((RedstoneTileEntity) entity)
+						.setInput(direction.ordinal(), getInputStrength(world, x, y, z, direction));
+			}
+		}
+	}
+
+	@Override
+	public boolean canProvidePower() {
+		return true;
+	}
+
+	// @Override
+	// public boolean shouldCheckWeakPower(final World world, final int x, final int y, final int z, final int side) {
+	// final TileEntity entity = world.getBlockTileEntity(x, y, z);
+	// if (entity instanceof RedstoneTileEntity) {
+	// return true;
+	// }
+	// return super.shouldCheckWeakPower(world, x, y, z, side);
+	// }
+
+	protected int getInputStrength(final World world, final int x, final int y, final int z, final ForgeDirection side) {
+		final Position p = new Position(x, y, z, side);
+		p.moveForwards(1);
+		final int l1 = world.getIndirectPowerLevelTo(p.x, p.y, p.z, side.getOpposite().ordinal());
+		return l1 >= 15 ? l1 : Math.max(l1,
+				world.getBlockId(p.x, p.y, p.z) == Block.redstoneWire.blockID ? world.getBlockMetadata(p.x, p.y, p.z)
+						: 0);
+	}
+
+	@Override
+	public void updateTick(final World world, final int x, final int y, final int z, final Random random) {
+		super.updateTick(world, x, y, z, random);
+		final TileEntity entity = world.getBlockTileEntity(x, y, z);
+		if (entity instanceof RedstoneTileEntity) {
+			for (final ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
+				((RedstoneTileEntity) entity)
+						.setInput(direction.ordinal(), getInputStrength(world, x, y, z, direction));
+			}
+		}
+	}
+
+	@Override
+	public int isProvidingStrongPower(final IBlockAccess world, final int x, final int y, final int z, final int side) {
+		return isProvidingWeakPower(world, x, y, z, side);
+	}
+
+	// @Override
+	// public void onNeighborTileChange(final World world, final int x, final int y, final int z, final int tileX,
+	// final int tileY, final int tileZ) {
+	// if (y == tileY) {
+	// onNeighborBlockChange(world, x, y, z, world.getBlockId(tileX, tileY, tileZ));
+	// }
+	// }
 
 	// @Override
 	// public void onBlockAdded(final World world, final int x, final int y, final int z) {

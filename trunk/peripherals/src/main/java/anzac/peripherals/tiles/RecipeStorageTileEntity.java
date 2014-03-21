@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryCraftResult;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
@@ -37,10 +38,10 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 	@PeripheralMethod
 	public Object[] getRecipes() throws Exception {
 		final List<String> recipes = new ArrayList<String>();
-		if (mount == null) {
+		if (getMount() == null) {
 			throw new Exception("No disk loaded");
 		}
-		mount.list(".", recipes);
+		getMount().list(".", recipes);
 		return recipes.toArray();
 	}
 
@@ -56,11 +57,11 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 
 	@PeripheralMethod
 	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
-		if (mount == null) {
+		if (getMount() == null) {
 			throw new Exception("No disk loaded");
 		}
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
-		final InputStream stream = mount.openForRead(String.valueOf(id));
+		final InputStream stream = getMount().openForRead(String.valueOf(id));
 		final DataInputStream in = new DataInputStream(stream);
 		try {
 			for (int i = 0; i < craftMatrix.getSizeInventory(); i++) {
@@ -77,20 +78,20 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 
 	@PeripheralMethod
 	public boolean removeRecipe(final int id) throws Exception {
-		if (mount == null) {
+		if (getMount() == null) {
 			throw new Exception("No disk loaded");
 		}
-		((IWritableMount) mount).delete(String.valueOf(id));
+		((IWritableMount) getMount()).delete(String.valueOf(id));
 		return true;
 	}
 
 	@PeripheralMethod
 	public boolean storeRecipe() throws Exception {
-		if (mount == null) {
+		if (getMount() == null) {
 			throw new Exception("No disk loaded");
 		}
 		final String name = String.valueOf(Utils.getUUID(craftResult.getStackInSlot(0)));
-		final OutputStream stream = ((IWritableMount) mount).openForWrite(name);
+		final OutputStream stream = ((IWritableMount) getMount()).openForWrite(name);
 		final DataOutputStream out = new DataOutputStream(stream);
 		try {
 			for (int i = 0; i < craftMatrix.getSizeInventory(); i++) {
@@ -141,8 +142,8 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		tagCompound.setTag("matrix", list);
 	}
 
-	@Override
-	protected boolean requiresMount() {
-		return true;
+	public boolean isUseableByPlayer(final EntityPlayer entityplayer) {
+		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
+				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
 	}
 }

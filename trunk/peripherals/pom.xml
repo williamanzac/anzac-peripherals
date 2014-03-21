@@ -24,11 +24,14 @@
 		<dependency>
 			<groupId>buildcraft</groupId>
 			<artifactId>buildcraft</artifactId>
-			</dependency>
+		</dependency>
 		<dependency>
 			<groupId>computercraft</groupId>
 			<artifactId>ComputerCraft</artifactId>
-			<type>zip</type>
+		</dependency>
+		<dependency>
+			<groupId>railcraft</groupId>
+			<artifactId>Railcraft_1.6.4</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

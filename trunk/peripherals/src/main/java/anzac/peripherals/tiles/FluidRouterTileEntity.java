@@ -124,22 +124,22 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		}
 		final IFluidHandler handler = (IFluidHandler) te;
 		final FluidTankInfo[] tankInfo = handler.getTankInfo(dir);
-		final Map<Integer, Map<Integer, Integer>> table = new HashMap<Integer, Map<Integer, Integer>>();
+		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
 		for (final FluidTankInfo info : tankInfo) {
 			if (info != null) {
 				final FluidStack fluid = info.fluid;
 				final int uuid = Utils.getUUID(fluid);
-				final int amountI = fluid == null ? 0 : fluid.amount;
+				final int amount = fluid == null ? 0 : fluid.amount;
 				final int capacity = info.capacity;
 				if (table.containsKey(uuid)) {
-					final Map<Integer, Integer> map = table.get(uuid);
-					map.put(0, map.get(0) + amountI);
-					map.put(1, map.get(1) + capacity);
+					final Map<String, Integer> map = table.get(uuid);
+					map.put("amount", map.get("amount") + amount);
+					map.put("capacity", map.get("capacity") + capacity);
 				} else {
-					final Map<Integer, Integer> list = new HashMap<Integer, Integer>();
-					table.put(uuid, list);
-					list.put(0, amountI);
-					list.put(1, capacity);
+					final Map<String, Integer> map = new HashMap<String, Integer>();
+					table.put(uuid, map);
+					map.put("amount", amount);
+					map.put("capacity", capacity);
 				}
 			}
 		}
@@ -149,7 +149,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 
 	@Override
 	@PeripheralMethod
-	public Object extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
+	public int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
 			final ForgeDirection extractSide) throws Exception {
 		final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
 		pos.moveForwards(1);
@@ -168,7 +168,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 			// AnzacPeripheralsCore.logger.info("amount:" + fluidStack.amount);
 			return fluidStack.amount;
 		}
-		return null;
+		return 0;
 	}
 
 	@Override

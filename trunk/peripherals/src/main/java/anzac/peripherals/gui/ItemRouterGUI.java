@@ -12,7 +12,7 @@ import anzac.peripherals.tiles.ItemRouterTileEntity;
 
 public class ItemRouterGUI extends GuiContainer {
 
-	public static final ResourceLocation gui = new ResourceLocation("anzac", "textures/gui/router.png");
+	public static final ResourceLocation gui = new ResourceLocation("anzac", "textures/gui/item_router.png");
 
 	private final ItemRouterTileEntity tileEntity;
 
@@ -33,8 +33,7 @@ public class ItemRouterGUI extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
-		final String title = tileEntity.hasLabel() ? tileEntity.getLabel()
-				: "Item Router";
+		final String title = tileEntity.hasLabel() ? tileEntity.getLabel() : "Item Router";
 		fontRenderer.drawString(title, 8, 6, 4210752);
 		fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, (ySize - 96) + 2, 4210752);
 	}

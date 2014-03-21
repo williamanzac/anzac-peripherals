@@ -74,7 +74,7 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 
 	@Override
 	public int fill(final ForgeDirection from, final FluidStack resource, final boolean doFill) {
-		if (resource == null || !isAllowed(resource.getFluid())) {
+		if (getMount() == null || resource == null || !isAllowed(resource.getFluid())) {
 			return 0;
 		}
 		final int fill = internalFill(resource, doFill);
@@ -159,7 +159,7 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 
 	@Override
 	public boolean canFill(final ForgeDirection from, final Fluid fluid) {
-		return isConnected() && isAllowed(fluid);
+		return getMount() != null && isConnected() && isAllowed(fluid);
 	}
 
 	@Override
@@ -204,8 +204,8 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 			// AnzacPeripheralsCore.logger.info("capacity: " + capacity);
 			if (table.containsKey(uuid)) {
 				final Map<String, Integer> map = table.get(uuid);
-				map.put("amount", map.get(0) + amount);
-				map.put("capacity", map.get(1) + capacity);
+				map.put("amount", map.get("amount") + amount);
+				map.put("capacity", map.get("capacity") + capacity);
 			} else {
 				final Map<String, Integer> map = new HashMap<String, Integer>();
 				table.put(uuid, map);

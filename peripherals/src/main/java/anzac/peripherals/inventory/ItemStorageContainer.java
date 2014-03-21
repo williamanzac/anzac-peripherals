@@ -4,11 +4,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import anzac.peripherals.tiles.ItemRouterTileEntity;
+import anzac.peripherals.tiles.ItemStorageTileEntity;
 
-public class ItemRouterContainer extends BaseItemContainer<ItemRouterTileEntity> {
+public class ItemStorageContainer extends BaseItemContainer<ItemStorageTileEntity> {
 
-	public ItemRouterContainer(final InventoryPlayer inventoryPlayer, final ItemRouterTileEntity te) {
+	public ItemStorageContainer(final InventoryPlayer inventoryPlayer, final ItemStorageTileEntity te) {
 		super(te);
 		int row;
 		int col;
@@ -19,13 +19,13 @@ public class ItemRouterContainer extends BaseItemContainer<ItemRouterTileEntity>
 				return inventory.isItemValidForSlot(getSlotIndex(), itemStack);
 			}
 		});
-
-		addSlotToContainer(new Slot(te, 0, 48, 35) {
-			@Override
-			public boolean isItemValid(final ItemStack itemStack) {
-				return inventory.isItemValidForSlot(getSlotIndex(), itemStack);
-			}
-		});
+		//
+		// addSlotToContainer(new Slot(te, 0, 48, 35) {
+		// @Override
+		// public boolean isItemValid(final ItemStack itemStack) {
+		// return inventory.isItemValidForSlot(getSlotIndex(), itemStack);
+		// }
+		// });
 
 		for (row = 0; row < 3; ++row) {
 			for (col = 0; col < 9; ++col) {

@@ -17,6 +17,7 @@
 		<computercraft.version>1.58</computercraft.version>
 		<forge.full.version>${mcp.version}-${forge.version}</forge.full.version>
 		<buildcraft.full.version>A-${mcp.version}-${buildcraft.version}</buildcraft.full.version>
+		<railcraft.version>8.4.0.0</railcraft.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -86,7 +87,13 @@
 				<groupId>computercraft</groupId>
 				<artifactId>ComputerCraft</artifactId>
 				<version>${computercraft.version}</version>
-				<type>zip</type>
+				<type>jar</type>
+			</dependency>
+			<dependency>
+				<groupId>railcraft</groupId>
+				<artifactId>Railcraft_1.6.4</artifactId>
+				<version>${railcraft.version}</version>
+				<type>jar</type>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -131,7 +138,11 @@
 								<artifactItem>
 									<groupId>computercraft</groupId>
 									<artifactId>ComputerCraft</artifactId>
-									<type>zip</type>
+									<type>jar</type>
+								</artifactItem>
+								<artifactItem>
+									<groupId>railcraft</groupId>
+									<artifactId>Railcraft_1.6.4</artifactId>
 								</artifactItem>
 							</artifactItems>
 						</configuration>

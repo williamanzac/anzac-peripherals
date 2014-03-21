@@ -15,15 +15,13 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 	protected final Set<Integer> filter = new HashSet<Integer>();
 	protected FilterMode filterMode = FilterMode.NONE;
 
-	@Override
-	protected boolean requiresMount() {
-		return false;
-	}
-
 	@PeripheralMethod
 	public abstract Object contents() throws Exception;
 
 	protected boolean isAllowed(final int id) {
+		if (getMount() == null) {
+			return false;
+		}
 		switch (filterMode) {
 		case NONE:
 			return true;
@@ -37,16 +35,25 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 
 	@PeripheralMethod
 	public Integer[] listFilter() throws Exception {
+		if (getMount() == null) {
+			throw new Exception("No disk loaded");
+		}
 		return filter.toArray(new Integer[filter.size()]);
 	}
 
 	@PeripheralMethod
 	public void removeFilter(final int id) throws Exception {
+		if (getMount() == null) {
+			throw new Exception("No disk loaded");
+		}
 		filter.remove(id);
 	}
 
 	@PeripheralMethod
 	public void addFilter(final int id) throws Exception {
+		if (getMount() == null) {
+			throw new Exception("No disk loaded");
+		}
 		filter.add(id);
 	}
 

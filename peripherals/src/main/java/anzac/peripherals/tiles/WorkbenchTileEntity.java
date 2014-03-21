@@ -16,12 +16,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
+import buildcraft.api.inventory.ISpecialInventory;
 import dan200.computer.api.IComputerAccess;
 
-public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory {
+public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory,
+		ISpecialInventory {
 
 	private static final String INVENTORY = "inventory";
 	private static final String SLOT = "Slot";
@@ -177,35 +180,40 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	}
 
 	@Override
-	public ItemStack decrStackSize(final int i, final int j) {
-		final ItemStack stackInSlot = inventory[i];
-		if (stackInSlot == null) {
-			return null;
+	public ItemStack decrStackSize(final int slot, final int amt) {
+		ItemStack stack = getStackInSlot(slot);
+		if (stack != null) {
+			if (stack.stackSize <= amt) {
+				setInventorySlotContents(slot, null);
+			} else {
+				stack = stack.splitStack(amt);
+				if (stack.stackSize == 0) {
+					setInventorySlotContents(slot, null);
+				}
+			}
 		}
-
-		if (stackInSlot.stackSize <= j) {
-			final ItemStack disk = stackInSlot;
-			setInventorySlotContents(i, null);
-			return disk;
-		}
-
-		final ItemStack part = stackInSlot.splitStack(j);
-		if (stackInSlot.stackSize == 0) {
-			setInventorySlotContents(i, null);
-		} else {
-			setInventorySlotContents(i, stackInSlot);
-		}
-		return part;
+		return stack;
 	}
 
 	@Override
 	public ItemStack getStackInSlotOnClosing(final int i) {
-		return inventory[i];
+		final ItemStack stack = getStackInSlot(i);
+		if (stack != null) {
+			setInventorySlotContents(i, null);
+		}
+		return stack;
 	}
 
 	@Override
-	public void setInventorySlotContents(final int i, final ItemStack itemstack) {
-		inventory[i] = itemstack;
+	public void setInventorySlotContents(final int slot, final ItemStack stack) {
+		inventory[slot] = stack;
+		if (stack == null) {
+			return;
+		}
+		final int inventoryStackLimit = getInventoryStackLimit();
+		if (stack.stackSize > inventoryStackLimit) {
+			stack.stackSize = inventoryStackLimit;
+		}
 		onInventoryChanged();
 	}
 
@@ -256,6 +264,84 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	@Override
 	public boolean isItemValidForSlot(final int slot, final ItemStack stack) {
 		return isConnected() && slot < 15;
+	}
+
+	@Override
+	public int addItem(final ItemStack stack, final boolean doAdd, final ForgeDirection from) {
+		final ItemStack copy;
+		final int size = stack.stackSize;
+		if (doAdd) {
+			copy = stack;
+		} else {
+			copy = stack.copy();
+		}
+		for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
+			final ItemStack stackInSlot = getStackInSlot(slot);
+			if (stackInSlot != null && Utils.stacksMatch(stackInSlot, copy)
+					&& canInsertItem(slot, copy, from.ordinal())) {
+				final int l = stackInSlot.stackSize + copy.stackSize;
+				final int inventoryStackLimit = getInventoryStackLimit();
+				if (l <= inventoryStackLimit) {
+					copy.stackSize = 0;
+					stackInSlot.stackSize = l;
+				} else if (stackInSlot.stackSize < inventoryStackLimit) {
+					copy.stackSize -= inventoryStackLimit - stackInSlot.stackSize;
+					stackInSlot.stackSize = inventoryStackLimit;
+				}
+			}
+			if (copy.stackSize == 0) {
+				break;
+			}
+		}
+		if (copy.stackSize > 0) {
+			for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
+				final ItemStack stackInSlot = getStackInSlot(slot);
+				if (stackInSlot == null && canInsertItem(slot, copy, from.ordinal())) {
+					final ItemStack target = copy.copy();
+					inventory[slot] = target;
+					final int inventoryStackLimit = getInventoryStackLimit();
+					if (target.stackSize > inventoryStackLimit) {
+						target.stackSize = inventoryStackLimit;
+					}
+					copy.stackSize -= target.stackSize;
+				}
+				if (copy.stackSize == 0) {
+					break;
+				}
+			}
+		}
+		onInventoryChanged();
+		return size - copy.stackSize;
+	}
+
+	@Override
+	public ItemStack[] extractItem(final boolean doRemove, final ForgeDirection from, final int maxItemCount) {
+		final List<ItemStack> items = new ArrayList<ItemStack>();
+		int total = 0;
+		for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
+			final ItemStack stackInSlot = getStackInSlot(slot);
+			if (stackInSlot != null && canExtractItem(slot, stackInSlot, from.ordinal())) {
+				final ItemStack copy;
+				if (doRemove) {
+					copy = stackInSlot;
+				} else {
+					copy = stackInSlot.copy();
+				}
+				total += copy.stackSize;
+				items.add(copy);
+				if (total > maxItemCount) {
+					int over = total - maxItemCount;
+					copy.stackSize -= over;
+				} else if (doRemove) {
+					inventory[slot] = null;
+				}
+			}
+			if (total >= maxItemCount) {
+				break;
+			}
+		}
+		onInventoryChanged();
+		return items.toArray(new ItemStack[items.size()]);
 	}
 
 	@Override
@@ -314,10 +400,5 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 			}
 		}
 		tagCompound.setTag(INVENTORY, list);
-	}
-
-	@Override
-	protected boolean requiresMount() {
-		return false;
 	}
 }

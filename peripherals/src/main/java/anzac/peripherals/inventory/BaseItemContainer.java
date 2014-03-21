@@ -1,38 +1,116 @@
 package anzac.peripherals.inventory;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import anzac.peripherals.tiles.BasePeripheralTileEntity;
+import anzac.peripherals.utils.Utils;
 
-public abstract class BaseItemContainer extends Container {
+public abstract class BaseItemContainer<T extends BasePeripheralTileEntity> extends Container {
 
-	protected final IInventory te;
+	protected final T te;
 
-	public BaseItemContainer(final IInventory te) {
+	public BaseItemContainer(final T te) {
 		this.te = te;
 	}
 
 	@Override
-	public boolean canInteractWith(final EntityPlayer par1EntityPlayer) {
-		return te.isUseableByPlayer(par1EntityPlayer);
+	public ItemStack slotClick(final int slotNum, final int mouseButton, final int modifier, final EntityPlayer player) {
+		final Slot slot = slotNum < 0 ? null : (Slot) this.inventorySlots.get(slotNum);
+		if (slot instanceof ISpecialSlot) {
+			return slotClickSpecial(slot, mouseButton, modifier, player);
+		}
+		return super.slotClick(slotNum, mouseButton, modifier, player);
 	}
 
-	protected boolean tryMergeItemStack(final ItemStack stackToShift,
-			final int numSlots) {
+	private ItemStack slotClickSpecial(final Slot slot, final int mouseButton, final int modifier,
+			final EntityPlayer player) {
+		ItemStack stack = null;
+
+		if (mouseButton == 2) {
+			if (((ISpecialSlot) slot).isAdjustable()) {
+				slot.putStack(null);
+			}
+		} else if (mouseButton == 0 || mouseButton == 1) {
+			final InventoryPlayer playerInv = player.inventory;
+			slot.onSlotChanged();
+			final ItemStack stackSlot = slot.getStack();
+			final ItemStack stackHeld = playerInv.getItemStack();
+
+			if (stackSlot != null) {
+				stack = stackSlot.copy();
+			}
+
+			if (stackSlot == null) {
+				if (stackHeld != null && slot.isItemValid(stackHeld)) {
+					fillSpecialSlot(slot, stackHeld, mouseButton, modifier);
+				}
+			} else if (stackHeld == null) {
+				adjustSpecialSlot(slot, mouseButton, modifier);
+				slot.onPickupFromSlot(player, playerInv.getItemStack());
+			} else if (slot.isItemValid(stackHeld)) {
+				if (Utils.canMergeItemStack(stackSlot, stackHeld)) {
+					adjustSpecialSlot(slot, mouseButton, modifier);
+				} else {
+					fillSpecialSlot(slot, stackHeld, mouseButton, modifier);
+				}
+			}
+		}
+		return stack;
+	}
+
+	protected void adjustSpecialSlot(final Slot slot, final int mouseButton, final int modifier) {
+		if (!((ISpecialSlot) slot).isAdjustable()) {
+			return;
+		}
+		final ItemStack stackSlot = slot.getStack();
+		int stackSize;
+		if (modifier == 1) {
+			stackSize = mouseButton == 0 ? (stackSlot.stackSize + 1) / 2 : stackSlot.stackSize * 2;
+		} else {
+			stackSize = mouseButton == 0 ? stackSlot.stackSize - 1 : stackSlot.stackSize + 1;
+		}
+
+		if (stackSize > slot.getSlotStackLimit()) {
+			stackSize = slot.getSlotStackLimit();
+		}
+
+		stackSlot.stackSize = stackSize;
+
+		if (stackSlot.stackSize <= 0) {
+			slot.putStack((ItemStack) null);
+		}
+	}
+
+	protected void fillSpecialSlot(final Slot slot, final ItemStack stackHeld, final int mouseButton, final int modifier) {
+		if (!((ISpecialSlot) slot).isAdjustable()) {
+			return;
+		}
+		int stackSize = mouseButton == 0 ? stackHeld.stackSize : 1;
+		if (stackSize > slot.getSlotStackLimit()) {
+			stackSize = slot.getSlotStackLimit();
+		}
+		final ItemStack specialStack = stackHeld.copy();
+		specialStack.stackSize = stackSize;
+
+		slot.putStack(specialStack);
+	}
+
+	protected boolean tryMergeItemStack(final ItemStack stackToShift, final int numSlots) {
 		for (int machineIndex = 0; machineIndex < numSlots - 9 * 4; machineIndex++) {
 			final Slot slot = (Slot) inventorySlots.get(machineIndex);
 			// if (slot instanceof SlotBase && !((SlotBase) slot).canShift()) {
 			// continue;
 			// }
-			// if (slot instanceof IPhantomSlot) {
-			// continue;
-			// }
+			if (slot instanceof SlotPhantom) {
+				continue;
+			}
 			if (!slot.isItemValid(stackToShift)) {
 				continue;
 			}
-			if (mergeItemStack(stackToShift, machineIndex, machineIndex + 1, false)) {
+			if (Utils.mergeItemStack(stackToShift, slot.getStack())) {
 				return true;
 			}
 		}

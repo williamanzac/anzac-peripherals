@@ -21,7 +21,7 @@ import dan200.computer.api.IComputerAccess;
 public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
 
-	private ItemStack itemSlot;
+	protected ItemStack itemSlot;
 
 	@Override
 	public String getType() {
@@ -79,7 +79,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 
 	@Override
 	@PeripheralMethod
-	public Object extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
+	public int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
 			final ForgeDirection extractSide) throws Exception {
 		if (itemSlot != null) {
 			throw new Exception("Internal cache is not empty");
@@ -101,7 +101,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 				return extracted.stackSize;
 			}
 		}
-		return null;
+		return 0;
 	}
 
 	@Override
@@ -158,15 +158,14 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	@Override
 	public void setInventorySlotContents(final int slot, final ItemStack stack) {
 		itemSlot = stack;
-		if (stack == null) {
-			return;
-		}
-		if (stack.stackSize > getInventoryStackLimit()) {
-			stack.stackSize = getInventoryStackLimit();
-		}
-		for (final IComputerAccess computer : computers) {
-			computer.queueEvent("item_route", new Object[] { computer.getAttachmentName(), Utils.getUUID(stack),
-					stack.stackSize });
+		if (stack != null) {
+			if (stack.stackSize > getInventoryStackLimit()) {
+				stack.stackSize = getInventoryStackLimit();
+			}
+			for (final IComputerAccess computer : computers) {
+				computer.queueEvent("item_route", new Object[] { computer.getAttachmentName(), Utils.getUUID(stack),
+						stack.stackSize });
+			}
 		}
 		onInventoryChanged();
 	}

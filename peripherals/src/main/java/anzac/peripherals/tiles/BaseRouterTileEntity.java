@@ -96,11 +96,6 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 		}
 	}
 
-	@Override
-	protected boolean requiresMount() {
-		return false;
-	}
-
 	@PeripheralMethod
 	public final Object contents() throws Exception {
 		return contents(ForgeDirection.UNKNOWN);
@@ -115,12 +110,12 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 	public abstract Object contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception;
 
 	@PeripheralMethod
-	public final Object extractFrom(final ForgeDirection fromDir, final int uuid, final int amount) throws Exception {
+	public final int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount) throws Exception {
 		return extractFrom(fromDir, uuid, amount, fromDir.getOpposite());
 	}
 
 	@PeripheralMethod
-	public abstract Object extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
+	public abstract int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
 			final ForgeDirection extractSide) throws Exception;
 
 	@PeripheralMethod
@@ -175,6 +170,9 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 
 	@PeripheralMethod
 	public void addTrigger(final String name, final int uuid, final ForgeDirection side) throws Exception {
+		if (getMount() == null) {
+			throw new Exception("No disk loaded");
+		}
 		final ITrigger iTrigger = ActionManager.triggers.get(name);
 		if (iTrigger == null) {
 			throw new Exception(name + " is not a valid trigger");
@@ -187,7 +185,10 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 	}
 
 	@PeripheralMethod
-	public void removeTrigger(final String name, final int uuid, final ForgeDirection side) {
+	public void removeTrigger(final String name, final int uuid, final ForgeDirection side) throws Exception {
+		if (getMount() == null) {
+			throw new Exception("No disk loaded");
+		}
 		for (final Iterator<Trigger> it = triggers.iterator(); it.hasNext();) {
 			final Trigger trigger = it.next();
 			if (trigger.getUniqueTag().equals(name) && trigger.getParameter() == uuid && trigger.getSide() == side) {
@@ -204,7 +205,7 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 			return;
 		}
 
-		if (worldObj.getTotalWorldTime() % 10 == 0) {
+		if (getMount() != null && worldObj.getTotalWorldTime() % 10 == 0) {
 			resolveEvents();
 		}
 	}

@@ -265,7 +265,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		if (amount < copy.stackSize) {
 			copy.stackSize = amount;
 		}
-		int size = copy.stackSize;
+		final int size = copy.stackSize;
 		final int amount1 = copy.stackSize;
 		copy.stackSize -= Utils.addToInventory(ForgeDirection.UNKNOWN, copy, (IInventory) entity);
 		final int toDec = amount1 - copy.stackSize;
@@ -303,38 +303,12 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	@Override
-	public int addItem(ItemStack stack, boolean doAdd, ForgeDirection from) {
-		final ItemStack copy;
-		final int size = stack.stackSize;
-		if (doAdd) {
-			copy = stack;
-		} else {
-			copy = stack.copy();
-		}
-		if (itemSlot == null) {
-			itemSlot = copy.copy();
-			final int inventoryStackLimit = getInventoryStackLimit();
-			if (itemSlot.stackSize > inventoryStackLimit) {
-				itemSlot.stackSize = inventoryStackLimit;
-			}
-			copy.stackSize -= itemSlot.stackSize;
-		} else if (Utils.stacksMatch(itemSlot, copy)) {
-			final int l = itemSlot.stackSize + copy.stackSize;
-			final int inventoryStackLimit = getInventoryStackLimit();
-			if (l <= inventoryStackLimit) {
-				copy.stackSize = 0;
-				itemSlot.stackSize = l;
-			} else if (itemSlot.stackSize < inventoryStackLimit) {
-				copy.stackSize -= inventoryStackLimit - itemSlot.stackSize;
-				itemSlot.stackSize = inventoryStackLimit;
-			}
-		}
-		onInventoryChanged();
-		return size - copy.stackSize;
+	public int addItem(final ItemStack stack, final boolean doAdd, final ForgeDirection from) {
+		return Utils.addItem(this, stack, doAdd, from);
 	}
 
 	@Override
-	public ItemStack[] extractItem(boolean doRemove, ForgeDirection from, int maxItemCount) {
+	public ItemStack[] extractItem(final boolean doRemove, final ForgeDirection from, final int maxItemCount) {
 		// cannot extract
 		return null;
 	}

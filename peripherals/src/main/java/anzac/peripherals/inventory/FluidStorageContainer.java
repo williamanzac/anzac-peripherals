@@ -4,11 +4,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import anzac.peripherals.tiles.ItemStorageTileEntity;
+import anzac.peripherals.tiles.FluidStorageTileEntity;
 
-public class ItemStorageContainer extends BaseItemContainer<ItemStorageTileEntity> {
+public class FluidStorageContainer extends BaseItemContainer<FluidStorageTileEntity> {
 
-	public ItemStorageContainer(final InventoryPlayer inventoryPlayer, final ItemStorageTileEntity te) {
+	public FluidStorageContainer(final InventoryPlayer inventoryPlayer, final FluidStorageTileEntity te) {
 		super(te);
 		int row;
 		int col;

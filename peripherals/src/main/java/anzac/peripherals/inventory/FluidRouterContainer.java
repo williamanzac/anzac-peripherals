@@ -4,22 +4,22 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import anzac.peripherals.tiles.ItemStorageTileEntity;
+import anzac.peripherals.tiles.FluidRouterTileEntity;
 
-public class ItemStorageContainer extends BaseItemContainer<ItemStorageTileEntity> {
+public class FluidRouterContainer extends BaseItemContainer<FluidRouterTileEntity> {
 
-	public ItemStorageContainer(final InventoryPlayer inventoryPlayer, final ItemStorageTileEntity te) {
+	public FluidRouterContainer(final InventoryPlayer inventoryPlayer, final FluidRouterTileEntity te) {
 		super(te);
 		int row;
 		int col;
 
-		addSlotToContainer(new Slot(te.discInv, 0, 120, 53) {
+		addSlotToContainer(new Slot(te.discInv, 0, 120, 49) {
 			@Override
 			public boolean isItemValid(final ItemStack itemStack) {
 				return inventory.isItemValidForSlot(getSlotIndex(), itemStack);
 			}
 		});
-		//
+
 		// addSlotToContainer(new Slot(te, 0, 48, 35) {
 		// @Override
 		// public boolean isItemValid(final ItemStack itemStack) {
@@ -29,12 +29,12 @@ public class ItemStorageContainer extends BaseItemContainer<ItemStorageTileEntit
 
 		for (row = 0; row < 3; ++row) {
 			for (col = 0; col < 9; ++col) {
-				addSlotToContainer(new Slot(inventoryPlayer, col + row * 9 + 9, 8 + col * 18, 88 + row * 18));
+				addSlotToContainer(new Slot(inventoryPlayer, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
 			}
 		}
 
 		for (row = 0; row < 9; ++row) {
-			addSlotToContainer(new Slot(inventoryPlayer, row, 8 + row * 18, 146));
+			addSlotToContainer(new Slot(inventoryPlayer, row, 8 + row * 18, 142));
 		}
 	}
 

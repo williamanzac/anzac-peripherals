@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.ForgeDirection;
@@ -110,52 +111,16 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		return null;
 	}
 
-	// private FluidStack internalDrain(final ForgeDirection from, final int maxDrain, final boolean doDrain) {
-	// return internalDrain(fluidTanks, maxDrain, doDrain);
-	// }
-
 	@Override
 	public FluidStack drain(final ForgeDirection from, final int maxDrain, final boolean doDrain) {
 		// cannot drain
 		return null;
 	}
 
-	// private FluidStack internalDrain(final ForgeDirection from, final FluidStack resource, final boolean doDrain) {
-	// if (resource == null) {
-	// return null;
-	// }
-	// final Collection<FluidTank> filter = Collections2.filter(fluidTanks, new Predicate<FluidTank>() {
-	// @Override
-	// public boolean apply(final FluidTank input) {
-	// if (input != null) {
-	// return resource.isFluidEqual(input.getFluid());
-	// }
-	// return false;
-	// }
-	// });
-	// return internalDrain(filter, resource.amount, doDrain);
-	// }
-
-	// private FluidStack internalDrain(final Collection<FluidTank> tanksToDrain, final int maxEmpty, final boolean
-	// doDrain) {
-	// int totalDrained = 0;
-	// int maxDrain = maxEmpty;
-	// FluidStack stack = null;
-	//
-	// for (final FluidTank tank : tanksToDrain) {
-	// stack = tank.drain(maxDrain, doDrain);
-	// maxDrain -= stack.amount;
-	//
-	// totalDrained += stack.amount;
-	// if (maxDrain <= 0) {
-	// break;
-	// }
-	// }
-	// if (stack != null) {
-	// stack.amount = totalDrained;
-	// }
-	// return stack;
-	// }
+	public boolean isUseableByPlayer(final EntityPlayer entityplayer) {
+		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
+				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
+	}
 
 	@Override
 	public boolean canFill(final ForgeDirection from, final Fluid fluid) {

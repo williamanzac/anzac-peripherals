@@ -4,11 +4,15 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import anzac.peripherals.inventory.CraftingRouterContainer;
+import anzac.peripherals.inventory.FluidRouterContainer;
+import anzac.peripherals.inventory.FluidStorageContainer;
 import anzac.peripherals.inventory.ItemRouterContainer;
 import anzac.peripherals.inventory.ItemStorageContainer;
 import anzac.peripherals.inventory.RecipeStorageContainer;
 import anzac.peripherals.inventory.WorkbenchContainer;
 import anzac.peripherals.tiles.CraftingRouterTileEntity;
+import anzac.peripherals.tiles.FluidRouterTileEntity;
+import anzac.peripherals.tiles.FluidStorageTileEntity;
 import anzac.peripherals.tiles.ItemRouterTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
@@ -33,8 +37,14 @@ public class GuiHandler implements IGuiHandler {
 		if (tileEntity instanceof ItemRouterTileEntity) {
 			return new ItemRouterContainer(player.inventory, (ItemRouterTileEntity) tileEntity);
 		}
+		if (tileEntity instanceof FluidRouterTileEntity) {
+			return new FluidRouterContainer(player.inventory, (FluidRouterTileEntity) tileEntity);
+		}
 		if (tileEntity instanceof ItemStorageTileEntity) {
 			return new ItemStorageContainer(player.inventory, (ItemStorageTileEntity) tileEntity);
+		}
+		if (tileEntity instanceof FluidStorageTileEntity) {
+			return new FluidStorageContainer(player.inventory, (FluidStorageTileEntity) tileEntity);
 		}
 		return null;
 	}
@@ -55,8 +65,14 @@ public class GuiHandler implements IGuiHandler {
 		if (tileEntity instanceof ItemRouterTileEntity) {
 			return new ItemRouterGUI(player.inventory, (ItemRouterTileEntity) tileEntity);
 		}
+		if (tileEntity instanceof FluidRouterTileEntity) {
+			return new FluidRouterGUI(player.inventory, (FluidRouterTileEntity) tileEntity);
+		}
 		if (tileEntity instanceof ItemStorageTileEntity) {
 			return new ItemStorageGUI(player.inventory, (ItemStorageTileEntity) tileEntity);
+		}
+		if (tileEntity instanceof FluidStorageTileEntity) {
+			return new FluidStorageGUI(player.inventory, (FluidStorageTileEntity) tileEntity);
 		}
 		return null;
 	}

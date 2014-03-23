@@ -268,50 +268,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 
 	@Override
 	public int addItem(final ItemStack stack, final boolean doAdd, final ForgeDirection from) {
-		final ItemStack copy;
-		final int size = stack.stackSize;
-		if (doAdd) {
-			copy = stack;
-		} else {
-			copy = stack.copy();
-		}
-		for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
-			final ItemStack stackInSlot = getStackInSlot(slot);
-			if (stackInSlot != null && Utils.stacksMatch(stackInSlot, copy)
-					&& canInsertItem(slot, copy, from.ordinal())) {
-				final int l = stackInSlot.stackSize + copy.stackSize;
-				final int inventoryStackLimit = getInventoryStackLimit();
-				if (l <= inventoryStackLimit) {
-					copy.stackSize = 0;
-					stackInSlot.stackSize = l;
-				} else if (stackInSlot.stackSize < inventoryStackLimit) {
-					copy.stackSize -= inventoryStackLimit - stackInSlot.stackSize;
-					stackInSlot.stackSize = inventoryStackLimit;
-				}
-			}
-			if (copy.stackSize == 0) {
-				break;
-			}
-		}
-		if (copy.stackSize > 0) {
-			for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
-				final ItemStack stackInSlot = getStackInSlot(slot);
-				if (stackInSlot == null && canInsertItem(slot, copy, from.ordinal())) {
-					final ItemStack target = copy.copy();
-					inventory[slot] = target;
-					final int inventoryStackLimit = getInventoryStackLimit();
-					if (target.stackSize > inventoryStackLimit) {
-						target.stackSize = inventoryStackLimit;
-					}
-					copy.stackSize -= target.stackSize;
-				}
-				if (copy.stackSize == 0) {
-					break;
-				}
-			}
-		}
-		onInventoryChanged();
-		return size - copy.stackSize;
+		return Utils.addItem(this, stack, doAdd, from);
 	}
 
 	@Override

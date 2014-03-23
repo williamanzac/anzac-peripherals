@@ -3,6 +3,7 @@ package anzac.peripherals.tiles;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
@@ -64,6 +65,11 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 			fluidTank.writeToNBT(tagFluid);
 			tagCompound.setTag("fluid", tagFluid);
 		}
+	}
+
+	public boolean isUseableByPlayer(final EntityPlayer entityplayer) {
+		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
+				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
 	}
 
 	@Override

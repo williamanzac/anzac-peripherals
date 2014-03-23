@@ -273,4 +273,63 @@ public class Utils {
 		}
 		return fluid.getBlockID();
 	}
+
+	public static int addItem(final ISpecialInventory inv, final ItemStack stack, final boolean doAdd,
+			final ForgeDirection from) {
+		final ItemStack copy;
+		final int size = stack.stackSize;
+		if (doAdd) {
+			copy = stack;
+		} else {
+			copy = stack.copy();
+		}
+		final int[] availableSlots;
+		if (inv instanceof ISidedInventory) {
+			final ISidedInventory sidedInventory = (ISidedInventory) inv;
+			availableSlots = sidedInventory.getAccessibleSlotsFromSide(from.ordinal());
+		} else {
+			availableSlots = createSlotArray(0, inv.getSizeInventory());
+		}
+		for (final int slot : availableSlots) {
+			final ItemStack stackInSlot = inv.getStackInSlot(slot);
+			if (stackInSlot != null && Utils.stacksMatch(stackInSlot, copy)) {
+				final ItemStack target = copy.copy();
+				int l = stackInSlot.stackSize + copy.stackSize;
+				target.stackSize = l;
+				if (doAdd) {
+					inv.setInventorySlotContents(slot, target);
+				} else {
+					final int inventoryStackLimit = inv.getInventoryStackLimit();
+					if (target.stackSize > inventoryStackLimit) {
+						target.stackSize = inventoryStackLimit;
+					}
+				}
+				copy.stackSize -= (target.stackSize - stackInSlot.stackSize);
+			}
+			if (copy.stackSize == 0) {
+				break;
+			}
+		}
+		if (copy.stackSize > 0) {
+			for (final int slot : availableSlots) {
+				final ItemStack stackInSlot = inv.getStackInSlot(slot);
+				if (stackInSlot == null) {
+					final ItemStack target = copy.copy();
+					if (doAdd) {
+						inv.setInventorySlotContents(slot, target);
+					} else {
+						final int inventoryStackLimit = inv.getInventoryStackLimit();
+						if (target.stackSize > inventoryStackLimit) {
+							target.stackSize = inventoryStackLimit;
+						}
+					}
+					copy.stackSize -= target.stackSize;
+				}
+				if (copy.stackSize == 0) {
+					break;
+				}
+			}
+		}
+		return size - copy.stackSize;
+	}
 }

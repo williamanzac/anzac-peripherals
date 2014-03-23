@@ -354,44 +354,7 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 
 	@Override
 	public int addItem(final ItemStack stack, final boolean doAdd, final ForgeDirection from) {
-		final ItemStack copy;
-		final int size = stack.stackSize;
-		if (doAdd) {
-			copy = stack;
-		} else {
-			copy = stack.copy();
-		}
-		if (isAllowed(copy)) {
-			for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
-				final ItemStack stackInSlot = getStackInSlot(slot);
-				if (stackInSlot != null && Utils.stacksMatch(stackInSlot, copy)) {
-					final ItemStack target = copy.copy();
-					int l = stackInSlot.stackSize + copy.stackSize;
-					target.stackSize = l;
-					setInventorySlotContents(slot, target);
-					copy.stackSize -= (target.stackSize - stackInSlot.stackSize);
-				}
-				if (copy.stackSize == 0) {
-					break;
-				}
-			}
-			if (copy.stackSize > 0) {
-				for (final int slot : getAccessibleSlotsFromSide(from.ordinal())) {
-					final ItemStack stackInSlot = getStackInSlot(slot);
-					if (stackInSlot == null) {
-						final ItemStack target = copy.copy();
-						setInventorySlotContents(slot, target);
-						copy.stackSize -= target.stackSize;
-					}
-					if (copy.stackSize == 0) {
-						break;
-					}
-				}
-			}
-			onInventoryChanged();
-			return size - copy.stackSize;
-		}
-		return 0;
+		return Utils.addItem(this, stack, doAdd, from);
 	}
 
 	@Override

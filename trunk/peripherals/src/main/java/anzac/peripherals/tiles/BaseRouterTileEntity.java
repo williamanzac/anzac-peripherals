@@ -21,7 +21,7 @@ import anzac.peripherals.utils.Utils;
 import buildcraft.api.gates.ActionManager;
 import buildcraft.api.gates.ITrigger;
 import buildcraft.api.gates.ITriggerParameter;
-import buildcraft.transport.TileGenericPipe;
+import buildcraft.api.transport.IPipeTile;
 import dan200.computer.api.IComputerAccess;
 
 public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
@@ -133,6 +133,7 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 	@PeripheralMethod
 	public abstract int requestFrom(final String label, final int uuid, final int amount) throws Exception;
 
+	@SuppressWarnings("deprecation")
 	@PeripheralMethod
 	public Object getAvailableTriggers(final ForgeDirection side) {
 		AnzacPeripheralsCore.logger.info("getTriggers");
@@ -147,9 +148,9 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 			return null;
 		}
 		final LinkedList<ITrigger> triggers = ActionManager.getNeighborTriggers(block, entity);
-		if (entity instanceof TileGenericPipe) {
+		if (entity instanceof IPipeTile) {
 			// AnzacPeripheralsCore.logger.info("is pipe");
-			triggers.addAll(ActionManager.getPipeTriggers(((TileGenericPipe) entity).getPipe()));
+			triggers.addAll(ActionManager.getPipeTriggers(((IPipeTile) entity).getPipe()));
 		}
 		// AnzacPeripheralsCore.logger.info("triggers: " + triggers);
 		final Map<String, Map<String, Object>> table = new HashMap<String, Map<String, Object>>();

@@ -15,9 +15,11 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 
+@Peripheral(type = "FluidStorage")
 public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFluidHandler {
 
 	private static final int maxTanks = 64;
@@ -29,11 +31,6 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 			final FluidTank fluidTank = new FluidTank(CAPACITY);
 			fluidTanks[i] = fluidTank;
 		}
-	}
-
-	@Override
-	public String getType() {
-		return "FluidStorage";
 	}
 
 	@Override
@@ -151,7 +148,7 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 
 	@Override
 	@PeripheralMethod
-	public Object contents() throws Exception {
+	public Map<Integer, Map<String, Integer>> contents() throws Exception {
 		// AnzacPeripheralsCore.logger.info("fluid storage contents");
 		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
 		for (final FluidTank tank : fluidTanks) {

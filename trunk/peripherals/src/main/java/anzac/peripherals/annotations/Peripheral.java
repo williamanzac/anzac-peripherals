@@ -6,8 +6,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.METHOD)
+import anzac.peripherals.tiles.PeripheralEvent;
+
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface PeripheralMethod {
+public @interface Peripheral {
+	String type();
+
+	PeripheralEvent[] events() default {};
 }

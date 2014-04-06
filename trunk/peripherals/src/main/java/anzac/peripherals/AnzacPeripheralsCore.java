@@ -170,8 +170,8 @@ public class AnzacPeripheralsCore {
 		// New Items
 		final ItemStack basicStack = new ItemStack(component, 1, 0);
 		final ItemStack advancedStack = new ItemStack(component, 1, 1);
-		final ItemStack discStack = new ItemStack(component, 1, 2);
-		final ItemStack discsStack = new ItemStack(component, 1, 3);
+		final ItemStack platterStack = new ItemStack(component, 1, 2);
+		final ItemStack spindleStack = new ItemStack(component, 1, 3);
 		final ItemStack hddStack = new ItemStack(hdd);
 		final ItemStack benchStack = new ItemStack(peripheralBlock, 1, 0);
 		final ItemStack storageStack = new ItemStack(peripheralBlock, 1, 1);
@@ -191,8 +191,8 @@ public class AnzacPeripheralsCore {
 		LanguageRegistry.addName(itemStorageStack, "Item Storage");
 		LanguageRegistry.addName(fluidStorageStack, "Fluid Storage");
 		LanguageRegistry.addName(redstonePeripheralStack, "Redstone Control");
-		LanguageRegistry.addName(discStack, "Disc");
-		LanguageRegistry.addName(discsStack, "Discs");
+		LanguageRegistry.addName(platterStack, "Platter");
+		LanguageRegistry.addName(spindleStack, "Spindle");
 		LanguageRegistry.addName(craftingRouterStack, "Crafting Router");
 
 		// ComputerCraft items
@@ -250,10 +250,9 @@ public class AnzacPeripheralsCore {
 		// new recipes
 		GameRegistry.addShapedRecipe(basicStack, " r ", "rir", " r ", 'r', redstoneStack, 'i', ironIngotStack);
 		GameRegistry.addShapedRecipe(advancedStack, " r ", "rgr", " r ", 'r', redstoneStack, 'g', goldIngotStack);
-		GameRegistry.addShapelessRecipe(discStack, ironIngotStack, redstoneStack);
-		GameRegistry.addShapelessRecipe(discsStack, discStack, discStack, discStack, discStack, discStack, discStack,
-				discStack, discStack);
-		GameRegistry.addShapelessRecipe(hddStack, discsStack, basicStack, ironIngotStack);
+		GameRegistry.addShapelessRecipe(platterStack, ironIngotStack, redstoneStack);
+		GameRegistry.addShapedRecipe(spindleStack, "ddd", "did", "ddd", 'd', platterStack, 'i', ironIngotStack);
+		GameRegistry.addShapelessRecipe(hddStack, spindleStack, basicStack, ironIngotStack);
 
 		GameRegistry.addShapedRecipe(benchStack, "sws", "sbs", "scs", 's', stoneStack, 'w', workbenchStack, 'b',
 				basicStack, 'c', chestStack);
@@ -298,7 +297,7 @@ public class AnzacPeripheralsCore {
 				monitorStack, 'D', hddStack);
 		GameRegistry.addShapedRecipe(advancedComputerStack, "XDX", "XYX", "XZX", 'X', goldIngotStack, 'Y',
 				advancedStack, 'Z', advancedMonitorStack, 'D', hddStack);
-		GameRegistry.addShapelessRecipe(diskStack, discStack, paperStack);
+		GameRegistry.addShapelessRecipe(diskStack, platterStack, paperStack);
 		GameRegistry.addShapedRecipe(driveStack, "XXX", "XYX", "X X", 'X', stoneStack, 'Y', basicStack);
 		GameRegistry
 				.addShapedRecipe(printerStack, "XXX", "XYX", "XIX", 'X', stoneStack, 'Y', basicStack, 'I', inkStack);

@@ -3,19 +3,16 @@ package anzac.peripherals.tiles;
 import java.util.List;
 
 import net.minecraftforge.common.ForgeDirection;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import dan200.computer.api.IComputerAccess;
 
+@Peripheral(type = "Redstone")
 public class RedstoneTileEntity extends BasePeripheralTileEntity {
 
 	private final int[] input = new int[6];
 	private final int[] output = new int[6];
-
-	@Override
-	public String getType() {
-		return "Redstone";
-	}
 
 	@Override
 	protected List<String> methodNames() {

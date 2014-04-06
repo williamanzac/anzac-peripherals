@@ -1,6 +1,7 @@
 package anzac.peripherals.tiles;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,7 +17,7 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 	protected FilterMode filterMode = FilterMode.NONE;
 
 	@PeripheralMethod
-	public abstract Object contents() throws Exception;
+	public abstract Map<?, ?> contents() throws Exception;
 
 	protected boolean isAllowed(final int id) {
 		if (getMount() == null) {

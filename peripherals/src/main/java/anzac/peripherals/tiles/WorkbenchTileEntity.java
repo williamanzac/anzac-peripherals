@@ -18,11 +18,22 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
-import dan200.computer.api.IComputerAccess;
 
+/**
+ * This block allows you to craft items via a connected computer. The interface has a crafting area that can only be set
+ * via a connected Computer, it also has an internal input and output cache. This block is only usable when connected to
+ * a Computer. Use the {@link #setRecipe(Map)} method to set the desired item to craft. The required items can be
+ * injected in to the internal cache or you can manually input the items. Use the {@link #craft()} method to craft the
+ * item. The crafted item will automatically go in to the output cache. This peripheral should ignore item metadata of
+ * the supplied input items.
+ * 
+ * @author Tony
+ */
+@Peripheral(type = "Workbench", events = { PeripheralEvent.crafted })
 public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
 
@@ -36,11 +47,6 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	public InventoryCraftResult craftResult = new InventoryCraftResult();
 	private SlotCrafting craftSlot;
 	private InternalPlayer internalPlayer;
-
-	@Override
-	public String getType() {
-		return "Workbench";
-	}
 
 	@Override
 	protected List<String> methodNames() {
@@ -69,7 +75,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	}
 
 	@PeripheralMethod
-	public Object contents() throws Exception {
+	public Map<Integer, Integer> contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
 		for (final ItemStack stackInSlot : inventory) {
 			if (stackInSlot != null) {
@@ -143,10 +149,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 				throw new Exception("Not enough space left in output: " + itemStack.stackSize);
 			}
 		}
-		for (final IComputerAccess computer : computers) {
-			computer.queueEvent("crafted", new Object[] { computer.getAttachmentName(), Utils.getUUID(notifyStack),
-					notifyStack.stackSize });
-		}
+		PeripheralEvent.crafted.fire(computers, Utils.getUUID(notifyStack), notifyStack.stackSize);
 	}
 
 	private boolean hasSpace(final ItemStack itemStack) {

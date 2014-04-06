@@ -14,6 +14,7 @@ import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.network.PacketHandler;
 import dan200.computer.api.IComputerAccess;
@@ -34,6 +35,13 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	protected List<String> methodNames() {
 		return getMethodNames(BasePeripheralTileEntity.class);
+	}
+
+	@Override
+	public final String getType() {
+		final Peripheral annotation = getClass().getAnnotation(Peripheral.class);
+		final String type = annotation.type();
+		return type;
 	}
 
 	@Override

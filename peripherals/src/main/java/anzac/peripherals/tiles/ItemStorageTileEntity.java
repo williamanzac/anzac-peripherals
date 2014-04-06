@@ -19,11 +19,13 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
 import dan200.computer.api.IWritableMount;
 
+@Peripheral(type = "ItemStorage")
 public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
 
@@ -41,18 +43,13 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	}
 
 	@Override
-	public String getType() {
-		return "ItemStorage";
-	}
-
-	@Override
 	protected List<String> methodNames() {
 		return getMethodNames(ItemStorageTileEntity.class);
 	}
 
 	@Override
 	@PeripheralMethod
-	public Object contents() throws Exception {
+	public Map<Integer, Integer> contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
 		for (int slot = 0; slot < getSizeInventory(); slot++) {
 			final ItemStack stack = getStackInSlot(slot);

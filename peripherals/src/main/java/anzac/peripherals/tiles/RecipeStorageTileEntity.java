@@ -16,11 +16,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IComputerAccess;
 import dan200.computer.api.IWritableMount;
 
+@Peripheral(type = "RecipeStorage")
 public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 
 	public InventoryCrafting craftMatrix = new InternalInventoryCrafting(3);
@@ -43,11 +45,6 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		}
 		getMount().list(".", recipes);
 		return recipes.toArray();
-	}
-
-	@Override
-	public String getType() {
-		return "RecipeStorage";
 	}
 
 	@Override

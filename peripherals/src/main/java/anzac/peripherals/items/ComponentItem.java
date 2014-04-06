@@ -69,9 +69,9 @@ public class ComponentItem extends Item {
 		case 1:
 			return "item.advancedcpu";
 		case 2:
-			return "item.disc";
+			return "item.platter";
 		case 3:
-			return "item.discs";
+			return "item.spindle";
 		}
 		return super.getUnlocalizedName(par1ItemStack);
 	}

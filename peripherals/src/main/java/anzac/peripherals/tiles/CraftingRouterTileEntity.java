@@ -13,19 +13,16 @@ import java.util.Map.Entry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import dan200.computer.api.IWritableMount;
 
+@Peripheral(type = "CraftingRouter")
 public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 
 	public SimpleInventory craftMatrix = new SimpleInventory(9);
 	public SimpleInventory craftResult = new SimpleInventory(1);
-
-	@Override
-	public String getType() {
-		return "CraftingRouter";
-	}
 
 	@Override
 	protected List<String> methodNames() {

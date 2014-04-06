@@ -9,8 +9,10 @@
 	<url>http://anzacgaming.co.uk</url>
 	<modules>
 		<module>peripherals</module>
+		<module>docs</module>
 	</modules>
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<mcp.version>1.6.4</mcp.version>
 		<forge.version>9.11.1.965</forge.version>
 		<buildcraft.version>4.2.2</buildcraft.version>
@@ -157,6 +159,7 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.1</version>
 					<configuration>

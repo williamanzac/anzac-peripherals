@@ -20,13 +20,18 @@ import net.minecraftforge.common.Property;
 
 import org.apache.commons.lang3.StringUtils;
 
+import anzac.peripherals.blocks.ChargeBlock;
 import anzac.peripherals.blocks.PeripheralBlock;
+import anzac.peripherals.blocks.TeleporterBlock;
 import anzac.peripherals.gui.GuiHandler;
+import anzac.peripherals.items.ChargeItem;
 import anzac.peripherals.items.ComponentItem;
 import anzac.peripherals.items.HDDItem;
 import anzac.peripherals.items.PeripheralItem;
+import anzac.peripherals.items.TeleporterItem;
 import anzac.peripherals.network.PacketHandler;
 import anzac.peripherals.tiles.BasePeripheralTileEntity;
+import anzac.peripherals.tiles.ChargeStationTileEntity;
 import anzac.peripherals.tiles.CraftingRouterTileEntity;
 import anzac.peripherals.tiles.FluidRouterTileEntity;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
@@ -34,6 +39,7 @@ import anzac.peripherals.tiles.ItemRouterTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
 import anzac.peripherals.tiles.RedstoneTileEntity;
+import anzac.peripherals.tiles.TeleporterTileEntity;
 import anzac.peripherals.tiles.WorkbenchTileEntity;
 import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Utils;
@@ -51,10 +57,13 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 @Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZACPeripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;required-after:BuildCraft|Energy")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "anzac" }, packetHandler = PacketHandler.class)
 public class AnzacPeripheralsCore {
-	private static final int DEFAULT_HDD_ID = 4339;
-	private static final int DEFAULT_COMPONENT_ID = 4337;
-	private static final int DEFAULT_PERIPHERAL_ID = 4336;
+	private static final int DEFAULT_HDD_ID = 1339;
+	private static final int DEFAULT_COMPONENT_ID = 1337;
+	private static final int DEFAULT_PERIPHERAL_ID = 1336;
+	private static final int DEFAULT_CHARGE_ID = 1338;
+	private static final int DEFAULT_TELEPORTER_ID = 1340;
 	private static final int DEFAULT_STORAGE_SIZE = 1024000;
+	private static final int DEFAULT_MJ_MULTIPLIER = 20;
 
 	static final String MOD_ID = "ANZACPeripherals";
 
@@ -64,6 +73,8 @@ public class AnzacPeripheralsCore {
 	public static AnzacPeripheralsCore instance;
 
 	public static Block peripheralBlock;
+	public static Block chargeBlock;
+	public static Block teleporterBlock;
 
 	public static Item component;
 	public static Item hdd;
@@ -72,6 +83,7 @@ public class AnzacPeripheralsCore {
 	public static final Map<String, BasePeripheralTileEntity> peripheralLabels = new HashMap<String, BasePeripheralTileEntity>();
 
 	public static int storageSize;
+	public static int mjMultiplier;
 
 	public static void addPeripheralLabel(final int computerId, final String label,
 			final BasePeripheralTileEntity entity) {
@@ -109,15 +121,31 @@ public class AnzacPeripheralsCore {
 		try {
 			configuration.load();
 
-			final Property propertySize = configuration.get("general", "hdd.size", DEFAULT_STORAGE_SIZE,
+			Property propertySize = configuration.get("general", "hdd.size", DEFAULT_STORAGE_SIZE,
 					"The disk space limit for Hard Disk Drives");
 			storageSize = propertySize.getInt(DEFAULT_STORAGE_SIZE);
 
-			final Property propertyId = configuration.getBlock("peripheral.id", DEFAULT_PERIPHERAL_ID,
+			propertySize = configuration.get("general", "mj.multiplier", DEFAULT_MJ_MULTIPLIER,
+					"Use to convert between mj and turtle moves");
+			mjMultiplier = propertySize.getInt(DEFAULT_MJ_MULTIPLIER);
+
+			final Property peripheralId = configuration.getBlock("peripheral.id", DEFAULT_PERIPHERAL_ID,
 					"The Block ID for the peripherals");
-			peripheralBlock = new PeripheralBlock(propertyId.getInt(DEFAULT_PERIPHERAL_ID), Material.rock);
+			peripheralBlock = new PeripheralBlock(peripheralId.getInt(DEFAULT_PERIPHERAL_ID), Material.rock);
 			MinecraftForge.setBlockHarvestLevel(peripheralBlock, "pickaxe", 0);
 			GameRegistry.registerBlock(peripheralBlock, PeripheralItem.class, "anzacperipheral", MOD_ID);
+
+			final Property chargeId = configuration.getBlock("charge.id", DEFAULT_CHARGE_ID,
+					"The Block ID for the charging stations");
+			chargeBlock = new ChargeBlock(chargeId.getInt(DEFAULT_CHARGE_ID), Material.iron);
+			MinecraftForge.setBlockHarvestLevel(chargeBlock, "pickaxe", 1);
+			GameRegistry.registerBlock(chargeBlock, ChargeItem.class, "anzacchargestation", MOD_ID);
+
+			final Property teleporterId = configuration.getBlock("teleporter.id", DEFAULT_TELEPORTER_ID,
+					"The Block ID for the teleporters");
+			teleporterBlock = new TeleporterBlock(teleporterId.getInt(DEFAULT_TELEPORTER_ID), Material.rock);
+			MinecraftForge.setBlockHarvestLevel(teleporterBlock, "pickaxe", 2);
+			GameRegistry.registerBlock(teleporterBlock, TeleporterItem.class, "anzacteleporter", MOD_ID);
 
 			final Property propertyCPUId = configuration.getItem("component.id", DEFAULT_COMPONENT_ID,
 					"The Item Id for Components");
@@ -144,6 +172,9 @@ public class AnzacPeripheralsCore {
 		GameRegistry.registerTileEntity(RedstoneTileEntity.class, "anzac.peripherals.tiles.ReadstoneTileEntity");
 		GameRegistry.registerTileEntity(CraftingRouterTileEntity.class,
 				"anzac.peripherals.tiles.CraftingRouterTileEntity");
+		GameRegistry.registerTileEntity(ChargeStationTileEntity.class,
+				"anzac.peripherals.tiles.ChargeStationTileEntity");
+		GameRegistry.registerTileEntity(TeleporterTileEntity.class, "anzac.peripherals.tiles.TeleporterTileEntity");
 	}
 
 	@EventHandler
@@ -159,6 +190,7 @@ public class AnzacPeripheralsCore {
 		final ItemStack redstoneStack = new ItemStack(Item.redstone);
 		final ItemStack redstoneBlockStack = new ItemStack(Block.blockRedstone);
 		final ItemStack ironIngotStack = new ItemStack(Item.ingotIron);
+		final ItemStack glassStack = new ItemStack(Block.glass);
 		final ItemStack glassPaneStack = new ItemStack(Block.thinGlass);
 		final ItemStack goldNuggetStack = new ItemStack(Item.goldNugget);
 		final ItemStack chestStack = new ItemStack(Block.chest);
@@ -166,13 +198,22 @@ public class AnzacPeripheralsCore {
 		final ItemStack enderPearlStack = new ItemStack(Item.enderPearl);
 		final ItemStack inkStack = new ItemStack(Item.dyePowder, 1, 0);
 		final ItemStack paperStack = new ItemStack(Item.paper);
+		final ItemStack diamondStack = new ItemStack(Item.diamond);
+		final ItemStack obsidianStack = new ItemStack(Block.obsidian);
+		final ItemStack diamondBlockStack = new ItemStack(Block.blockDiamond);
+		final ItemStack ironBlockStack = new ItemStack(Block.blockIron);
+		final ItemStack goldBlockStack = new ItemStack(Block.blockGold);
+		final ItemStack quartzStack = new ItemStack(Item.netherQuartz);
 
 		// New Items
 		final ItemStack basicStack = new ItemStack(component, 1, 0);
 		final ItemStack advancedStack = new ItemStack(component, 1, 1);
 		final ItemStack platterStack = new ItemStack(component, 1, 2);
 		final ItemStack spindleStack = new ItemStack(component, 1, 3);
+		final ItemStack teleportCardStack = new ItemStack(component, 1, 4);
+
 		final ItemStack hddStack = new ItemStack(hdd);
+
 		final ItemStack benchStack = new ItemStack(peripheralBlock, 1, 0);
 		final ItemStack storageStack = new ItemStack(peripheralBlock, 1, 1);
 		final ItemStack itemRouterStack = new ItemStack(peripheralBlock, 1, 2);
@@ -181,6 +222,15 @@ public class AnzacPeripheralsCore {
 		final ItemStack fluidStorageStack = new ItemStack(peripheralBlock, 1, 5);
 		final ItemStack redstonePeripheralStack = new ItemStack(peripheralBlock, 1, 6);
 		final ItemStack craftingRouterStack = new ItemStack(peripheralBlock, 1, 7);
+
+		final ItemStack chargeIronStack = new ItemStack(chargeBlock, 1, 1);
+		final ItemStack chargeGoldStack = new ItemStack(chargeBlock, 1, 2);
+		final ItemStack chargeDiamondStack = new ItemStack(chargeBlock, 1, 3);
+
+		final ItemStack teleportIronStack = new ItemStack(teleporterBlock, 1, 1);
+		final ItemStack teleportGoldStack = new ItemStack(teleporterBlock, 1, 2);
+		final ItemStack teleportDiamondStack = new ItemStack(teleporterBlock, 1, 3);
+
 		LanguageRegistry.addName(basicStack, "Basic Processor");
 		LanguageRegistry.addName(advancedStack, "Advanced Processor");
 		LanguageRegistry.addName(benchStack, "Computerised Workbench");
@@ -194,6 +244,13 @@ public class AnzacPeripheralsCore {
 		LanguageRegistry.addName(platterStack, "Platter");
 		LanguageRegistry.addName(spindleStack, "Spindle");
 		LanguageRegistry.addName(craftingRouterStack, "Crafting Router");
+		LanguageRegistry.addName(chargeIronStack, "Iron Charging Station");
+		LanguageRegistry.addName(chargeGoldStack, "Gold Charging Station");
+		LanguageRegistry.addName(chargeDiamondStack, "Diamond Charging Station");
+		LanguageRegistry.addName(teleportIronStack, "Iron Turtle Teleporter");
+		LanguageRegistry.addName(teleportGoldStack, "Gold Turtle Teleporter");
+		LanguageRegistry.addName(teleportDiamondStack, "Diamond Turtle Teleporter");
+		LanguageRegistry.addName(teleportCardStack, "Teleporter Card");
 
 		// ComputerCraft items
 		final Block blockPeripheral = GameRegistry.findBlock("ComputerCraft", "CC-Peripheral");
@@ -271,6 +328,20 @@ public class AnzacPeripheralsCore {
 				advancedStack, 'w', fluidWoodStack, 'D', driveStack);
 		GameRegistry.addShapedRecipe(craftingRouterStack, "scs", "sbs", "srs", 's', stoneStack, 'c', workbenchStack,
 				'b', basicStack, 'r', itemRouterStack);
+
+		GameRegistry.addShapedRecipe(chargeIronStack, "iri", "rar", "iri", 'i', ironIngotStack, 'r',
+				redstoneBlockStack, 'a', advancedStack);
+		GameRegistry.addShapedRecipe(chargeGoldStack, "g g", " i ", "g g", 'i', chargeIronStack, 'g', goldIngotStack);
+		GameRegistry.addShapedRecipe(chargeDiamondStack, "d d", " g ", "d d", 'd', diamondStack, 'g', chargeGoldStack);
+
+		GameRegistry.addShapedRecipe(teleportIronStack, "opo", "pip", "opo", 'i', chargeIronStack, 'o', obsidianStack,
+				'p', enderPearlStack);
+		GameRegistry.addShapedRecipe(teleportGoldStack, "opo", "pgp", "opo", 'g', chargeGoldStack, 'o', obsidianStack,
+				'p', enderPearlStack);
+		GameRegistry.addShapedRecipe(teleportDiamondStack, "opo", "pdp", "opo", 'd', chargeDiamondStack, 'o',
+				obsidianStack, 'p', enderPearlStack);
+		GameRegistry.addShapelessRecipe(teleportCardStack, basicStack, quartzStack, quartzStack, quartzStack,
+				quartzStack, redstoneStack);
 
 		// modify Recipes
 		final List<IRecipe> recipeList = CraftingManager.getInstance().getRecipeList();

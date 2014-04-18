@@ -51,7 +51,6 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 		final Object ret = callMethod(methodName, arguments);
 
-		// AnzacPeripheralsCore.logger.info("returning: " + ret);
 		if (ret == null) {
 			return null;
 		}

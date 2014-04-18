@@ -3,19 +3,23 @@ package anzac.peripherals.gui;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import anzac.peripherals.inventory.ChargeStationContainer;
 import anzac.peripherals.inventory.CraftingRouterContainer;
 import anzac.peripherals.inventory.FluidRouterContainer;
 import anzac.peripherals.inventory.FluidStorageContainer;
 import anzac.peripherals.inventory.ItemRouterContainer;
 import anzac.peripherals.inventory.ItemStorageContainer;
 import anzac.peripherals.inventory.RecipeStorageContainer;
+import anzac.peripherals.inventory.TeleporterContainer;
 import anzac.peripherals.inventory.WorkbenchContainer;
+import anzac.peripherals.tiles.ChargeStationTileEntity;
 import anzac.peripherals.tiles.CraftingRouterTileEntity;
 import anzac.peripherals.tiles.FluidRouterTileEntity;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
 import anzac.peripherals.tiles.ItemRouterTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
+import anzac.peripherals.tiles.TeleporterTileEntity;
 import anzac.peripherals.tiles.WorkbenchTileEntity;
 import cpw.mods.fml.common.network.IGuiHandler;
 
@@ -46,6 +50,12 @@ public class GuiHandler implements IGuiHandler {
 		if (tileEntity instanceof FluidStorageTileEntity) {
 			return new FluidStorageContainer(player.inventory, (FluidStorageTileEntity) tileEntity);
 		}
+		if (tileEntity instanceof ChargeStationTileEntity) {
+			return new ChargeStationContainer(player.inventory, (ChargeStationTileEntity) tileEntity);
+		}
+		if (tileEntity instanceof TeleporterTileEntity) {
+			return new TeleporterContainer(player.inventory, (TeleporterTileEntity) tileEntity);
+		}
 		return null;
 	}
 
@@ -73,6 +83,12 @@ public class GuiHandler implements IGuiHandler {
 		}
 		if (tileEntity instanceof FluidStorageTileEntity) {
 			return new FluidStorageGUI(player.inventory, (FluidStorageTileEntity) tileEntity);
+		}
+		if (tileEntity instanceof ChargeStationTileEntity) {
+			return new ChargeStationGUI(player.inventory, (ChargeStationTileEntity) tileEntity);
+		}
+		if (tileEntity instanceof TeleporterTileEntity) {
+			return new TeleporterGUI(player.inventory, (TeleporterTileEntity) tileEntity);
 		}
 		return null;
 	}

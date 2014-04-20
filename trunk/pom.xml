@@ -124,7 +124,7 @@
 				<executions>
 					<execution>
 						<id>copy mods</id>
-						<phase>generate-sources</phase>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>copy</goal>
 						</goals>
@@ -203,6 +203,15 @@
 					<version>2.5.1</version>
 					<configuration>
 						<createChecksum>ture</createChecksum>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5</version>
+					<configuration>
+						<autoVersionSubmodules>true</autoVersionSubmodules>
+						<releaseProfiles>InstallForge</releaseProfiles>
 					</configuration>
 				</plugin>
 			</plugins>

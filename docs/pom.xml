@@ -35,4 +35,13 @@
 			<version>2.6</version>
 		</dependency>
 	</dependencies>
+	<build>
+		<finalName>${project.name}-${project.version}-${buildNumber}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>

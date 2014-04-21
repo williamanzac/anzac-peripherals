@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>anzac</groupId>
 	<artifactId>root</artifactId>
@@ -19,6 +20,10 @@
 		<forge.full.version>${mcp.version}-${forge.version}</forge.full.version>
 		<buildcraft.full.version>A-${mcp.version}-${buildcraft.version}</buildcraft.full.version>
 		<railcraft.version>8.4.0.0</railcraft.version>
+		<forge.dir>D:/Workspaces/MinecraftMod/root/forge</forge.dir>
+		<forge.mcp.dir>${forge.dir}/mcp</forge.mcp.dir>
+		<forge.jars.dir>${forge.mcp.dir}/jars</forge.jars.dir>
+		<forge.mods.dir>${forge.jars.dir}/mods</forge.mods.dir>
 	</properties>
 	<repositories>
 		<repository>
@@ -99,6 +104,7 @@
 		</dependencies>
 	</dependencyManagement>
 	<build>
+		<finalName>${project.name}-${project.version}-${buildNumber}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -107,15 +113,15 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
 				<configuration>
-					<attach>true</attach>
+					<skipSource>true</skipSource>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -130,7 +136,7 @@
 						</goals>
 						<inherited>false</inherited>
 						<configuration>
-							<outputDirectory>forge/mcp/jars/mods</outputDirectory>
+							<outputDirectory>${forge.mods.dir}</outputDirectory>
 							<artifactItems>
 								<artifactItem>
 									<groupId>buildcraft</groupId>
@@ -188,6 +194,16 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-source-plugin</artifactId>
 					<version>2.2.1</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<attach>true</attach>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -207,11 +223,15 @@
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.9.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5</version>
 					<configuration>
 						<autoVersionSubmodules>true</autoVersionSubmodules>
-						<releaseProfiles>InstallForge</releaseProfiles>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -286,9 +306,9 @@
 								</goals>
 								<inherited>false</inherited>
 								<configuration>
-									<executable>forge/fml/python/python_fml</executable>
+									<executable>${forge.dir}/fml/python/python_fml</executable>
 									<commandlineArgs>install.py</commandlineArgs>
-									<workingDirectory>forge</workingDirectory>
+									<workingDirectory>${forge.dir}</workingDirectory>
 								</configuration>
 							</execution>
 						</executions>
@@ -316,9 +336,9 @@
 								</goals>
 								<inherited>false</inherited>
 								<configuration>
-									<executable>${basedir}/forge/mcp/runtime/bin/python/python_mcp</executable>
+									<executable>${forge.mcp.dir}/runtime/bin/python/python_mcp</executable>
 									<commandlineArgs>runtime/startclient.py</commandlineArgs>
-									<workingDirectory>${basedir}/forge/mcp</workingDirectory>
+									<workingDirectory>${forge.mcp.dir}</workingDirectory>
 								</configuration>
 							</execution>
 						</executions>

@@ -10,8 +10,7 @@
 	<name>peripherals</name>
 	<url>http://anzacgaming.co.uk</url>
 	<properties>
-		<forge.mcp.dir>${basedir}/../forge/mcp</forge.mcp.dir>
-		<forge.library.dir>${forge.mcp.dir}/jars/libraries</forge.library.dir>
+		<forge.library.dir>${forge.jars.dir}/libraries</forge.library.dir>
 		<forge.src.dir>${forge.mcp.dir}/src/minecraft</forge.src.dir>
 		<forge.bin.dir>${forge.mcp.dir}/bin/minecraft</forge.bin.dir>
 		<forge.reobf.dir>${forge.mcp.dir}/reobf/minecraft</forge.reobf.dir>
@@ -196,7 +195,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
 				<configuration>
 					<doclet>anzac.peripherals.docs.APIDoclet</doclet>
 					<docletArtifact>

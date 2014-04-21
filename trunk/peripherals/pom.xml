@@ -350,9 +350,9 @@
 						</goals>
 						<inherited>false</inherited>
 						<configuration>
-							<executable>${basedir}/../forge/mcp/runtime/bin/python/python_mcp</executable>
-							<commandlineArgs>${basedir}/../forge/mcp/runtime/recompile.py</commandlineArgs>
-							<workingDirectory>${basedir}/../forge/mcp</workingDirectory>
+							<executable>${forge.mcp.dir}/runtime/bin/python/python_mcp</executable>
+							<commandlineArgs>${forge.mcp.dir}/runtime/recompile.py</commandlineArgs>
+							<workingDirectory>${forge.mcp.dir}</workingDirectory>
 						</configuration>
 					</execution>
 					<execution>
@@ -363,9 +363,9 @@
 						</goals>
 						<inherited>false</inherited>
 						<configuration>
-							<executable>${basedir}/../forge/mcp/runtime/bin/python/python_mcp</executable>
-							<commandlineArgs><![CDATA[${basedir}/../forge/mcp/runtime/reobfuscate.py --srgnames]]></commandlineArgs>
-							<workingDirectory>${basedir}/../forge/mcp</workingDirectory>
+							<executable>${forge.mcp.dir}/runtime/bin/python/python_mcp</executable>
+							<commandlineArgs><![CDATA[${forge.mcp.dir}/runtime/reobfuscate.py --srgnames]]></commandlineArgs>
+							<workingDirectory>${forge.mcp.dir}</workingDirectory>
 						</configuration>
 					</execution>
 				</executions>

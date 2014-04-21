@@ -8,6 +8,9 @@
 	</parent>
 	<artifactId>docs</artifactId>
 	<name>docs</name>
+	<properties>
+		<jdk.lib.dir>C:/Program Files/Java/jdk1.7.0_51/lib</jdk.lib.dir>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -20,7 +23,7 @@
 			<artifactId>tools</artifactId>
 			<version>1.7.0_51</version>
 			<scope>system</scope>
-			<systemPath>C:/Program Files/Java/jdk1.7.0_51/lib/tools.jar</systemPath>
+			<systemPath>${jdk.lib.dir}/tools.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.collections</groupId>
@@ -39,6 +42,20 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>buildnumber-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<configuration>
+					<skipSource>true</skipSource>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

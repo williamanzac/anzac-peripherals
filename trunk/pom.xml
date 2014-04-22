@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>anzac</groupId>
 	<artifactId>root</artifactId>
@@ -23,6 +24,7 @@
 		<forge.mcp.dir>${forge.dir}/mcp</forge.mcp.dir>
 		<forge.jars.dir>${forge.mcp.dir}/jars</forge.jars.dir>
 		<forge.mods.dir>${forge.jars.dir}/mods</forge.mods.dir>
+		<mode>dev</mode>
 	</properties>
 	<repositories>
 		<repository>
@@ -111,13 +113,6 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<configuration>
-					<skipSource>true</skipSource>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
@@ -193,16 +188,6 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-source-plugin</artifactId>
 					<version>2.2.1</version>
-					<executions>
-						<execution>
-							<goals>
-								<goal>jar</goal>
-							</goals>
-						</execution>
-					</executions>
-					<configuration>
-						<attach>true</attach>
-					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -231,6 +216,17 @@
 					<version>2.5</version>
 					<configuration>
 						<autoVersionSubmodules>true</autoVersionSubmodules>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>wagon-maven-plugin</artifactId>
+					<version>1.0-beta-5</version>
+					<configuration>
+						<serverId>anzac-peripherals</serverId>
+						<url>ftp://ftp.anzacgaming.co.uk</url>
+						<fromDir>${project.build.directory}</fromDir>
+						<includes>*.jar</includes>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -344,6 +340,14 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>release</id>
+			<activation>
+			</activation>
+			<properties>
+				<mode>release</mode>
+			</properties>
 		</profile>
 	</profiles>
 </project>

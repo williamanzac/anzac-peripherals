@@ -24,6 +24,7 @@
 		<forge.jars.dir>${forge.mcp.dir}/jars</forge.jars.dir>
 		<forge.mods.dir>${forge.jars.dir}/mods</forge.mods.dir>
 		<mode>dev</mode>
+		<doUpload>false</doUpload>
 	</properties>
 	<repositories>
 		<repository>
@@ -153,6 +154,20 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<configuration>
+					<skipSource>true</skipSource>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -215,6 +230,7 @@
 					<version>2.5</version>
 					<configuration>
 						<autoVersionSubmodules>true</autoVersionSubmodules>
+						<releaseProfiles>release</releaseProfiles>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -346,6 +362,7 @@
 			</activation>
 			<properties>
 				<mode>release</mode>
+				<doUpload>true</doUpload>
 			</properties>
 		</profile>
 	</profiles>

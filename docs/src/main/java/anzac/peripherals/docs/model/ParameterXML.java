@@ -33,4 +33,8 @@ public class ParameterXML {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+
+	public String toXML() {
+		return "<dd><code>" + name + "</code>" + description + "</dd>";
+	}
 }

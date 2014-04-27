@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrBuilder;
+
+import anzac.peripherals.docs.APIDoclet;
 
 import com.sun.javadoc.Tag;
 
@@ -101,5 +104,39 @@ public class MethodXML implements Comparable<MethodXML> {
 		} else if (!parameters.equals(other.parameters))
 			return false;
 		return true;
+	}
+
+	public String toSummaryXML(String className) {
+		final StrBuilder builder = new StrBuilder();
+		builder.appendln("<tr>");
+		builder.appendln("<td>" + returnType + "</td>");
+		builder.appendln("<td><a href=\"#" + toString() + "\">" + toString() + "</a>"
+				+ APIDoclet.processText(className, description) + "</td>");
+		builder.appendln("</tr>");
+		return builder.toString();
+	}
+
+	public String toDetailXML(String className) {
+		final StrBuilder builder = new StrBuilder();
+		builder.appendln("<a name=\"" + toString() + "\"></a>");
+		builder.appendln("<h4>" + name + "</h4>");
+		builder.appendln(APIDoclet.processText(className, description));
+		final boolean notVoid = StringUtils.isNotBlank(returnType);
+		final boolean hasParams = parameters != null && !parameters.isEmpty();
+		if (notVoid || hasParams) {
+			builder.appendln("<dl>");
+			if (hasParams) {
+				builder.appendln("<dt>Parameters</dt>");
+				for (final ParameterXML parameterXML : parameters) {
+					builder.appendln(parameterXML.toXML());
+				}
+			}
+			if (notVoid) {
+				builder.appendln("<dt>Returns</dt>");
+				builder.appendln("<dd>" + returnDescription + "</dd>");
+			}
+			builder.appendln("</dl>");
+		}
+		return builder.toString();
 	}
 }

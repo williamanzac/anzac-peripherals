@@ -201,11 +201,13 @@
 					<docletArtifact>
 						<groupId>anzac</groupId>
 						<artifactId>docs</artifactId>
+						<version>${project.version}</version>
 					</docletArtifact>
 					<useStandardDocletOptions>false</useStandardDocletOptions>
 					<excludePackageNames>buildcraft.*,dan200.*,mods.railcraft.*,cpw.*,ibxm*,net.minecraft.*,net.minecraftforge.*,paulscode.*</excludePackageNames>
 					<debug>true</debug>
 					<outputDirectory>${project.build.directory}/apidocs</outputDirectory>
+					<skip>false</skip>
 				</configuration>
 			</plugin>
 			<plugin>

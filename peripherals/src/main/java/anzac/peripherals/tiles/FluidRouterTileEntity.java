@@ -62,14 +62,12 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 	public int routeTo(final ForgeDirection toDir, final ForgeDirection insetDir, final int amount) throws Exception {
 		final FluidStack copy = fluidTank.getFluid().copy();
 		copy.amount = amount;
-		// AnzacPeripheralsCore.logger.info("copy:" + copy);
 		final int amount1 = copy.amount;
 		copy.amount -= Utils.addToFluidHandler(worldObj, xCoord, yCoord, zCoord, toDir, insetDir, copy);
 		final int toDrain = amount1 - copy.amount;
 		if (toDrain > 0) {
 			fluidTank.drain(toDrain, true);
 		}
-		// AnzacPeripheralsCore.logger.info("amount:" + copy.amount);
 		return amount - copy.amount;
 	}
 
@@ -108,7 +106,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		}
 		final int fill = fluidTank.fill(resource, doFill);
 		if (fill > 0 && doFill) {
-			PeripheralEvent.fluid_route.fire(computers, Utils.getUUID(resource), resource.amount);
+			PeripheralEvent.fluid_route.fire(computers, Utils.getUUID(resource), fill);
 		}
 		return fill;
 	}
@@ -257,14 +255,10 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 			throw new Exception("Fluid Handler not found");
 		}
 		final IFluidHandler handler = (IFluidHandler) te;
-		// AnzacPeripheralsCore.logger.info("opposite:" + extractSide);
 		final int canDrain = handler.drain(extractSide, amount, false).amount;
-		// AnzacPeripheralsCore.logger.info("canDrain:" + canDrain);
 		if (canDrain > 0) {
 			final FluidStack fluidStack = handler.drain(extractSide, amount, true);
-			// AnzacPeripheralsCore.logger.info("fluidStack:" + fluidStack);
 			fill(fromDir, fluidStack, true);
-			// AnzacPeripheralsCore.logger.info("amount:" + fluidStack.amount);
 			return fluidStack.amount;
 		}
 		return 0;
@@ -301,14 +295,12 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		if (amount < fluidTank.getFluidAmount()) {
 			copy.amount = amount;
 		}
-		// AnzacPeripheralsCore.logger.info("copy:" + copy);
 		final int amount1 = copy.amount;
 		copy.amount -= tank.fill(ForgeDirection.UNKNOWN, copy, true);
 		final int toDrain = amount1 - copy.amount;
 		if (toDrain > 0) {
 			fluidTank.drain(toDrain, true);
 		}
-		// AnzacPeripheralsCore.logger.info("amount:" + copy.amount);
 		return amount - copy.amount;
 	}
 
@@ -338,14 +330,10 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 			throw new Exception("Invalid target for label " + label);
 		}
 		final IFluidHandler handler = (IFluidHandler) entity;
-		// AnzacPeripheralsCore.logger.info("opposite:" + extractSide);
 		final int canDrain = handler.drain(ForgeDirection.UNKNOWN, amount, false).amount;
-		// AnzacPeripheralsCore.logger.info("canDrain:" + canDrain);
 		if (canDrain > 0) {
 			final FluidStack fluidStack = handler.drain(ForgeDirection.UNKNOWN, amount, true);
-			// AnzacPeripheralsCore.logger.info("fluidStack:" + fluidStack);
 			fill(ForgeDirection.UNKNOWN, fluidStack, true);
-			// AnzacPeripheralsCore.logger.info("amount:" + fluidStack.amount);
 			return fluidStack.amount;
 		}
 		return 0;

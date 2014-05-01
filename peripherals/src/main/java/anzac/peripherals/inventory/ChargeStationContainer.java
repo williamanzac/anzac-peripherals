@@ -52,7 +52,7 @@ public class ChargeStationContainer extends Container {
 	}
 
 	@Override
-	public void updateProgressBar(int index, int value) {
+	public void updateProgressBar(final int index, final int value) {
 		switch (index) {
 		case 0:
 			te.setStoredEnergy(value);

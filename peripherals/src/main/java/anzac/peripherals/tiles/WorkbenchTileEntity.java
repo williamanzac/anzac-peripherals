@@ -251,7 +251,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 
 	@Override
 	public int[] getAccessibleSlotsFromSide(final int side) {
-		return isConnected() ? SLOT_ARRAY : new int[0];
+		return SLOT_ARRAY;
 	}
 
 	@Override

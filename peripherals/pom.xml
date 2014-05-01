@@ -250,7 +250,7 @@
 				<executions>
 					<execution>
 						<id>copy src</id>
-						<phase>process-sources</phase>
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
@@ -346,7 +346,7 @@
 				<executions>
 					<execution>
 						<id>compile</id>
-						<phase>compile</phase>
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -359,7 +359,7 @@
 					</execution>
 					<execution>
 						<id>reobf</id>
-						<phase>process-classes</phase>
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>

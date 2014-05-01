@@ -1,10 +1,5 @@
 package anzac.peripherals.tiles;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +8,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
@@ -23,11 +18,17 @@ import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
-import dan200.computer.api.IWritableMount;
 
 @Peripheral(type = "ItemStorage")
 public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
+
+	private final class DiscListener implements InventoryListener {
+		@Override
+		public void inventoryChanged() {
+			readFromDisk();
+		}
+	}
 
 	private static final String INVENTORY = "inventory";
 	private static final String SLOT = "Slot";
@@ -35,11 +36,13 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	private static final int maxCount = (AnzacPeripheralsCore.storageSize / 128) / maxStackSize;
 	private static final int[] SLOT_ARRAY = Utils.createSlotArray(0, maxCount);
 
-	private final ItemStack[] inventory = new ItemStack[maxCount];
+	private final Map<Integer, ItemStack> inventory = new HashMap<Integer, ItemStack>(maxCount);
 	private boolean useOreDict = true;
 	private boolean ignoreMeta = true;
 
 	public ItemStorageTileEntity() {
+		super();
+		discInv.addListner(new DiscListener());
 	}
 
 	@Override
@@ -47,7 +50,6 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		return getMethodNames(ItemStorageTileEntity.class);
 	}
 
-	@Override
 	@PeripheralMethod
 	public Map<Integer, Integer> contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
@@ -92,14 +94,22 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	public void readFromNBT(final NBTTagCompound nbtRoot) {
 		super.readFromNBT(nbtRoot);
 
-		// read inventory slots
-		final NBTTagList list = nbtRoot.getTagList(INVENTORY);
-		for (byte entry = 0; entry < list.tagCount(); entry++) {
-			final NBTTagCompound itemTag = (NBTTagCompound) list.tagAt(entry);
-			final int slot = itemTag.getInteger(SLOT);
-			if (slot >= 0 && slot < getSizeInventory()) {
-				final ItemStack stack = createStack(itemTag);
-				setInventorySlotContents(slot, stack);
+		readFromDisk();
+	}
+
+	private void readFromDisk() {
+		inventory.clear();
+		final ItemStack hddItem = discInv.getHDDItem();
+		if (hddItem != null && hddItem.hasTagCompound()) {
+			final NBTTagCompound tagCompound = hddItem.getTagCompound();
+			final NBTTagList list = tagCompound.getTagList(INVENTORY);
+			for (byte entry = 0; entry < list.tagCount(); entry++) {
+				final NBTTagCompound itemTag = (NBTTagCompound) list.tagAt(entry);
+				final int slot = itemTag.getInteger(SLOT);
+				if (slot >= 0 && slot < getSizeInventory()) {
+					final ItemStack stack = createStack(itemTag);
+					setInventorySlotContents(slot, stack);
+				}
 			}
 		}
 	}
@@ -118,18 +128,28 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	public void writeToNBT(final NBTTagCompound nbtRoot) {
 		super.writeToNBT(nbtRoot);
 
-		// write craft slots
-		final NBTTagList list = new NBTTagList();
-		for (int slot = 0; slot < getSizeInventory(); slot++) {
-			final ItemStack stack = getStackInSlot(slot);
-			if (stack != null) {
-				final NBTTagCompound itemTag = new NBTTagCompound();
-				itemTag.setInteger(SLOT, slot);
-				writeStack(stack, itemTag);
-				list.appendTag(itemTag);
+		writeToDisk();
+	}
+
+	private void writeToDisk() {
+		final ItemStack hddItem = discInv.getHDDItem();
+		if (hddItem != null) {
+			if (!hddItem.hasTagCompound()) {
+				hddItem.setTagCompound(new NBTTagCompound());
 			}
+			final NBTTagCompound tagCompound = hddItem.getTagCompound();
+			final NBTTagList list = new NBTTagList();
+			for (int slot = 0; slot < getSizeInventory(); slot++) {
+				final ItemStack stack = getStackInSlot(slot);
+				if (stack != null) {
+					final NBTTagCompound itemTag = new NBTTagCompound();
+					itemTag.setInteger(SLOT, slot);
+					writeStack(stack, itemTag);
+					list.appendTag(itemTag);
+				}
+			}
+			tagCompound.setTag(INVENTORY, list);
 		}
-		nbtRoot.setTag(INVENTORY, list);
 	}
 
 	private void writeStack(final ItemStack stack, final NBTTagCompound itemTag) {
@@ -141,89 +161,22 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	}
 
 	@Override
-	public void updateEntity() {
-		super.updateEntity();
-
-		// TODO add syncing to disc
-
-		// if (worldObj.getTotalWorldTime() % 10 == 0) {
-		// worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-		// // onInventoryChanged();
-		// }
-	}
-
-	@Override
 	public int getSizeInventory() {
 		return maxCount;
 	}
 
 	@Override
 	public ItemStack getStackInSlot(final int i) {
-		if (getMount() != null && worldObj != null && !worldObj.isRemote) {
-			// read from disk
-			InputStream inputStream = null;
-			DataInputStream in = null;
-			try {
-				if (!getMount().exists(String.valueOf(i))) {
-					return null;
-				}
-				inputStream = getMount().openForRead(String.valueOf(i));
-				in = new DataInputStream(inputStream);
-				final NBTTagCompound tag = (NBTTagCompound) NBTBase.readNamedTag(in);
-				return createStack(tag);
-			} catch (final IOException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if (in != null) {
-						in.close();
-					}
-					if (inputStream != null) {
-						inputStream.close();
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return inventory[i];
+		return discInv.getHDDItem() != null ? inventory.get(i) : null;
 	}
 
 	@Override
 	public void setInventorySlotContents(final int slot, final ItemStack stack) {
-		inventory[slot] = stack;
+		inventory.put(slot, stack);
 		if (stack != null) {
 			final int inventoryStackLimit = getInventoryStackLimit();
 			if (stack.stackSize > inventoryStackLimit) {
 				stack.stackSize = inventoryStackLimit;
-			}
-		}
-		if (getMount() != null && (getMount() instanceof IWritableMount) && worldObj != null && !worldObj.isRemote) {
-			OutputStream outputStream = null;
-			DataOutputStream out = null;
-			try {
-				if (stack == null) {
-					((IWritableMount) getMount()).delete(String.valueOf(slot));
-				} else {
-					outputStream = ((IWritableMount) getMount()).openForWrite(String.valueOf(slot));
-					out = new DataOutputStream(outputStream);
-					final NBTTagCompound itemTag = new NBTTagCompound();
-					writeStack(stack, itemTag);
-					NBTBase.writeNamedTag(itemTag, out);
-				}
-			} catch (final IOException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if (out != null) {
-						out.close();
-					}
-					if (outputStream != null) {
-						outputStream.close();
-					}
-				} catch (final IOException e) {
-					e.printStackTrace();
-				}
 			}
 		}
 		onInventoryChanged();
@@ -273,10 +226,7 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 
 	@Override
 	public boolean canInsertItem(final int i, final ItemStack itemstack, final int j) {
-		if (!worldObj.isRemote) {
-			return getMount() != null && isConnected() && isAllowed(itemstack);
-		}
-		return isAllowed(itemstack);
+		return discInv.getHDDItem() != null && isConnected() && isAllowed(itemstack);
 	}
 
 	@Override
@@ -292,8 +242,9 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 
 	@Override
 	public boolean isUseableByPlayer(final EntityPlayer entityplayer) {
-		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
-				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
+		final TileEntity entity = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord);
+		final double distanceSq = entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D);
+		return isConnected() && entity == this && distanceSq <= 64.0D;
 	}
 
 	@Override
@@ -306,10 +257,7 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 
 	@Override
 	public boolean isItemValidForSlot(final int i, final ItemStack itemstack) {
-		if (!worldObj.isRemote) {
-			return getMount() != null && isConnected() && isAllowed(itemstack);
-		}
-		return isAllowed(itemstack);
+		return discInv.getHDDItem() != null && isConnected() && isAllowed(itemstack);
 	}
 
 	@Override

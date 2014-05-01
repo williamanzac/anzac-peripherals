@@ -29,21 +29,21 @@ public class PacketHandler implements IPacketHandler {
 			return;
 		}
 
-		DataInputStream data = new DataInputStream(new ByteArrayInputStream(packet.data));
+		final DataInputStream data = new DataInputStream(new ByteArrayInputStream(packet.data));
 		try {
-			int id = data.readInt();
+			final int id = data.readInt();
 			if (id == ID_TILE_ENTITY && player instanceof EntityPlayer) {
 				handleTileEntityPacket(((EntityPlayer) player).worldObj, false, data);
 			} else {
 				AnzacPeripheralsCore.logger.warning("PacketHandler.onPacketData: Recieved packet of unknown type: "
 						+ id);
 			}
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			FMLCommonHandler.instance().raiseException(ex, "PacketHandler.onPacketData", false);
 		} finally {
 			try {
 				data.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				AnzacPeripheralsCore.logger.warning("Error closing data input stream: " + e.getMessage());
 			}
 		}

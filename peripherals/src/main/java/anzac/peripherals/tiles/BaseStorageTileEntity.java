@@ -1,11 +1,16 @@
 package anzac.peripherals.tiles;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
 import anzac.peripherals.annotations.PeripheralMethod;
+import dan200.computer.api.IWritableMount;
 
 public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 
@@ -13,72 +18,181 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		WHITELIST, BLACKLIST, NONE;
 	}
 
-	protected final Set<Integer> filter = new HashSet<Integer>();
+	protected Set<Integer> filter = new HashSet<Integer>();
 	protected FilterMode filterMode = FilterMode.NONE;
-
-	@PeripheralMethod
-	public abstract Map<?, ?> contents() throws Exception;
 
 	protected boolean isAllowed(final int id) {
 		if (getMount() == null) {
 			return false;
 		}
-		switch (filterMode) {
+		switch (getFilterMode()) {
 		case NONE:
 			return true;
 		case BLACKLIST:
-			return !filter.contains(id);
+			return !getFilter().contains(id);
 		case WHITELIST:
-			return filter.contains(id);
+			return getFilter().contains(id);
 		}
 		return false;
 	}
 
+	private Set<Integer> getFilter() {
+		if (getMount() != null && worldObj != null && !worldObj.isRemote) {
+			// read from disk
+			InputStream inputStream = null;
+			DataInputStream in = null;
+			try {
+				if (!getMount().exists("filter")) {
+					return filter;
+				}
+				inputStream = getMount().openForRead("filter");
+				in = new DataInputStream(inputStream);
+				final Set<Integer> f = new HashSet<Integer>();
+				final int count = in.readInt();
+				for (int i = 0; i < count; i++) {
+					f.add(in.readInt());
+				}
+				return f;
+			} catch (final IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (in != null) {
+						in.close();
+					}
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				} catch (final IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return filter;
+	}
+
+	private void setFilter(final Set<Integer> f) {
+		filter = f;
+		if (getMount() != null && (getMount() instanceof IWritableMount) && worldObj != null && !worldObj.isRemote) {
+			OutputStream outputStream = null;
+			DataOutputStream out = null;
+			try {
+				outputStream = ((IWritableMount) getMount()).openForWrite("filter");
+				out = new DataOutputStream(outputStream);
+				out.writeInt(f.size());
+				for (final Integer integer : f) {
+					out.writeInt(integer);
+				}
+			} catch (final IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (out != null) {
+						out.close();
+					}
+					if (outputStream != null) {
+						outputStream.close();
+					}
+				} catch (final IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	@PeripheralMethod
 	public Integer[] listFilter() throws Exception {
-		if (getMount() == null) {
-			throw new Exception("No disk loaded");
-		}
-		return filter.toArray(new Integer[filter.size()]);
+		final Set<Integer> f = getFilter();
+		return f.toArray(new Integer[f.size()]);
 	}
 
 	@PeripheralMethod
 	public void removeFilter(final int id) throws Exception {
-		if (getMount() == null) {
-			throw new Exception("No disk loaded");
-		}
-		filter.remove(id);
+		final Set<Integer> f = getFilter();
+		f.remove(id);
+		setFilter(f);
 	}
 
 	@PeripheralMethod
 	public void addFilter(final int id) throws Exception {
-		if (getMount() == null) {
-			throw new Exception("No disk loaded");
-		}
-		filter.add(id);
+		final Set<Integer> f = getFilter();
+		f.add(id);
+		setFilter(f);
 	}
 
 	@PeripheralMethod
 	public FilterMode getFilterMode() {
+		if (getMount() != null && worldObj != null && !worldObj.isRemote) {
+			// read from disk
+			InputStream inputStream = null;
+			DataInputStream in = null;
+			try {
+				if (!getMount().exists("filterMode")) {
+					return FilterMode.NONE;
+				}
+				inputStream = getMount().openForRead("filterMode");
+				in = new DataInputStream(inputStream);
+				final String name = in.readUTF();
+				return FilterMode.valueOf(name);
+			} catch (final IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (in != null) {
+						in.close();
+					}
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				} catch (final IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 		return filterMode;
 	}
 
 	@PeripheralMethod
 	public void setFilterMode(final FilterMode mode) {
 		filterMode = mode;
+		if (getMount() != null && (getMount() instanceof IWritableMount) && worldObj != null && !worldObj.isRemote) {
+			OutputStream outputStream = null;
+			DataOutputStream out = null;
+			try {
+				outputStream = ((IWritableMount) getMount()).openForWrite("filterMode");
+				out = new DataOutputStream(outputStream);
+				out.writeUTF(mode.name());
+			} catch (final IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (out != null) {
+						out.close();
+					}
+					if (outputStream != null) {
+						outputStream.close();
+					}
+				} catch (final IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	@Override
 	public void readFromNBT(final NBTTagCompound nbtTagCompound) {
 		super.readFromNBT(nbtTagCompound);
 
-		final int[] intArray = nbtTagCompound.getIntArray("filter");
-		filter.clear();
-		for (final int i : intArray) {
-			filter.add(i);
+		if (nbtTagCompound.hasKey("filter")) {
+			final int[] intArray = nbtTagCompound.getIntArray("filter");
+			final Set<Integer> f = new HashSet<Integer>();
+			for (final int i : intArray) {
+				f.add(i);
+			}
+			setFilter(f);
 		}
 		if (nbtTagCompound.hasKey("filter_mode")) {
-			filterMode = FilterMode.valueOf(nbtTagCompound.getString("filter_mode"));
+			setFilterMode(FilterMode.valueOf(nbtTagCompound.getString("filter_mode")));
 		}
 	}
 
@@ -86,14 +200,16 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 	public void writeToNBT(final NBTTagCompound nbtTagCompound) {
 		super.writeToNBT(nbtTagCompound);
 
-		final int[] intArray = new int[filter.size()];
+		final Set<Integer> f = getFilter();
+		final int[] intArray = new int[f.size()];
 		int count = 0;
-		for (final Integer i : filter) {
+		for (final Integer i : f) {
 			intArray[count++] = i;
 		}
 		nbtTagCompound.setIntArray("filter", intArray);
-		if (filterMode != null) {
-			nbtTagCompound.setString("filter_mode", filterMode.name());
+		final FilterMode fm = getFilterMode();
+		if (fm != null) {
+			nbtTagCompound.setString("filter_mode", fm.name());
 		}
 	}
 }

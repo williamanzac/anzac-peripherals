@@ -28,7 +28,18 @@ public enum PeripheralEvent {
 	 * @param count
 	 *            The amount inserted.
 	 */
-	fluid_route;
+	fluid_route,
+	/**
+	 * This event is fired every time some items are inserted in to the internal storage.
+	 * 
+	 * @param name
+	 *            The first argument is the name of the peripheral that fired the event.
+	 * @param uuid
+	 *            The uuid of the inserted item.
+	 * @param count
+	 *            The amount inserted.
+	 */
+	item_route;
 
 	public void fire(final Set<IComputerAccess> computers, final Object... values) {
 		for (final IComputerAccess computer : computers) {

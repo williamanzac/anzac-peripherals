@@ -22,6 +22,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.tiles.CraftingRouterTileEntity;
 import anzac.peripherals.tiles.FluidRouterTileEntity;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
@@ -85,7 +86,16 @@ public class PeripheralBlock extends BlockContainer {
 				return blockIcon;
 			}
 		case 1: // recipe storage
-			return side == 1 ? workbenchIconTop : genericSide;
+			switch (side) {
+			case 1:
+				return workbenchIconTop;
+			case 2:
+				return itemStorageFront;
+			case 3:
+			case 4:
+			case 5:
+				return itemStorageSide;
+			}
 		case 2: // item router
 			return routerIconSide;
 		case 3: // fluid router
@@ -132,9 +142,6 @@ public class PeripheralBlock extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(final World world, final int x, final int y, final int z,
 			final EntityPlayer player, final int metadata, final float what, final float these, final float are) {
-		// if (world.isRemote) {
-		// return true;
-		// }
 		final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
 		if (tileEntity == null || player.isSneaking()) {
 			return false;
@@ -149,6 +156,11 @@ public class PeripheralBlock extends BlockContainer {
 			final IInventory inventory = (IInventory) tileEntity;
 			if (handleItems(player, inventory)) {
 				return true;
+			}
+		}
+		if (tileEntity.getClass().isAnnotationPresent(Peripheral.class)) {
+			if (!tileEntity.getClass().getAnnotation(Peripheral.class).hasGUI()) {
+				return false;
 			}
 		}
 		player.openGui(AnzacPeripheralsCore.instance, 0, world, x, y, z);
@@ -245,12 +257,12 @@ public class PeripheralBlock extends BlockContainer {
 	}
 
 	@Override
-	public boolean isBlockNormalCube(World world, int x, int y, int z) {
+	public boolean isBlockNormalCube(final World world, final int x, final int y, final int z) {
 		return true;
 	}
 
 	@Override
-	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
+	public boolean canConnectRedstone(final IBlockAccess world, final int x, final int y, final int z, final int side) {
 		final TileEntity entity = world.getBlockTileEntity(x, y, z);
 		if (entity instanceof RedstoneTileEntity) {
 			return true;
@@ -317,6 +329,11 @@ public class PeripheralBlock extends BlockContainer {
 	@Override
 	public int isProvidingStrongPower(final IBlockAccess world, final int x, final int y, final int z, final int side) {
 		return isProvidingWeakPower(world, x, y, z, side);
+	}
+
+	@Override
+	public int damageDropped(final int par1) {
+		return par1;
 	}
 
 	// @Override

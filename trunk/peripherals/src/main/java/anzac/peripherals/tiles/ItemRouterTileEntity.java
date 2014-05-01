@@ -17,9 +17,8 @@ import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
-import dan200.computer.api.IComputerAccess;
 
-@Peripheral(type = "ItemRouter")
+@Peripheral(type = "ItemRouter", events = { PeripheralEvent.item_route })
 public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
 
@@ -252,10 +251,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 			if (stack.stackSize > getInventoryStackLimit()) {
 				stack.stackSize = getInventoryStackLimit();
 			}
-			for (final IComputerAccess computer : computers) {
-				computer.queueEvent("item_route", new Object[] { computer.getAttachmentName(), Utils.getUUID(stack),
-						stack.stackSize });
-			}
+			PeripheralEvent.item_route.fire(computers, Utils.getUUID(stack), stack.stackSize);
 		}
 		onInventoryChanged();
 	}

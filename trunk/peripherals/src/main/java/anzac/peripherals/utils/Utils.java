@@ -294,7 +294,7 @@ public class Utils {
 			final ItemStack stackInSlot = inv.getStackInSlot(slot);
 			if (stackInSlot != null && Utils.stacksMatch(stackInSlot, copy)) {
 				final ItemStack target = copy.copy();
-				int l = stackInSlot.stackSize + copy.stackSize;
+				final int l = stackInSlot.stackSize + copy.stackSize;
 				target.stackSize = l;
 				if (doAdd) {
 					inv.setInventorySlotContents(slot, target);
@@ -312,6 +312,9 @@ public class Utils {
 		}
 		if (copy.stackSize > 0) {
 			for (final int slot : availableSlots) {
+				if (!inv.isItemValidForSlot(slot, stack)) {
+					continue;
+				}
 				final ItemStack stackInSlot = inv.getStackInSlot(slot);
 				if (stackInSlot == null) {
 					final ItemStack target = copy.copy();

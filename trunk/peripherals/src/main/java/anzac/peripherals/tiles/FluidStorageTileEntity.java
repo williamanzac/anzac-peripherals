@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.ForgeDirection;
@@ -22,14 +23,27 @@ import anzac.peripherals.utils.Utils;
 @Peripheral(type = "FluidStorage")
 public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFluidHandler {
 
+	private final class DiscListener implements InventoryListener {
+		@Override
+		public void inventoryChanged() {
+			readFromDisk();
+		}
+	}
+
 	private static final int maxTanks = 64;
 	private static final int CAPACITY = AnzacPeripheralsCore.storageSize / maxTanks;
-	private final FluidTank[] fluidTanks = new FluidTank[maxTanks];
+	private final Map<Integer, FluidTank> fluidTanks = new HashMap<Integer, FluidTank>(maxTanks);
 
 	public FluidStorageTileEntity() {
+		super();
+		discInv.addListner(new DiscListener());
+		clear();
+	}
+
+	private void clear() {
 		for (int i = 0; i < maxTanks; i++) {
 			final FluidTank fluidTank = new FluidTank(CAPACITY);
-			fluidTanks[i] = fluidTank;
+			fluidTanks.put(i, fluidTank);
 		}
 	}
 
@@ -42,14 +56,21 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 	public void readFromNBT(final NBTTagCompound nbtRoot) {
 		super.readFromNBT(nbtRoot);
 
+		readFromDisk();
+	}
+
+	private void readFromDisk() {
 		// read tanks
-		if (nbtRoot.hasKey("tanks")) {
-			final NBTTagList tankList = nbtRoot.getTagList("tanks");
+		clear();
+		final ItemStack hddItem = discInv.getHDDItem();
+		if (hddItem != null && hddItem.hasTagCompound()) {
+			final NBTTagCompound tagCompound = hddItem.getTagCompound();
+			final NBTTagList tankList = tagCompound.getTagList("tanks");
 			for (int i = 0; i < tankList.tagCount(); i++) {
 				final FluidTank fluidTank = new FluidTank(CAPACITY);
 				final NBTTagCompound fluidTag = (NBTTagCompound) tankList.tagAt(i);
 				fluidTank.readFromNBT(fluidTag);
-				fluidTanks[i] = fluidTank;
+				fluidTanks.put(i, fluidTank);
 			}
 		}
 	}
@@ -58,16 +79,28 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 	public void writeToNBT(final NBTTagCompound nbtRoot) {
 		super.writeToNBT(nbtRoot);
 
+		writeToDisk();
+	}
+
+	private void writeToDisk() {
 		// write tanks
-		final NBTTagList tankList = new NBTTagList();
-		for (final FluidTank tank : fluidTanks) {
-			if (tank != null && tank.getFluid() != null) {
-				final NBTTagCompound tankTag = new NBTTagCompound();
-				tank.writeToNBT(tankTag);
-				tankList.appendTag(tankTag);
+		final ItemStack hddItem = discInv.getHDDItem();
+		if (hddItem != null) {
+			if (!hddItem.hasTagCompound()) {
+				hddItem.setTagCompound(new NBTTagCompound());
 			}
+			final NBTTagCompound tagCompound = hddItem.getTagCompound();
+			final NBTTagList list = new NBTTagList();
+			for (int slot = 0; slot < maxTanks; slot++) {
+				final FluidTank tank = fluidTanks.get(slot);
+				if (tank != null && tank.getFluid() != null) {
+					final NBTTagCompound tankTag = new NBTTagCompound();
+					tank.writeToNBT(tankTag);
+					list.appendTag(tankTag);
+				}
+			}
+			tagCompound.setTag("tanks", list);
 		}
-		nbtRoot.setTag("tanks", tankList);
 	}
 
 	@Override
@@ -76,13 +109,6 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 			return 0;
 		}
 		final int fill = internalFill(resource, doFill);
-		if (fill > 0 && doFill) {
-			// TODO add event
-			// for (final IComputerAccess computer : computers.keySet()) {
-			// computer.queueEvent("fluid_route", new Object[] { computer.getAttachmentName(),
-			// Utils.getUUID(resource), resource.amount });
-			// }
-		}
 		return fill;
 	}
 
@@ -90,7 +116,7 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		resource = resource.copy();
 		int totalUsed = 0;
 
-		for (final FluidTank tank : fluidTanks) {
+		for (final FluidTank tank : fluidTanks.values()) {
 			final int used = tank.fill(resource, doFill);
 			resource.amount -= used;
 
@@ -132,7 +158,7 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 	@Override
 	public FluidTankInfo[] getTankInfo(final ForgeDirection from) {
 		final List<FluidTankInfo> info = new ArrayList<FluidTankInfo>();
-		for (final FluidTank tank : fluidTanks) {
+		for (final FluidTank tank : fluidTanks.values()) {
 			if (tank != null) {
 				info.add(tank.getInfo());
 			}
@@ -146,24 +172,17 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		return isAllowed(id);
 	}
 
-	@Override
 	@PeripheralMethod
 	public Map<Integer, Map<String, Integer>> contents() throws Exception {
-		// AnzacPeripheralsCore.logger.info("fluid storage contents");
 		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
-		for (final FluidTank tank : fluidTanks) {
-			// AnzacPeripheralsCore.logger.info("tank: " + tank);
+		for (final FluidTank tank : fluidTanks.values()) {
 			if (tank == null) {
 				continue;
 			}
 			final FluidStack fluid = tank.getFluid();
-			// AnzacPeripheralsCore.logger.info("fluid: " + fluid);
 			final int uuid = Utils.getUUID(fluid);
-			// AnzacPeripheralsCore.logger.info("uuid: " + uuid);
 			final int amount = fluid == null ? 0 : fluid.amount;
-			// AnzacPeripheralsCore.logger.info("amount: " + amount);
 			final int capacity = tank.getCapacity();
-			// AnzacPeripheralsCore.logger.info("capacity: " + capacity);
 			if (table.containsKey(uuid)) {
 				final Map<String, Integer> map = table.get(uuid);
 				map.put("amount", map.get("amount") + amount);

@@ -103,4 +103,9 @@ public class TeleporterBlock extends BlockContainer {
 			world.spawnParticle("portal", d6, d1, d5, d2, d3, d4);
 		}
 	}
+
+	@Override
+	public int damageDropped(int par1) {
+		return par1;
+	}
 }

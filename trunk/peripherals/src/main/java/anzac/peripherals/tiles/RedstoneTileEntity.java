@@ -8,7 +8,7 @@ import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import dan200.computer.api.IComputerAccess;
 
-@Peripheral(type = "Redstone")
+@Peripheral(type = "Redstone", hasGUI = false)
 public class RedstoneTileEntity extends BasePeripheralTileEntity {
 
 	private final int[] input = new int[6];

@@ -26,7 +26,7 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 
 	protected final Set<IComputerAccess> computers = new HashSet<IComputerAccess>();
 
-	public SimpleDiscInventory discInv = new SimpleDiscInventory(this);
+	public SimpleDiscInventory discInv = new SimpleDiscInventory(this, true);
 
 	@Override
 	public String[] getMethodNames() {

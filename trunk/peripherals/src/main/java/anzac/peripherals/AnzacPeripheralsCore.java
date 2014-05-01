@@ -54,8 +54,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
-@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZACPeripherals", version = "0.0.1", dependencies = "required-after:ComputerCraft;after:CCTurtle;required-after:BuildCraft|Energy")
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "anzac" }, packetHandler = PacketHandler.class)
+@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZAC Peripherals", version = "0.1.6", dependencies = "required-after:ComputerCraft;after:CCTurtle;required-after:BuildCraft|Energy")
+@NetworkMod(clientSideRequired = true, serverSideRequired = true, channels = { "anzac" }, packetHandler = PacketHandler.class)
 public class AnzacPeripheralsCore {
 	private static final int DEFAULT_HDD_ID = 1339;
 	private static final int DEFAULT_COMPONENT_ID = 1337;
@@ -160,7 +160,7 @@ public class AnzacPeripheralsCore {
 				configuration.save();
 			}
 		}
-		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
+		NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
 
 		GameRegistry.registerTileEntity(WorkbenchTileEntity.class, "anzac.peripherals.tiles.WorkbenchTitleEntity");
 		GameRegistry.registerTileEntity(RecipeStorageTileEntity.class,
@@ -190,7 +190,7 @@ public class AnzacPeripheralsCore {
 		final ItemStack redstoneStack = new ItemStack(Item.redstone);
 		final ItemStack redstoneBlockStack = new ItemStack(Block.blockRedstone);
 		final ItemStack ironIngotStack = new ItemStack(Item.ingotIron);
-		final ItemStack glassStack = new ItemStack(Block.glass);
+		// final ItemStack glassStack = new ItemStack(Block.glass);
 		final ItemStack glassPaneStack = new ItemStack(Block.thinGlass);
 		final ItemStack goldNuggetStack = new ItemStack(Item.goldNugget);
 		final ItemStack chestStack = new ItemStack(Block.chest);
@@ -200,9 +200,9 @@ public class AnzacPeripheralsCore {
 		final ItemStack paperStack = new ItemStack(Item.paper);
 		final ItemStack diamondStack = new ItemStack(Item.diamond);
 		final ItemStack obsidianStack = new ItemStack(Block.obsidian);
-		final ItemStack diamondBlockStack = new ItemStack(Block.blockDiamond);
-		final ItemStack ironBlockStack = new ItemStack(Block.blockIron);
-		final ItemStack goldBlockStack = new ItemStack(Block.blockGold);
+		// final ItemStack diamondBlockStack = new ItemStack(Block.blockDiamond);
+		// final ItemStack ironBlockStack = new ItemStack(Block.blockIron);
+		// final ItemStack goldBlockStack = new ItemStack(Block.blockGold);
 		final ItemStack quartzStack = new ItemStack(Item.netherQuartz);
 
 		// New Items

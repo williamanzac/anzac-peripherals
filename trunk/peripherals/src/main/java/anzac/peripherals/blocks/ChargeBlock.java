@@ -86,4 +86,9 @@ public class ChargeBlock extends BlockContainer {
 	public TileEntity createTileEntity(final World world, final int metadata) {
 		return new ChargeStationTileEntity(metadata);
 	}
+
+	@Override
+	public int damageDropped(int par1) {
+		return par1;
+	}
 }

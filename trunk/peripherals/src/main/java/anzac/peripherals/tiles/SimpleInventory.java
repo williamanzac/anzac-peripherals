@@ -1,5 +1,8 @@
 package anzac.peripherals.tiles;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -9,6 +12,7 @@ import net.minecraft.nbt.NBTTagList;
 public class SimpleInventory implements IInventory {
 
 	private final ItemStack[] inv;
+	private final Set<InventoryListener> listeners = new HashSet<InventoryListener>();
 
 	public SimpleInventory(final int size) {
 		inv = new ItemStack[size];
@@ -78,6 +82,9 @@ public class SimpleInventory implements IInventory {
 
 	@Override
 	public void onInventoryChanged() {
+		for (final InventoryListener listener : listeners) {
+			listener.inventoryChanged();
+		}
 	}
 
 	@Override
@@ -124,5 +131,13 @@ public class SimpleInventory implements IInventory {
 			}
 		}
 		tagCompound.setTag("inventory", list);
+	}
+
+	public void addListner(final InventoryListener listener) {
+		listeners.add(listener);
+	}
+
+	public void removeListner(final InventoryListener listener) {
+		listeners.remove(listener);
 	}
 }

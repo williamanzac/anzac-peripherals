@@ -15,4 +15,6 @@ public @interface Peripheral {
 	String type();
 
 	PeripheralEvent[] events() default {};
+
+	boolean hasGUI() default true;
 }

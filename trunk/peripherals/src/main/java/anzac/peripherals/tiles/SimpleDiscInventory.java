@@ -5,6 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import anzac.peripherals.items.HDDItem;
 import dan200.computer.api.IMedia;
 import dan200.computer.api.IMount;
 
@@ -12,10 +13,12 @@ public class SimpleDiscInventory extends SimpleInventory {
 
 	private final TileEntity te;
 	private IMount mount;
+	private final boolean hddOnly;
 
-	public SimpleDiscInventory(final TileEntity te) {
+	public SimpleDiscInventory(final TileEntity te, final boolean hddOnly) {
 		super(1);
 		this.te = te;
+		this.hddOnly = hddOnly;
 	}
 
 	@Override
@@ -25,12 +28,15 @@ public class SimpleDiscInventory extends SimpleInventory {
 
 	@Override
 	public boolean isItemValidForSlot(final int i, final ItemStack itemstack) {
+		if (hddOnly) {
+			return itemstack != null && itemstack.getItem() instanceof HDDItem;
+		}
 		return itemstack != null && itemstack.getItem() instanceof IMedia;
 	}
 
 	@Override
 	public void onInventoryChanged() {
-		final ItemStack stackInSlot = getStackInSlot(0);
+		final ItemStack stackInSlot = getHDDItem();
 		if (stackInSlot != null) {
 			createMount(stackInSlot);
 		} else {
@@ -51,7 +57,7 @@ public class SimpleDiscInventory extends SimpleInventory {
 	}
 
 	public synchronized IMount getMount() {
-		final ItemStack stackInSlot = getStackInSlot(0);
+		final ItemStack stackInSlot = getHDDItem();
 		if (mount == null && stackInSlot != null) {
 			createMount(stackInSlot);
 		}
@@ -63,7 +69,7 @@ public class SimpleDiscInventory extends SimpleInventory {
 	}
 
 	public String getLabel() {
-		final ItemStack stack = getStackInSlot(0);
+		final ItemStack stack = getHDDItem();
 		if (stack != null && stack.getItem() instanceof IMedia) {
 			final IMedia media = (IMedia) stack.getItem();
 			final String label = media.getLabel(stack);
@@ -73,7 +79,7 @@ public class SimpleDiscInventory extends SimpleInventory {
 	}
 
 	public void setLabel(final String label) {
-		final ItemStack stack = getStackInSlot(0);
+		final ItemStack stack = getHDDItem();
 		if (stack != null && stack.getItem() instanceof IMedia) {
 			final IMedia media = (IMedia) stack.getItem();
 			media.setLabel(stack, label);
@@ -88,5 +94,9 @@ public class SimpleDiscInventory extends SimpleInventory {
 	@Override
 	public boolean isInvNameLocalized() {
 		return hasLabel();
+	}
+
+	public ItemStack getHDDItem() {
+		return getStackInSlot(0);
 	}
 }

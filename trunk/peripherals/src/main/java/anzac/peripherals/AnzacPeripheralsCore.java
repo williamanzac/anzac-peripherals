@@ -203,7 +203,7 @@ public class AnzacPeripheralsCore {
 		// final ItemStack diamondBlockStack = new ItemStack(Block.blockDiamond);
 		// final ItemStack ironBlockStack = new ItemStack(Block.blockIron);
 		// final ItemStack goldBlockStack = new ItemStack(Block.blockGold);
-		final ItemStack quartzStack = new ItemStack(Item.netherQuartz);
+		// final ItemStack quartzStack = new ItemStack(Item.netherQuartz);
 
 		// New Items
 		final ItemStack basicStack = new ItemStack(component, 1, 0);
@@ -329,8 +329,8 @@ public class AnzacPeripheralsCore {
 		GameRegistry.addShapedRecipe(craftingRouterStack, "scs", "sbs", "srs", 's', stoneStack, 'c', workbenchStack,
 				'b', basicStack, 'r', itemRouterStack);
 
-		GameRegistry.addShapedRecipe(chargeIronStack, "iri", "rar", "iri", 'i', ironIngotStack, 'r',
-				redstoneBlockStack, 'a', advancedStack);
+		GameRegistry.addShapedRecipe(chargeIronStack, "i i", " r ", "i i", 'i', ironIngotStack, 'r',
+				redstonePeripheralStack);
 		GameRegistry.addShapedRecipe(chargeGoldStack, "g g", " i ", "g g", 'i', chargeIronStack, 'g', goldIngotStack);
 		GameRegistry.addShapedRecipe(chargeDiamondStack, "d d", " g ", "d d", 'd', diamondStack, 'g', chargeGoldStack);
 
@@ -340,8 +340,7 @@ public class AnzacPeripheralsCore {
 				'p', enderPearlStack);
 		GameRegistry.addShapedRecipe(teleportDiamondStack, "opo", "pdp", "opo", 'd', chargeDiamondStack, 'o',
 				obsidianStack, 'p', enderPearlStack);
-		GameRegistry.addShapelessRecipe(teleportCardStack, basicStack, quartzStack, quartzStack, quartzStack,
-				quartzStack, redstoneStack);
+		GameRegistry.addShapelessRecipe(teleportCardStack, basicStack, paperStack);
 
 		// modify Recipes
 		final List<IRecipe> recipeList = CraftingManager.getInstance().getRecipeList();

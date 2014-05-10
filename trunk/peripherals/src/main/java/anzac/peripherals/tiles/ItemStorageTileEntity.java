@@ -70,18 +70,15 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		return table;
 	}
 
-	protected boolean isAllowed(final ItemStack stack) {
-		final int id = getId(stack);
-		return isAllowed(id);
-	}
-
-	private int getId(final ItemStack stack) {
+	@Override
+	protected int getId(final int uuid) {
 		int id = -1;
-		if (useOreDict) {
+		final ItemStack stack = Utils.getItemStack(uuid);
+		if (isUseOreDict()) {
 			id = OreDictionary.getOreID(stack);
 		}
 		if (id == -1) {
-			if (ignoreMeta) {
+			if (isIgnoreMeta()) {
 				id = stack.itemID;
 			} else {
 				id = Utils.getUUID(stack);
@@ -90,9 +87,20 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		return id;
 	}
 
+	protected boolean isAllowed(final ItemStack stack) {
+		return isAllowed(Utils.getUUID(stack));
+	}
+
 	@Override
 	public void readFromNBT(final NBTTagCompound nbtRoot) {
 		super.readFromNBT(nbtRoot);
+
+		if (nbtRoot.hasKey("useore")) {
+			useOreDict = nbtRoot.getBoolean("useore");
+		}
+		if (nbtRoot.hasKey("ignoreMeta")) {
+			ignoreMeta = nbtRoot.getBoolean("ignoreMeta");
+		}
 
 		readFromDisk();
 	}
@@ -127,6 +135,9 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	@Override
 	public void writeToNBT(final NBTTagCompound nbtRoot) {
 		super.writeToNBT(nbtRoot);
+
+		nbtRoot.setBoolean("useore", useOreDict);
+		nbtRoot.setBoolean("ignoreMeta", ignoreMeta);
 
 		writeToDisk();
 	}
@@ -263,18 +274,7 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	@Override
 	@PeripheralMethod
 	public void addFilter(final int id) throws Exception {
-		int uuid = id;
-		if (useOreDict) {
-			final ItemStack itemStack = Utils.getItemStack(uuid);
-			final int oreid = OreDictionary.getOreID(itemStack);
-			if (oreid != -1) {
-				uuid = oreid;
-			}
-		}
-		if (ignoreMeta) {
-			uuid = Utils.getId(uuid);
-		}
-		super.addFilter(uuid);
+		super.addFilter(id);
 	}
 
 	@PeripheralMethod

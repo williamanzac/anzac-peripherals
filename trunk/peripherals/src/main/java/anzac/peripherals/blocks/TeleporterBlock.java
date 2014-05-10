@@ -91,21 +91,25 @@ public class TeleporterBlock extends BlockContainer {
 
 	@Override
 	public void randomDisplayTick(final World world, final int x, final int y, final int z, final Random random) {
-		for (int l = 0; l < 3; ++l) {
-			final double d1 = y + random.nextFloat();
-			final int i1 = random.nextInt(2) * 2 - 1;
-			final int j1 = random.nextInt(2) * 2 - 1;
-			final double d3 = (random.nextFloat() - 0.5D) * 0.125D;
-			final double d5 = z + 0.5D + 0.25D * j1;
-			final double d4 = random.nextFloat() * 1.0F * j1;
-			final double d6 = x + 0.5D + 0.25D * i1;
-			final double d2 = random.nextFloat() * 1.0F * i1;
-			world.spawnParticle("portal", d6, d1, d5, d2, d3, d4);
+		final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
+		if (tileEntity != null && (tileEntity instanceof TeleporterTileEntity)) {
+			final int num = world.getBlockMetadata(x, y, z);
+			for (int l = 0; l < num; ++l) {
+				final double d1 = y + random.nextFloat();
+				final int i1 = random.nextInt(2) * 2 - 1;
+				final int j1 = random.nextInt(2) * 2 - 1;
+				final double d3 = (random.nextFloat() - 0.5D) * 0.125D;
+				final double d5 = z + 0.5D + 0.25D * j1;
+				final double d4 = random.nextFloat() * 1.0F * j1;
+				final double d6 = x + 0.5D + 0.25D * i1;
+				final double d2 = random.nextFloat() * 1.0F * i1;
+				world.spawnParticle("portal", d6, d1, d5, d2, d3, d4);
+			}
 		}
 	}
 
 	@Override
-	public int damageDropped(int par1) {
+	public int damageDropped(final int par1) {
 		return par1;
 	}
 }

@@ -72,21 +72,21 @@ public class ClassUtils {
 	}
 
 	public static <T> void setField(final Object object, final String name, final T value) {
-		AnzacPeripheralsCore.logger.info("setting field " + name + " for object " + object + " to " + value);
+		// AnzacPeripheralsCore.logger.info("setting field " + name + " for object " + object + " to " + value);
 		Class<?> clazz = object.getClass();
-		AnzacPeripheralsCore.logger.info("clazz: " + clazz);
+		// AnzacPeripheralsCore.logger.info("clazz: " + clazz);
 		do {
 			try {
 				final Field field = clazz.getDeclaredField(name);
-				AnzacPeripheralsCore.logger.info("field: " + field);
+				// AnzacPeripheralsCore.logger.info("field: " + field);
 				field.setAccessible(true);
 				field.set(object, value);
-				AnzacPeripheralsCore.logger.info("set field");
+				// AnzacPeripheralsCore.logger.info("set field");
 				return;
 			} catch (final Throwable e) {
 			}
 			clazz = clazz.getSuperclass();
-			AnzacPeripheralsCore.logger.info("parent clazz: " + clazz);
+			// AnzacPeripheralsCore.logger.info("parent clazz: " + clazz);
 		} while (clazz != null);
 	}
 
@@ -140,38 +140,44 @@ public class ClassUtils {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <R> R callMethod(final Object object, final String name, final Object[] args) {
+		// AnzacPeripheralsCore.logger.info("calling method");
 		Class<?> clazz = object.getClass();
+		// AnzacPeripheralsCore.logger.info("clazz:" + clazz);
 		Class[] classes = argsToTypes(args);
 		do {
 			try {
 				final Method method = clazz.getDeclaredMethod(name, classes);
+				// AnzacPeripheralsCore.logger.info("method:" + method);
 				method.setAccessible(true);
+				// AnzacPeripheralsCore.logger.info("invoking and returning");
 				return (R) method.invoke(object, args);
 			} catch (final Throwable e) {
 			}
 			clazz = clazz.getSuperclass();
+			// AnzacPeripheralsCore.logger.info("parent clazz:" + clazz);
 		} while (clazz != null);
+		// AnzacPeripheralsCore.logger.info("returning null");
 		return null;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <R> R callMethod(final Object object, final String name, final Object[] args, final Class[] types) {
-		AnzacPeripheralsCore.logger.info("calling method");
+		// AnzacPeripheralsCore.logger.info("calling method");
 		Class<?> clazz = object.getClass();
-		AnzacPeripheralsCore.logger.info("clazz:" + clazz);
+		// AnzacPeripheralsCore.logger.info("clazz:" + clazz);
 		do {
 			try {
 				final Method method = clazz.getDeclaredMethod(name, types);
-				AnzacPeripheralsCore.logger.info("method:" + method);
+				// AnzacPeripheralsCore.logger.info("method:" + method);
 				method.setAccessible(true);
-				AnzacPeripheralsCore.logger.info("invoking and returning");
+				// AnzacPeripheralsCore.logger.info("invoking and returning");
 				return (R) method.invoke(object, args);
 			} catch (final Throwable e) {
 			}
 			clazz = clazz.getSuperclass();
-			AnzacPeripheralsCore.logger.info("parent clazz:" + clazz);
+			// AnzacPeripheralsCore.logger.info("parent clazz:" + clazz);
 		} while (clazz != null);
-		AnzacPeripheralsCore.logger.info("returning null");
+		// AnzacPeripheralsCore.logger.info("returning null");
 		return null;
 	}
 }

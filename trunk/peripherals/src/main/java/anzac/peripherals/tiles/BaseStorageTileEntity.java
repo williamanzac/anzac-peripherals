@@ -29,11 +29,26 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		case NONE:
 			return true;
 		case BLACKLIST:
-			return !getFilter().contains(id);
+			return !filterContains(id);
 		case WHITELIST:
-			return getFilter().contains(id);
+			return filterContains(id);
 		}
 		return false;
+	}
+
+	private boolean filterContains(final int uuid) {
+		final int id = getId(uuid);
+		for (final int fId : getFilter()) {
+			final int cId = getId(fId);
+			if (cId == id) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected int getId(final int uuid) {
+		return uuid;
 	}
 
 	private Set<Integer> getFilter() {

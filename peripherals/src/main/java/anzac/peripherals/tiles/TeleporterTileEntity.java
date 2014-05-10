@@ -110,9 +110,9 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		case 1:
 			return 1;
 		case 2:
-			return 8;
+			return 2;
 		case 3:
-			return 32;
+			return 4;
 		}
 		return 0;
 	}
@@ -140,6 +140,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 	@PeripheralMethod
 	public Map<Integer, Map<String, Integer>> getTargets() {
+		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
 		final int index = 0;
 		for (final Target target : targets) {
@@ -175,6 +176,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 	@PeripheralMethod
 	public void teleport(final int index) throws Exception {
+		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 		final Target target = targets.get(index);
 		ITurtleAccess turtle = null;
 		final Position position = new Position(target.position);
@@ -185,7 +187,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			if (entity instanceof ITurtleAccess) {
 				// AnzacPeripheralsCore.logger.info("found turtle");
 				turtle = (ITurtleAccess) entity;
-				position.orientation = direction;
+				position.orientation = direction.getOpposite();
 				break;
 			}
 		}
@@ -226,6 +228,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 	private boolean teleportTurtleTo(final ITurtleAccess turtle, final World world, final Position position) {
 		final Vec3 pos = turtle.getPosition();
 		final World prevWorld = turtle.getWorld();
+		// AnzacPeripheralsCore.logger.info("prevWorld isRemote: " + prevWorld.isRemote);
 		final int posx = (int) pos.xCoord;
 		final int posy = (int) pos.yCoord;
 		final int posz = (int) pos.zCoord;
@@ -294,6 +297,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		handler.writeToNBT(par1nbtTagCompound);
 		par1nbtTagCompound.setInteger("type", type);
 		if (!targets.isEmpty()) {
+			// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 			final NBTTagList list = new NBTTagList();
 			for (final Target target : targets) {
 				final NBTTagCompound targetTag = new NBTTagCompound();
@@ -334,6 +338,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			targets.add(target);
 			player.sendChatToPlayer(ChatMessageComponent.createFromText("Added target; x:" + x + ",y:" + y + ",z:" + z
 					+ ", d:" + d));
+			// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 			return;
 		}
 	}

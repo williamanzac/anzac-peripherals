@@ -103,7 +103,7 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 	@SuppressWarnings("deprecation")
 	@PeripheralMethod
 	public Object getAvailableTriggers(final ForgeDirection side) {
-		AnzacPeripheralsCore.logger.info("getTriggers");
+		// AnzacPeripheralsCore.logger.info("getTriggers");
 		final Position p = new Position(xCoord, yCoord, zCoord, side);
 		p.moveForwards(1);
 		// AnzacPeripheralsCore.logger.info("position: " + p);

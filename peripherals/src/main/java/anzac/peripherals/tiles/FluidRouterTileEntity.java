@@ -1,6 +1,7 @@
 package anzac.peripherals.tiles;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -29,6 +30,11 @@ import anzac.peripherals.utils.Utils;
 public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFluidHandler {
 
 	public FluidTank fluidTank = new FluidTank(FluidContainerRegistry.BUCKET_VOLUME);
+
+	@Override
+	protected List<String> methodNames() {
+		return getMethodNames(FluidRouterTileEntity.class);
+	}
 
 	/**
 	 * Transfer {@code amount} amount of fluid from the internal tank to the tanks connected on {@code toDir} side.
@@ -131,6 +137,10 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 	@Override
 	public boolean canDrain(final ForgeDirection from, final Fluid fluid) {
 		return false;
+	}
+
+	public FluidTankInfo getInfo() {
+		return fluidTank.getInfo();
 	}
 
 	@Override

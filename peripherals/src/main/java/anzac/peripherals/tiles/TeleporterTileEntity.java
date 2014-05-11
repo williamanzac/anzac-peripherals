@@ -234,7 +234,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		final int posz = (int) pos.zCoord;
 		final int id = prevWorld.getBlockId(posx, posy, posz);
 		final int meta = prevWorld.getBlockMetadata(posx, posy, posz);
-		AnzacPeripheralsCore.logger.info("id: " + id + ", meta: " + meta);
+		// AnzacPeripheralsCore.logger.info("id: " + id + ", meta: " + meta);
 
 		world.setBlock(position.x, position.y, position.z, id, meta, 2);
 		final TileEntity te = world.getBlockTileEntity(position.x, position.y, position.z);
@@ -254,7 +254,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 		final int id2 = world.getBlockId(position.x, position.y, position.z);
 		final int meta2 = world.getBlockMetadata(position.x, position.y, position.z);
-		AnzacPeripheralsCore.logger.info("id2: " + id2 + ", meta2: " + meta2);
+		// AnzacPeripheralsCore.logger.info("id2: " + id2 + ", meta2: " + meta2);
 
 		return true;
 	}
@@ -264,7 +264,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		final int par3 = position.y;
 		final int par4 = position.z;
 		final int l = par1World.getBlockId(par2, par3, par4);
-		AnzacPeripheralsCore.logger.info("block at; x:" + par2 + ", y:" + par3 + ", z:" + par4 + ", l:" + l);
+		// AnzacPeripheralsCore.logger.info("block at; x:" + par2 + ", y:" + par3 + ", z:" + par4 + ", l:" + l);
 		final Block block = Block.blocksList[l];
 		return block == null || block.isBlockReplaceable(par1World, par2, par3, par4);
 	}

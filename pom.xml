@@ -24,7 +24,7 @@
 		<forge.jars.dir>${forge.mcp.dir}/jars</forge.jars.dir>
 		<forge.mods.dir>${forge.jars.dir}/mods</forge.mods.dir>
 		<mode>dev</mode>
-		<doUpload>false</doUpload>
+		<skipUpload>true</skipUpload>
 	</properties>
 	<repositories>
 		<repository>
@@ -360,7 +360,7 @@
 			</activation>
 			<properties>
 				<mode>release</mode>
-				<doUpload>true</doUpload>
+				<skipUpload>false</skipUpload>
 			</properties>
 		</profile>
 	</profiles>

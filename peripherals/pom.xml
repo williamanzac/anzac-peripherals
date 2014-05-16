@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>anzac</groupId>
 		<artifactId>root</artifactId>
-		<version>0.1.8-SNAPSHOT</version>
+		<version>0.1.8</version>
 	</parent>
 	<artifactId>peripherals</artifactId>
 	<name>peripherals</name>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>anzac</groupId>
 			<artifactId>docs</artifactId>
-			<version>0.1.8-SNAPSHOT</version>
+			<version>0.1.8</version>
 		</dependency>
 		<dependency>
 			<groupId>argo</groupId>

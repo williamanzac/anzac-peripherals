@@ -204,9 +204,9 @@
 					</docletArtifact>
 					<useStandardDocletOptions>false</useStandardDocletOptions>
 					<excludePackageNames>buildcraft.*,dan200.*,mods.railcraft.*,cpw.*,ibxm*,net.minecraft.*,net.minecraftforge.*,paulscode.*</excludePackageNames>
-					<debug>true</debug>
 					<outputDirectory>${project.build.directory}/apidocs</outputDirectory>
 					<skip>false</skip>
+					<additionalparam>-url http://anzacgaming.co.uk/</additionalparam>
 				</configuration>
 				<executions>
 					<execution>
@@ -407,6 +407,25 @@
 				<configuration>
 					<uniqueVersion>false</uniqueVersion>
 					<classifier>${mcp.version}</classifier>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>anzac</groupId>
+				<artifactId>docs</artifactId>
+				<version>${project.version}</version>
+				<configuration>
+					<skip>${skipUpload}</skip>
+					<docSource>${project.build.directory}/site/apidocs</docSource>
+					<serverId>anzac-wordpress</serverId>
+					<url>http://anzacgaming.co.uk/xmlrpc.php</url>
+					<idToFile>
+						<Workbench>113</Workbench>
+						<RecipeStorage>115</RecipeStorage>
+						<ItemRouter>143</ItemRouter>
+						<FluidRouter>150</FluidRouter>
+						<ItemStorage>162</ItemStorage>
+						<FluidStorage>164</FluidStorage>
+					</idToFile>
 				</configuration>
 			</plugin>
 		</plugins>

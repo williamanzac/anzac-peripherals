@@ -19,10 +19,19 @@ import net.minecraft.nbt.NBTTagList;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
-import dan200.computer.api.IComputerAccess;
 import dan200.computer.api.IWritableMount;
 
-@Peripheral(type = "RecipeStorage")
+/**
+ * This block allows you to store recipes on its internal HDD. The interface is similar to that of a vanilla crafting
+ * table. This block is only usable when connected to a Computer. You must have all the items required for the recipe
+ * and they are consumed when storing the recipe.The {@link PeripheralEvent#recipe_changed} event is fired when a valid
+ * recipe has been defined. To save the recipe you need to call the {@link #storeRecipe()} method from a connected
+ * Computer.The {@link #loadRecipe(int)} method can be used to load a recipe in to a variable. That variable can then be
+ * used to {@link WorkbenchTileEntity#setRecipe(Map)} on a connected {@link WorkbenchTileEntity}.
+ * 
+ * @author Tony
+ */
+@Peripheral(type = "RecipeStorage", events = { PeripheralEvent.recipe_changed })
 public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 
 	public InventoryCrafting craftMatrix = new InternalInventoryCrafting(3);
@@ -32,11 +41,15 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		final ItemStack matchingRecipe = CraftingManager.getInstance().findMatchingRecipe(craftMatrix, worldObj);
 		craftResult.setInventorySlotContents(0, matchingRecipe);
 		final int uuid = Utils.getUUID(craftResult.getStackInSlot(0));
-		for (final IComputerAccess computer : computers) {
-			computer.queueEvent("recipe_changed", new Object[] { computer.getAttachmentName(), uuid });
-		}
+		PeripheralEvent.recipe_changed.fire(computers, uuid);
 	}
 
+	/**
+	 * Returns a list of the currently known recipes.
+	 * 
+	 * @return An array of all the stored recipe uuids.
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public Object[] getRecipes() throws Exception {
 		final List<String> recipes = new ArrayList<String>();
@@ -52,6 +65,14 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		return getMethodNames(RecipeStorageTileEntity.class);
 	}
 
+	/**
+	 * Will return the definition for the specified recipe.
+	 * 
+	 * @param id
+	 *            The uuid for the recipe to get.
+	 * @return A table defining the recipe.
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
 		if (getMount() == null) {
@@ -73,6 +94,14 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		return table;
 	}
 
+	/**
+	 * Will remove the specified recipe from the internal HDD.
+	 * 
+	 * @param id
+	 *            The uuid of the recipe to remove.
+	 * @return {@code true} if the recipe was successfully removed.
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public boolean removeRecipe(final int id) throws Exception {
 		if (getMount() == null) {
@@ -82,6 +111,12 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		return true;
 	}
 
+	/**
+	 * Will add the current recipe to the internal HDD.
+	 * 
+	 * @return {@code true} if the recipe was successfully added.
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public boolean storeRecipe() throws Exception {
 		if (getMount() == null) {

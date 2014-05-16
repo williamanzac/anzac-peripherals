@@ -19,6 +19,10 @@ import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
 
+/**
+ * @author Tony
+ * 
+ */
 @Peripheral(type = "ItemStorage")
 public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
@@ -50,6 +54,10 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		return getMethodNames(ItemStorageTileEntity.class);
 	}
 
+	/**
+	 * @return
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public Map<Integer, Integer> contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
@@ -271,27 +279,44 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		return discInv.getHDDItem() != null && isConnected() && isAllowed(itemstack);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see anzac.peripherals.tiles.BaseStorageTileEntity#addFilter(int)
+	 */
 	@Override
 	@PeripheralMethod
 	public void addFilter(final int id) throws Exception {
 		super.addFilter(id);
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public boolean isUseOreDict() {
 		return useOreDict;
 	}
 
+	/**
+	 * @param useOreDict
+	 */
 	@PeripheralMethod
 	public void setUseOreDict(final boolean useOreDict) {
 		this.useOreDict = useOreDict;
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public boolean isIgnoreMeta() {
 		return ignoreMeta;
 	}
 
+	/**
+	 * @param ignoreMeta
+	 */
 	@PeripheralMethod
 	public void setIgnoreMeta(final boolean ignoreMeta) {
 		this.ignoreMeta = ignoreMeta;

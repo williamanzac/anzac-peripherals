@@ -26,6 +26,10 @@ import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
 import dan200.turtle.api.ITurtleAccess;
 
+/**
+ * @author Tony
+ * 
+ */
 @Peripheral(type = "Teleporter")
 public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor {
 
@@ -124,6 +128,9 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		handler.configurePowerPerdition(0, 0);
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public float getStoredEnergy() {
 		return handler.getEnergyStored();
@@ -133,11 +140,17 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		handler.setEnergy(stored);
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public float getMaxEnergy() {
 		return handler.getMaxEnergyStored();
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public Map<Integer, Map<String, Integer>> getTargets() {
 		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
@@ -174,6 +187,10 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		return dist * samed * MJ;
 	}
 
+	/**
+	 * @param index
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public void teleport(final int index) throws Exception {
 		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
@@ -251,9 +268,9 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 		world.notifyBlockChange(position.x, position.y, position.z, id);
 		prevWorld.notifyBlockChange(posx, posy, posz, 0);
-
-		final int id2 = world.getBlockId(position.x, position.y, position.z);
-		final int meta2 = world.getBlockMetadata(position.x, position.y, position.z);
+		//
+		// final int id2 = world.getBlockId(position.x, position.y, position.z);
+		// final int meta2 = world.getBlockMetadata(position.x, position.y, position.z);
 		// AnzacPeripheralsCore.logger.info("id2: " + id2 + ", meta2: " + meta2);
 
 		return true;

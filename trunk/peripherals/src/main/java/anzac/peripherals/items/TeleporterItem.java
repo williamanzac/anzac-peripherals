@@ -1,8 +1,5 @@
 package anzac.peripherals.items;
 
-import java.util.List;
-
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
@@ -13,14 +10,6 @@ public class TeleporterItem extends ItemBlock {
 		setMaxStackSize(64);
 		setHasSubtypes(true);
 		setUnlocalizedName("anzacteleporter");
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public void getSubItems(final int par1, final CreativeTabs par2CreativeTabs, final List par3List) {
-		par3List.add(new ItemStack(par1, 1, 1));
-		par3List.add(new ItemStack(par1, 1, 2));
-		par3List.add(new ItemStack(par1, 1, 3));
 	}
 
 	@Override

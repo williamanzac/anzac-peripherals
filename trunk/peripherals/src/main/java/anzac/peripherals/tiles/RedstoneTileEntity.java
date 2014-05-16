@@ -8,6 +8,10 @@ import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import dan200.computer.api.IComputerAccess;
 
+/**
+ * @author Tony
+ * 
+ */
 @Peripheral(type = "Redstone", hasGUI = false)
 public class RedstoneTileEntity extends BasePeripheralTileEntity {
 
@@ -19,16 +23,28 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 		return getMethodNames(RedstoneTileEntity.class);
 	}
 
+	/**
+	 * @param side
+	 * @param on
+	 */
 	@PeripheralMethod
 	public void setOutput(final ForgeDirection side, final boolean on) {
 		setAnalogOutput(side, on ? 15 : 0);
 	}
 
+	/**
+	 * @param side
+	 * @return
+	 */
 	@PeripheralMethod
 	public boolean getOutput(final ForgeDirection side) {
 		return getAnalogInput(side) > 0;
 	}
 
+	/**
+	 * @param side
+	 * @return
+	 */
 	@PeripheralMethod
 	public boolean getInput(final ForgeDirection side) {
 		return getAnalogInput(side) > 0;
@@ -50,6 +66,10 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 		return (input[side.ordinal()] & mask) == mask;
 	}
 
+	/**
+	 * @param side
+	 * @param value
+	 */
 	@PeripheralMethod
 	public void setAnalogOutput(final ForgeDirection side, final int value) {
 		final int prev = output[side.ordinal()];
@@ -63,26 +83,47 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 		}
 	}
 
+	/**
+	 * @param side
+	 * @param value
+	 */
 	@PeripheralMethod
 	public void setAnalogueOutput(final ForgeDirection side, final int value) {
 		setAnalogOutput(side, value);
 	}
 
+	/**
+	 * @param side
+	 * @return
+	 */
 	@PeripheralMethod
 	public int getAnalogOutput(final ForgeDirection side) {
 		return output[side.ordinal()];
 	}
 
+	/**
+	 * @param side
+	 * @return
+	 */
 	@PeripheralMethod
 	public int getAnalogueOutput(final ForgeDirection side) {
 		return getAnalogOutput(side);
 	}
 
+	/**
+	 * @param side
+	 * @return
+	 */
 	@PeripheralMethod
 	public int getAnalogInput(final ForgeDirection side) {
 		return input[side.ordinal()];
 	}
 
+	/**
+	 * @param side
+	 * @param value
+	 * @return
+	 */
 	@PeripheralMethod
 	public int getAnalogueInput(final ForgeDirection side, final int value) {
 		return getAnalogInput(side);

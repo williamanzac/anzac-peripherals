@@ -44,6 +44,7 @@ public class ModelGenerator {
 	private static ClassXML toClassXML(final ClassDoc classDoc) {
 		final ClassXML classXML = new ClassXML();
 		classXML.setName(classDoc.simpleTypeName());
+		classXML.setFullName(classDoc.qualifiedTypeName());
 		classXML.setDescription(classDoc.inlineTags());
 		classXML.getMethods().addAll(generateMethodModel(classDoc));
 		for (final AnnotationDesc annotationDesc : classDoc.annotations()) {
@@ -100,15 +101,14 @@ public class ModelGenerator {
 	private static MethodXML toMethodXML(final MethodDoc methodDoc) {
 		final MethodXML methodXML = new MethodXML();
 		methodXML.setName(methodDoc.name());
+		methodXML.setFirstLine(methodDoc.firstSentenceTags());
 		methodXML.setDescription(methodDoc.inlineTags());
 		methodXML.setReturnType(javaToLUA(methodDoc.returnType()));
 		methodXML.getParameters().addAll(generateParameterModel(methodDoc));
 		for (final Tag tag : methodDoc.tags()) {
-			final String text = tag.text();
 			final String tagName = tag.name();
 			if (tagName.equals("@return")) {
-				final String description = StringUtils.trim(text);
-				methodXML.setReturnDescription(description);
+				methodXML.setReturnDescription(tag.inlineTags());
 			}
 		}
 		return methodXML;
@@ -139,8 +139,7 @@ public class ModelGenerator {
 		final String name = StringUtils.trim(strings[0]);
 		parameterXML.setName(name);
 		if (strings.length > 1) {
-			final String description = StringUtils.trim(strings[1]);
-			parameterXML.setDescription(description);
+			parameterXML.setDescription(tag.inlineTags());
 		}
 		return parameterXML;
 	}
@@ -162,10 +161,12 @@ public class ModelGenerator {
 		if ("map".equalsIgnoreCase(typeName)) {
 			return "table";
 		} else if ("long".equalsIgnoreCase(typeName) || "int".equalsIgnoreCase(typeName)
-				|| "double".equalsIgnoreCase(typeName)) {
+				|| "double".equalsIgnoreCase(typeName) || "float".equalsIgnoreCase(typeName)) {
 			return "number";
 		} else if ("void".equalsIgnoreCase(typeName)) {
 			return "";
+		} else if (StringUtils.isNotBlank(type.dimension())) {
+			return "array";
 		}
 
 		// boolean, string

@@ -21,8 +21,7 @@ import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 
 /**
- * This block allows you to control the flow of fluid via a connected computer. There is no interface for this block and
- * must be configured via a connected Computer.
+ * This block allows you to control the flow of fluid via a connected computer.
  * 
  * @author Tony
  */

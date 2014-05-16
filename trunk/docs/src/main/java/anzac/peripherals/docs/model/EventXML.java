@@ -26,7 +26,7 @@ public class EventXML {
 		return description;
 	}
 
-	public void setDescription(Tag[] description) {
+	public void setDescription(final Tag[] description) {
 		this.description = description;
 	}
 
@@ -38,7 +38,7 @@ public class EventXML {
 		return "<li><a href=\"#" + name + "\">" + name + "</a></li>";
 	}
 
-	public String toDetailXML(String className) {
+	public String toDetailXML(final String className) {
 		final StrBuilder builder = new StrBuilder();
 		builder.appendln("<a name=\"" + name + "\"></a>");
 		builder.appendln("<h4>" + name + "</h4>");
@@ -47,7 +47,7 @@ public class EventXML {
 			builder.appendln("<dl>");
 			builder.appendln("<dt>Arguments</dt>");
 			for (final ParameterXML arg : parameters) {
-				builder.appendln(arg.toXML());
+				builder.appendln(arg.toXML(className));
 			}
 			builder.appendln("</dl>");
 		}

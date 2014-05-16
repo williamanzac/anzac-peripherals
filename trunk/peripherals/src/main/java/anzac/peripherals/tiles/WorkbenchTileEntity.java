@@ -58,6 +58,14 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		craftResult.setInventorySlotContents(0, matchingRecipe);
 	}
 
+	/**
+	 * Will set the current recipe for this peripheral.
+	 * 
+	 * @param recipe
+	 *            a table containing the definition of the recipe. The recipe can also be obtained from a connected
+	 *            {@link RecipeStorageTileEntity} using the {@link RecipeStorageTileEntity#loadRecipe(int)} method.
+	 * @return {@code true} if the recipe was successfully defined.
+	 */
 	@PeripheralMethod
 	public boolean setRecipe(final Map<Double, Double> recipe) {
 		craftMatrix.clear();
@@ -69,11 +77,20 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		return craftResult.getStackInSlot(0) != null;
 	}
 
+	/**
+	 * Clears the current recipe.
+	 */
 	@PeripheralMethod
 	public void clear() {
 		craftMatrix.clear();
 	}
 
+	/**
+	 * Will return a table with the uuid and count of each item in the internal cache.
+	 * 
+	 * @return A table of the internal contents.
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public Map<Integer, Integer> contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
@@ -93,6 +110,12 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		return table;
 	}
 
+	/**
+	 * Will try and craft one unit of the specified recipe. The {@link PeripheralEvent#crafted} event will be fired if
+	 * successful.
+	 * 
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public void craft() throws Exception {
 		if (internalPlayer == null) {

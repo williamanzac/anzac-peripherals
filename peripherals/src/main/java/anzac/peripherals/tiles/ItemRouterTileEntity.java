@@ -18,6 +18,11 @@ import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
 
+/**
+ * This block allows you to control the flow of items via a connected computer.
+ * 
+ * @author Tony
+ */
 @Peripheral(type = "ItemRouter", events = { PeripheralEvent.item_route })
 public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
@@ -40,7 +45,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Will return a table containing the uuid and count of the fluid in the internal tank.
+	 * Will return a table containing the uuid and count of each item in the internal cache.
 	 * 
 	 * @return A table of the internal contents.
 	 * @throws Exception
@@ -51,12 +56,12 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Will return a table containing the uuid and count of each fluid in the tanks connected to {@code direction} side
-	 * of this block.
+	 * Will return a table containing the uuid and count of each item in the inventory connected to {@code direction}
+	 * side of this block.
 	 * 
 	 * @param direction
-	 *            which side of this block to examine the tanks of.
-	 * @return A table of the contents of the connected tanks.
+	 *            which side of this block to examine the inventory of.
+	 * @return A table of the contents of the connected inventory.
 	 * @throws Exception
 	 */
 	@PeripheralMethod
@@ -65,14 +70,14 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Will return a table containing the uuid and count of each fluid in the tanks connected to <code>direction</code>
-	 * side of this block and limited the to those tanks accessible from <code>side</code> side.
+	 * Will return a table containing the uuid and count of each item in the inventory connected to {@code direction}
+	 * side of this block and limited the examined slot to those accessible from {@code side} side.
 	 * 
 	 * @param direction
-	 *            which side of this block to examine the tanks of.
+	 *            which side of this block to examine the inventory of.
 	 * @param dir
-	 *            which side of the tanks to examine.
-	 * @return A table of the contents of the connected tanks.
+	 *            which side of the inventory to examine.
+	 * @return A table of the contents of the connected inventory.
 	 * @throws Exception
 	 */
 	@PeripheralMethod
@@ -109,15 +114,15 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Extract {@code amount} amount of fluid with {@code uuid} from the tanks connected to {@code fromDir} side.
+	 * Extract {@code amount} number of items with {@code uuid} from the inventory connected to {@code fromDir} side.
 	 * 
 	 * @param fromDir
 	 *            which side of this block to extract from.
 	 * @param uuid
-	 *            the uuid of the fluid to extract.
+	 *            the uuid of the items to extract.
 	 * @param amount
-	 *            the amount of the fluid to extract.
-	 * @return The actual amount extracted.
+	 *            the number of items to extract.
+	 * @return The actual number of items extracted.
 	 * @throws Exception
 	 */
 	@PeripheralMethod
@@ -126,18 +131,18 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Extract {@code amount} amount of fluid with {@code uuid} from the {@code side} side of the tanks connected to
+	 * Extract {@code amount} number of items with {@code uuid} from the {@code side} side of the inventory connected to
 	 * {@code fromDir} side.
 	 * 
 	 * @param fromDir
 	 *            which side of this block to extract from.
 	 * @param uuid
-	 *            the uuid of the fluid to extract.
+	 *            the uuid of the items to extract.
 	 * @param amount
-	 *            the amount of fluid to extract.
+	 *            the number of items to extract.
 	 * @param extractSide
-	 *            which side of the tanks to extract from.
-	 * @return The actual amount extracted.
+	 *            which side of the inventory to extract from.
+	 * @return The actual number of items extracted.
 	 * @throws Exception
 	 */
 	@PeripheralMethod
@@ -167,13 +172,13 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Transfer {@code amount} amount of fluid from the internal tank to the tanks connected on {@code toDir} side.
+	 * Transfer {@code amount} number of items from the internal cache to the inventory connected on {@code toDir} side.
 	 * 
 	 * @param toDir
-	 *            the side the tanks are connected to.
+	 *            the side the inventory is connected to.
 	 * @param amount
-	 *            the amount of fluid to transfer.
-	 * @return the actual amount transferred.
+	 *            the number of items to transfer.
+	 * @return the actual number of items transferred.
 	 * @throws Exception
 	 */
 	@PeripheralMethod
@@ -182,16 +187,16 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Transfer {@code amount} amount of fluid from the internal tank to the {@code side} side of the tanks connected on
-	 * {@code toDir} side.
+	 * Transfer {@code amount} number of items from the internal cache to the {@code side} side of the inventory
+	 * connected on {@code toDir} side.
 	 * 
 	 * @param toDir
-	 *            the side the tanks are connected to.
+	 *            the side the inventory is connected to.
 	 * @param insertDir
-	 *            the side the tank to insert the fluid from.
+	 *            the side the inventory to insert the items from.
 	 * @param amount
-	 *            the amount of fluid to transfer.
-	 * @return the actual amount transferred.
+	 *            the number of items to transfer.
+	 * @return the actual number of items transferred.
 	 * @throws Exception
 	 */
 	@PeripheralMethod
@@ -332,14 +337,14 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	/**
-	 * Transfer {@code amount} amount of fluid from the internal tank to another connected peripheral with {@code label}
-	 * label. The peripheral must be connected to the same computer.
+	 * Transfer {@code amount} number of items from the internal cache to another connected peripheral with
+	 * {@code label} label. The peripheral must be connected to the same computer.
 	 * 
 	 * @param label
 	 *            the label of the peripheral.
 	 * @param amount
-	 *            the amount of fluid to transfer.
-	 * @return the actual amount transferred.
+	 *            the number of items to transfer.
+	 * @return the actual number of items transferred.
 	 * @throws Exception
 	 */
 	@PeripheralMethod

@@ -1,9 +1,13 @@
 package anzac.peripherals.docs.model;
 
+import anzac.peripherals.docs.APIDoclet;
+
+import com.sun.javadoc.Tag;
+
 public class ParameterXML {
 	private String name;
 	private String type;
-	private String description;
+	private Tag[] description;
 
 	public String getName() {
 		return name;
@@ -26,15 +30,15 @@ public class ParameterXML {
 		return type;
 	}
 
-	public String getDescription() {
-		return description == null ? "" : description;
+	public Tag[] getDescription() {
+		return description;
 	}
 
-	public void setDescription(String description) {
+	public void setDescription(Tag[] description) {
 		this.description = description;
 	}
 
-	public String toXML() {
-		return "<dd><code>" + name + "</code>" + description + "</dd>";
+	public String toXML(final String className) {
+		return "<dd><code>" + name + "</code> " + APIDoclet.processText(className, description) + "</dd>";
 	}
 }

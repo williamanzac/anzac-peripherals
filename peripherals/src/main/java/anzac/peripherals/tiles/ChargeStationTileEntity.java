@@ -17,6 +17,10 @@ import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
 import dan200.turtle.api.ITurtleAccess;
 
+/**
+ * @author Tony
+ * 
+ */
 @Peripheral(type = "ChargeStation")
 public class ChargeStationTileEntity extends BasePeripheralTileEntity implements IPowerReceptor {
 
@@ -45,6 +49,9 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 		handler.configurePowerPerdition(0, 0);
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public float getStoredEnergy() {
 		return handler.getEnergyStored();
@@ -54,6 +61,9 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 		handler.setEnergy(stored);
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public float getMaxEnergy() {
 		return handler.getMaxEnergyStored();

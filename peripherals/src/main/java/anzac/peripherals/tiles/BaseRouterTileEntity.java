@@ -98,11 +98,11 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 
 	/**
 	 * @param side
-	 * @return
+	 * @return table
 	 */
 	@SuppressWarnings("deprecation")
 	@PeripheralMethod
-	public Object getAvailableTriggers(final ForgeDirection side) {
+	public Map<String, Map<String, Object>> getAvailableTriggers(final ForgeDirection side) {
 		// AnzacPeripheralsCore.logger.info("getTriggers");
 		final Position p = new Position(xCoord, yCoord, zCoord, side);
 		p.moveForwards(1);

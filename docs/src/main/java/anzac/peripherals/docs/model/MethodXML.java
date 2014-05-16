@@ -13,9 +13,10 @@ import com.sun.javadoc.Tag;
 public class MethodXML implements Comparable<MethodXML> {
 	private String name;
 	private Tag[] description;
+	private Tag[] firstLine;
 	private String returnType;
 	private final List<ParameterXML> parameters = new ArrayList<ParameterXML>();
-	private String returnDescription;
+	private Tag[] returnDescription;
 
 	public String getName() {
 		return name;
@@ -31,6 +32,14 @@ public class MethodXML implements Comparable<MethodXML> {
 
 	public void setDescription(final Tag[] description) {
 		this.description = description;
+	}
+
+	public Tag[] getFirstLine() {
+		return firstLine;
+	}
+
+	public void setFirstLine(final Tag[] firstLine) {
+		this.firstLine = firstLine;
 	}
 
 	public String getReturnType() {
@@ -51,17 +60,17 @@ public class MethodXML implements Comparable<MethodXML> {
 		return name + "(" + parameters + ")";
 	}
 
-	public String getReturnDescription() {
-		return returnDescription == null ? "" : returnDescription;
+	public Tag[] getReturnDescription() {
+		return returnDescription;
 	}
 
-	public void setReturnDescription(String returnDescription) {
+	public void setReturnDescription(final Tag[] returnDescription) {
 		this.returnDescription = returnDescription;
 	}
 
 	@Override
-	public int compareTo(MethodXML that) {
-		int compareTo = this.name.compareTo(that.name);
+	public int compareTo(final MethodXML that) {
+		final int compareTo = this.name.compareTo(that.name);
 		if (compareTo > 0) {
 			return 1;
 		} else if (compareTo < 0) {
@@ -85,14 +94,14 @@ public class MethodXML implements Comparable<MethodXML> {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MethodXML other = (MethodXML) obj;
+		final MethodXML other = (MethodXML) obj;
 		if (name == null) {
 			if (other.name != null)
 				return false;
@@ -106,17 +115,17 @@ public class MethodXML implements Comparable<MethodXML> {
 		return true;
 	}
 
-	public String toSummaryXML(String className) {
+	public String toSummaryXML(final String className) {
 		final StrBuilder builder = new StrBuilder();
 		builder.appendln("<tr>");
 		builder.appendln("<td>" + returnType + "</td>");
-		builder.appendln("<td><a href=\"#" + toString() + "\">" + toString() + "</a>"
-				+ APIDoclet.processText(className, description) + "</td>");
+		builder.appendln("<td><a href=\"#" + toString() + "\"><code>" + toString() + "</code></a> "
+				+ APIDoclet.processText(className, firstLine) + "</td>");
 		builder.appendln("</tr>");
 		return builder.toString();
 	}
 
-	public String toDetailXML(String className) {
+	public String toDetailXML(final String className) {
 		final StrBuilder builder = new StrBuilder();
 		builder.appendln("<a name=\"" + toString() + "\"></a>");
 		builder.appendln("<h4>" + name + "</h4>");
@@ -128,12 +137,12 @@ public class MethodXML implements Comparable<MethodXML> {
 			if (hasParams) {
 				builder.appendln("<dt>Parameters</dt>");
 				for (final ParameterXML parameterXML : parameters) {
-					builder.appendln(parameterXML.toXML());
+					builder.appendln(parameterXML.toXML(className));
 				}
 			}
 			if (notVoid) {
 				builder.appendln("<dt>Returns</dt>");
-				builder.appendln("<dd>" + returnDescription + "</dd>");
+				builder.appendln("<dd>" + APIDoclet.processText(className, returnDescription) + "</dd>");
 			}
 			builder.appendln("</dl>");
 		}

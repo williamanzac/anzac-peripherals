@@ -1,12 +1,17 @@
 package anzac.peripherals.items;
 
-import java.util.List;
-
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import anzac.peripherals.annotations.Item;
 
 public class ChargeItem extends ItemBlock {
+
+	@Item
+	private static final int CHARGE_IRON = 1;
+	@Item
+	private static final int CHARGE_GOLD = 2;
+	@Item
+	private static final int CHARGE_DIAMOND = 3;
 
 	public ChargeItem(final int par1) {
 		super(par1);
@@ -15,23 +20,15 @@ public class ChargeItem extends ItemBlock {
 		setUnlocalizedName("anzacchargestation");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public void getSubItems(final int par1, final CreativeTabs par2CreativeTabs, final List par3List) {
-		par3List.add(new ItemStack(itemID, 1, 1));
-		par3List.add(new ItemStack(itemID, 1, 2));
-		par3List.add(new ItemStack(itemID, 1, 3));
-	}
-
 	@Override
 	public String getUnlocalizedName(final ItemStack par1ItemStack) {
 		final int meta = par1ItemStack.getItemDamage();
 		switch (meta) {
-		case 1:
+		case CHARGE_IRON:
 			return "item.chargeIron";
-		case 2:
+		case CHARGE_GOLD:
 			return "item.chargeGold";
-		case 3:
+		case CHARGE_DIAMOND:
 			return "item.chargeDiamond";
 		}
 		return super.getUnlocalizedName(par1ItemStack);

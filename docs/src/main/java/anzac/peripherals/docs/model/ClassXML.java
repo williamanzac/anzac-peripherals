@@ -13,6 +13,7 @@ import com.sun.javadoc.Tag;
 
 public class ClassXML {
 	private String name;
+	private String fullName;
 	private Tag[] description;
 	private String type;
 	private final Set<MethodXML> methods = new TreeSet<MethodXML>();
@@ -48,6 +49,14 @@ public class ClassXML {
 
 	public List<EventXML> getEvents() {
 		return events;
+	}
+
+	public String getFullName() {
+		return fullName;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
 	}
 
 	public String toXML() {

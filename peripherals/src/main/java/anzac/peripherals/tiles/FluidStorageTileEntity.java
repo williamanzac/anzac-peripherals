@@ -20,6 +20,10 @@ import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 
+/**
+ * @author Tony
+ * 
+ */
 @Peripheral(type = "FluidStorage")
 public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFluidHandler {
 
@@ -172,6 +176,10 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		return isAllowed(id);
 	}
 
+	/**
+	 * @return
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public Map<Integer, Map<String, Integer>> contents() throws Exception {
 		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();

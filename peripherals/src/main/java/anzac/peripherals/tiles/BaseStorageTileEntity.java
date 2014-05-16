@@ -115,12 +115,20 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		}
 	}
 
+	/**
+	 * @return
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public Integer[] listFilter() throws Exception {
 		final Set<Integer> f = getFilter();
 		return f.toArray(new Integer[f.size()]);
 	}
 
+	/**
+	 * @param id
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public void removeFilter(final int id) throws Exception {
 		final Set<Integer> f = getFilter();
@@ -128,6 +136,10 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		setFilter(f);
 	}
 
+	/**
+	 * @param id
+	 * @throws Exception
+	 */
 	@PeripheralMethod
 	public void addFilter(final int id) throws Exception {
 		final Set<Integer> f = getFilter();
@@ -135,6 +147,9 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		setFilter(f);
 	}
 
+	/**
+	 * @return
+	 */
 	@PeripheralMethod
 	public FilterMode getFilterMode() {
 		if (getMount() != null && worldObj != null && !worldObj.isRemote) {
@@ -167,6 +182,9 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		return filterMode;
 	}
 
+	/**
+	 * @param mode
+	 */
 	@PeripheralMethod
 	public void setFilterMode(final FilterMode mode) {
 		filterMode = mode;

@@ -88,7 +88,7 @@ public class ClassXML {
 		builder.appendln("</thead>");
 		builder.appendln("<tbody>");
 		for (final MethodXML methodXML : methods) {
-			builder.appendln(methodXML.toSummaryXML(name));
+			builder.append(methodXML.toSummaryXML(name));
 		}
 		builder.appendln("</tbody>");
 		builder.appendln("</table>");
@@ -96,7 +96,7 @@ public class ClassXML {
 			builder.appendln("<h3>Event Summary</h3>");
 			builder.appendln("<ul>");
 			for (final EventXML event : events) {
-				builder.appendln(event.toSummaryXML());
+				builder.append(event.toSummaryXML());
 			}
 			builder.appendln("</ul>");
 		}
@@ -104,13 +104,13 @@ public class ClassXML {
 		builder.appendln("<section id=\"detail\">");
 		builder.appendln("<h3>Method Detail</h3>");
 		for (final MethodXML methodXML : methods) {
-			builder.appendln(methodXML.toDetailXML(name));
+			builder.append(methodXML.toDetailXML(name));
 		}
 
 		if (!events.isEmpty()) {
 			builder.appendln("<h3>Event Detail</h3>");
 			for (final EventXML event : events) {
-				builder.appendln(event.toDetailXML(name));
+				builder.append(event.toDetailXML(name));
 			}
 		}
 		builder.appendln("</section>");

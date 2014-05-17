@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>anzac</groupId>
@@ -209,6 +210,14 @@
 					<additionalparam>-url http://anzacgaming.co.uk/</additionalparam>
 				</configuration>
 				<executions>
+					<execution>
+						<id>generate docs</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+						<inherited>false</inherited>
+					</execution>
 					<execution>
 						<id>attach-javadocs</id>
 						<phase>generate-resources</phase>
@@ -425,8 +434,22 @@
 						<FluidRouter>150</FluidRouter>
 						<ItemStorage>162</ItemStorage>
 						<FluidStorage>164</FluidStorage>
+						<Redstone>177</Redstone>
+						<CraftingRouter>179</CraftingRouter>
+						<ChargeStation>181</ChargeStation>
+						<Teleporter>183</Teleporter>
 					</idToFile>
 				</configuration>
+				<executions>
+					<execution>
+						<id>Publish Docs</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>PublishToWordpress</goal>
+						</goals>
+						<inherited>false</inherited>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -112,6 +112,7 @@ public class APIDoclet {
 				}
 			}
 		}
+		strBuilder.replaceAll("\n", null);
 		return strBuilder.toString();
 	}
 

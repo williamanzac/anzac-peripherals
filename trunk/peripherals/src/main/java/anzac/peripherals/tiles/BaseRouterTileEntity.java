@@ -22,7 +22,7 @@ import buildcraft.api.gates.ActionManager;
 import buildcraft.api.gates.ITrigger;
 import buildcraft.api.gates.ITriggerParameter;
 import buildcraft.api.transport.IPipeTile;
-import dan200.computer.api.IComputerAccess;
+import dan200.computercraft.api.peripheral.IComputerAccess;
 
 public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 
@@ -67,14 +67,14 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (this == obj)
 				return true;
 			if (obj == null)
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			Trigger other = (Trigger) obj;
+			final Trigger other = (Trigger) obj;
 			if (parameter != other.parameter)
 				return false;
 			if (side != other.side)
@@ -261,5 +261,30 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 			tagList.appendTag(tag);
 		}
 		nbtTagCompound.setTag("triggers", tagList);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((triggers == null) ? 0 : triggers.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final BaseRouterTileEntity other = (BaseRouterTileEntity) obj;
+		if (triggers == null) {
+			if (other.triggers != null)
+				return false;
+		} else if (!triggers.equals(other.triggers))
+			return false;
+		return true;
 	}
 }

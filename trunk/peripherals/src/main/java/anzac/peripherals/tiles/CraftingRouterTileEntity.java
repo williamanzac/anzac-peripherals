@@ -16,12 +16,8 @@ import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
-import dan200.computer.api.IWritableMount;
+import dan200.computercraft.api.filesystem.IWritableMount;
 
-/**
- * @author Tony
- * 
- */
 @Peripheral(type = "CraftingRouter")
 public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 
@@ -169,5 +165,36 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		for (int i = 0; i < craftResult.getSizeInventory(); i++) {
 			craftResult.setInventorySlotContents(i, null);
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((craftMatrix == null) ? 0 : craftMatrix.hashCode());
+		result = prime * result + ((craftResult == null) ? 0 : craftResult.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final CraftingRouterTileEntity other = (CraftingRouterTileEntity) obj;
+		if (craftMatrix == null) {
+			if (other.craftMatrix != null)
+				return false;
+		} else if (!craftMatrix.equals(other.craftMatrix))
+			return false;
+		if (craftResult == null) {
+			if (other.craftResult != null)
+				return false;
+		} else if (!craftResult.equals(other.craftResult))
+			return false;
+		return true;
 	}
 }

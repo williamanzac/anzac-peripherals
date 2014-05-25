@@ -19,11 +19,8 @@ import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
-/**
- * @author Tony
- * 
- */
 @Peripheral(type = "FluidStorage")
 public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFluidHandler {
 
@@ -204,5 +201,35 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		}
 		AnzacPeripheralsCore.logger.info("table:" + table);
 		return table;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((fluidTanks == null) ? 0 : fluidTanks.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final FluidStorageTileEntity other = (FluidStorageTileEntity) obj;
+		if (fluidTanks == null) {
+			if (other.fluidTanks != null)
+				return false;
+		} else if (!fluidTanks.equals(other.fluidTanks))
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equals(final IPeripheral other) {
+		return equals((Object) other);
 	}
 }

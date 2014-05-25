@@ -8,15 +8,17 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.Blocks;
+import anzac.peripherals.items.ChargeItem;
 import anzac.peripherals.tiles.ChargeStationTileEntity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+@Blocks(itemType = ChargeItem.class, key = "block.anzac.chargestation", tool = "pickaxe", toolLevel = 1, tileType = ChargeStationTileEntity.class)
 public class ChargeBlock extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
@@ -26,8 +28,8 @@ public class ChargeBlock extends BlockContainer {
 	@SideOnly(Side.CLIENT)
 	private Icon goldIcon;
 
-	public ChargeBlock(final int blockId, final Material material) {
-		super(blockId, material);
+	public ChargeBlock(final int blockId) {
+		super(blockId, Material.iron);
 		setCreativeTab(CreativeTabs.tabDecorations);
 		setStepSound(Block.soundMetalFootstep);
 		setHardness(4.5F);
@@ -74,12 +76,10 @@ public class ChargeBlock extends BlockContainer {
 		return true;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	public void getSubBlocks(final int par1, final CreativeTabs par2CreativeTabs, final List par3List) {
-		par3List.add(new ItemStack(par1, 1, 1));
-		par3List.add(new ItemStack(par1, 1, 2));
-		par3List.add(new ItemStack(par1, 1, 3));
+		BlockFactory.getSubBlocks(getClass(), par1, par3List);
 	}
 
 	@Override

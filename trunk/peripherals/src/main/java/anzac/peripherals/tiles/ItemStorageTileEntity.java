@@ -18,11 +18,8 @@ import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
-/**
- * @author Tony
- * 
- */
 @Peripheral(type = "ItemStorage")
 public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
@@ -331,5 +328,41 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	public ItemStack[] extractItem(final boolean doRemove, final ForgeDirection from, final int maxItemCount) {
 		// cannot extract return empty array
 		return new ItemStack[0];
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + (ignoreMeta ? 1231 : 1237);
+		result = prime * result + ((inventory == null) ? 0 : inventory.hashCode());
+		result = prime * result + (useOreDict ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ItemStorageTileEntity other = (ItemStorageTileEntity) obj;
+		if (ignoreMeta != other.ignoreMeta)
+			return false;
+		if (inventory == null) {
+			if (other.inventory != null)
+				return false;
+		} else if (!inventory.equals(other.inventory))
+			return false;
+		if (useOreDict != other.useOreDict)
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equals(IPeripheral other) {
+		return equals((Object) other);
 	}
 }

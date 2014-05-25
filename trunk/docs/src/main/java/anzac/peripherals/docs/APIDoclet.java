@@ -3,7 +3,6 @@ package anzac.peripherals.docs;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,7 +11,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 
+import anzac.peripherals.docs.model.BlockXML;
 import anzac.peripherals.docs.model.ClassXML;
+import anzac.peripherals.docs.model.ItemXML;
 import anzac.peripherals.docs.model.MethodXML;
 
 import com.sun.javadoc.DocErrorReporter;
@@ -33,14 +34,26 @@ public class APIDoclet {
 			rootDoc.printError(e.getMessage());
 			return false;
 		}
-		final List<ClassXML> model = ModelGenerator.generateModel(rootDoc);
-		for (final ClassXML classXML : model) {
+		ModelGenerator.generateModel(rootDoc);
+		for (final ClassXML classXML : ModelGenerator.peripheralClasses) {
 			peripheralClasses.put(classXML.getName(), classXML);
 		}
-		for (final ClassXML classXML : model) {
+		for (final BlockXML blockXML : ModelGenerator.blockClasses) {
 			try {
-				final String document = classXML.toXML();
-				final String classFileName = className(classXML);
+				final String document = blockXML.toXML();
+				final String classFileName = blockName(blockXML);
+				final File file = new File(classFileName);
+				FileUtils.writeStringToFile(file, document);
+			} catch (final Exception e) {
+				e.printStackTrace();
+				rootDoc.printError(e.getMessage());
+				return false;
+			}
+		}
+		for (final ItemXML itemXML : ModelGenerator.itemClasses) {
+			try {
+				final String document = itemXML.toXML();
+				final String classFileName = itemName(itemXML);
 				final File file = new File(classFileName);
 				FileUtils.writeStringToFile(file, document);
 			} catch (final Exception e) {
@@ -64,7 +77,11 @@ public class APIDoclet {
 		return builder.toString();
 	}
 
-	public static String lowerUnderscore(final String input) {
+	public static String lowerUnderscore(String input) {
+		if (input == null) {
+			return null;
+		}
+		input = StringUtils.deleteWhitespace(input);
 		final StrBuilder builder = new StrBuilder();
 		for (int i = 0; i < input.length(); i++) {
 			char c = input.charAt(i);
@@ -75,6 +92,28 @@ public class APIDoclet {
 			builder.append(c);
 		}
 		return builder.toString();
+	}
+
+	public static String camelCaseItemName(final String input) {
+		boolean lastSpace = true;
+		final StrBuilder builder = new StrBuilder();
+		for (int i = 0; i < input.length(); i++) {
+			final char c = input.charAt(i);
+			if (lastSpace) {
+				builder.append(Character.toUpperCase(c));
+				lastSpace = false;
+			} else if (c == '_' || c == ' ') {
+				builder.append(" ");
+				lastSpace = true;
+			} else {
+				builder.append(Character.toLowerCase(c));
+			}
+		}
+		return builder.toString();
+	}
+
+	public static String lowerUnderscoreItemName(final String input) {
+		return input.replaceAll("\\s", "_").toLowerCase();
 	}
 
 	public static String lowerDash(final String input) {
@@ -170,11 +209,19 @@ public class APIDoclet {
 		return text;
 	}
 
-	private static String className(final ClassXML classXML) {
+	protected static String className(final ClassXML classXML) {
 		final String typeName = classXML.getName();
 		final int index = typeName.indexOf("TileEntity");
 		final String fileName = typeName.substring(0, index);
 		return fileName;
+	}
+
+	private static String blockName(final BlockXML blockXML) {
+		return StringUtils.deleteWhitespace(blockXML.getName());
+	}
+
+	private static String itemName(final ItemXML itemXML) {
+		return StringUtils.deleteWhitespace(camelCaseItemName(itemXML.getName()));
 	}
 
 	private static String classFullFileName(final ClassXML classXML) {

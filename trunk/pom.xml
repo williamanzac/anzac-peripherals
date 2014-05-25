@@ -15,7 +15,7 @@
 		<mcp.version>1.6.4</mcp.version>
 		<forge.version>9.11.1.965</forge.version>
 		<buildcraft.version>4.2.2</buildcraft.version>
-		<computercraft.version>1.58</computercraft.version>
+		<computercraft.version>1.63</computercraft.version>
 		<forge.full.version>${mcp.version}-${forge.version}</forge.full.version>
 		<buildcraft.full.version>A-${mcp.version}-${buildcraft.version}</buildcraft.full.version>
 		<railcraft.version>8.4.0.0</railcraft.version>

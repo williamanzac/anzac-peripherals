@@ -17,10 +17,10 @@ import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.network.PacketHandler;
-import dan200.computer.api.IComputerAccess;
-import dan200.computer.api.ILuaContext;
-import dan200.computer.api.IMount;
-import dan200.computer.api.IPeripheral;
+import dan200.computercraft.api.filesystem.IMount;
+import dan200.computercraft.api.lua.ILuaContext;
+import dan200.computercraft.api.peripheral.IComputerAccess;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
 public abstract class BasePeripheralTileEntity extends TileEntity implements IPeripheral {
 
@@ -92,11 +92,6 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 			return convertToEnum(object, toClass);
 		}
 		throw new Exception("Expected argument of type " + toClass.getName() + " got " + object.getClass());
-	}
-
-	@Override
-	public boolean canAttachToSide(final int side) {
-		return true;
 	}
 
 	@Override
@@ -265,5 +260,30 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 			}
 		}
 		throw new Exception("Unable to find a method called " + name + " with " + argCount + " arguments");
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((discInv == null) ? 0 : discInv.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		BasePeripheralTileEntity other = (BasePeripheralTileEntity) obj;
+		if (discInv == null) {
+			if (other.discInv != null)
+				return false;
+		} else if (!discInv.equals(other.discInv))
+			return false;
+		return true;
 	}
 }

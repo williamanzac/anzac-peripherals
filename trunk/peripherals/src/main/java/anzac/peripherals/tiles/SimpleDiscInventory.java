@@ -6,8 +6,8 @@ import net.minecraft.tileentity.TileEntity;
 import org.apache.commons.lang3.StringUtils;
 
 import anzac.peripherals.items.HDDItem;
-import dan200.computer.api.IMedia;
-import dan200.computer.api.IMount;
+import dan200.computercraft.api.filesystem.IMount;
+import dan200.computercraft.api.media.IMedia;
 
 public class SimpleDiscInventory extends SimpleInventory {
 

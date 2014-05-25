@@ -17,12 +17,8 @@ import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
-/**
- * This block allows you to control the flow of items via a connected computer.
- * 
- * @author Tony
- */
 @Peripheral(type = "ItemRouter", events = { PeripheralEvent.item_route })
 public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
@@ -424,5 +420,35 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	public ItemStack[] extractItem(final boolean doRemove, final ForgeDirection from, final int maxItemCount) {
 		// cannot extract
 		return null;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((itemSlot == null) ? 0 : itemSlot.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final ItemRouterTileEntity other = (ItemRouterTileEntity) obj;
+		if (itemSlot == null) {
+			if (other.itemSlot != null)
+				return false;
+		} else if (!itemSlot.equals(other.itemSlot))
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equals(final IPeripheral other) {
+		return equals((Object) other);
 	}
 }

@@ -1,6 +1,7 @@
 package anzac.peripherals.tiles;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,17 +23,8 @@ import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
-/**
- * This block allows you to craft items via a connected computer. The interface has a crafting area that can only be set
- * via a connected Computer, it also has an internal input and output cache. This block is only usable when connected to
- * a Computer. Use the {@link #setRecipe(Map)} method to set the desired item to craft. The required items can be
- * injected in to the internal cache or you can manually input the items. Use the {@link #craft()} method to craft the
- * item. The crafted item will automatically go in to the output cache. This peripheral should ignore item metadata of
- * the supplied input items.
- * 
- * @author Tony
- */
 @Peripheral(type = "Workbench", events = { PeripheralEvent.crafted })
 public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
@@ -313,7 +305,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 				total += copy.stackSize;
 				items.add(copy);
 				if (total > maxItemCount) {
-					int over = total - maxItemCount;
+					final int over = total - maxItemCount;
 					copy.stackSize -= over;
 				} else if (doRemove) {
 					inventory[slot] = null;
@@ -383,5 +375,56 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 			}
 		}
 		tagCompound.setTag(INVENTORY, list);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((craftMatrix == null) ? 0 : craftMatrix.hashCode());
+		result = prime * result + ((craftResult == null) ? 0 : craftResult.hashCode());
+		result = prime * result + ((craftSlot == null) ? 0 : craftSlot.hashCode());
+		result = prime * result + ((internalPlayer == null) ? 0 : internalPlayer.hashCode());
+		result = prime * result + Arrays.hashCode(inventory);
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final WorkbenchTileEntity other = (WorkbenchTileEntity) obj;
+		if (craftMatrix == null) {
+			if (other.craftMatrix != null)
+				return false;
+		} else if (!craftMatrix.equals(other.craftMatrix))
+			return false;
+		if (craftResult == null) {
+			if (other.craftResult != null)
+				return false;
+		} else if (!craftResult.equals(other.craftResult))
+			return false;
+		if (craftSlot == null) {
+			if (other.craftSlot != null)
+				return false;
+		} else if (!craftSlot.equals(other.craftSlot))
+			return false;
+		if (internalPlayer == null) {
+			if (other.internalPlayer != null)
+				return false;
+		} else if (!internalPlayer.equals(other.internalPlayer))
+			return false;
+		if (!Arrays.equals(inventory, other.inventory))
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equals(final IPeripheral other) {
+		return equals((Object) other);
 	}
 }

@@ -12,7 +12,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
@@ -24,7 +23,8 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
-import dan200.turtle.api.ITurtleAccess;
+import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.api.turtle.ITurtleAccess;
 
 /**
  * @author Tony
@@ -201,9 +201,10 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			final Position pos = new Position(xCoord, yCoord, zCoord, direction);
 			pos.moveForwards(1);
 			final TileEntity entity = worldObj.getBlockTileEntity(pos.x, pos.y, pos.z);
-			if (entity instanceof ITurtleAccess) {
+			if (ClassUtils.instanceOf(entity, "dan200.computercraft.shared.turtle.blocks.ITurtleTile")) {
 				// AnzacPeripheralsCore.logger.info("found turtle");
-				turtle = (ITurtleAccess) entity;
+				turtle = ClassUtils.callMethod(entity, "getAccess", null);
+				AnzacPeripheralsCore.logger.info("found turtle: " + turtle);
 				position.orientation = direction.getOpposite();
 				break;
 			}
@@ -231,7 +232,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			throw new Exception("Not enough power");
 		}
 		AnzacPeripheralsCore.logger.info("teleporting");
-		if (teleportTurtleTo(turtle, destWorld, position)) {
+		if (turtle.teleportTo(destWorld, position.x, position.y, position.z)) {
 			handler.useEnergy(required, required, true);
 			onTeleport();
 			((TeleporterTileEntity) entity).onTeleport();
@@ -240,40 +241,6 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 	public void onTeleport() {
 		worldObj.playSoundEffect(xCoord + 0.5d, yCoord + 0.5d, zCoord + 0.5d, "mob.endermen.portal", 1f, 1f);
-	}
-
-	private boolean teleportTurtleTo(final ITurtleAccess turtle, final World world, final Position position) {
-		final Vec3 pos = turtle.getPosition();
-		final World prevWorld = turtle.getWorld();
-		// AnzacPeripheralsCore.logger.info("prevWorld isRemote: " + prevWorld.isRemote);
-		final int posx = (int) pos.xCoord;
-		final int posy = (int) pos.yCoord;
-		final int posz = (int) pos.zCoord;
-		final int id = prevWorld.getBlockId(posx, posy, posz);
-		final int meta = prevWorld.getBlockMetadata(posx, posy, posz);
-		// AnzacPeripheralsCore.logger.info("id: " + id + ", meta: " + meta);
-
-		world.setBlock(position.x, position.y, position.z, id, meta, 2);
-		final TileEntity te = world.getBlockTileEntity(position.x, position.y, position.z);
-		if (!(te instanceof ITurtleAccess)) {
-			return false;
-		}
-
-		ClassUtils.setField(turtle, "m_moved", true);
-		prevWorld.setBlock(posx, posy, posz, 0, 0, 2);
-		ClassUtils.callMethod(te, "transferStateFrom", new Object[] { turtle });
-
-		prevWorld.markBlockForUpdate(posx, posy, posz);
-		world.markBlockForUpdate(position.x, position.y, position.z);
-
-		world.notifyBlockChange(position.x, position.y, position.z, id);
-		prevWorld.notifyBlockChange(posx, posy, posz, 0);
-		//
-		// final int id2 = world.getBlockId(position.x, position.y, position.z);
-		// final int meta2 = world.getBlockMetadata(position.x, position.y, position.z);
-		// AnzacPeripheralsCore.logger.info("id2: " + id2 + ", meta2: " + meta2);
-
-		return true;
 	}
 
 	private boolean canPlaceBlockAt(final World par1World, final Position position) {
@@ -358,5 +325,38 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 			return;
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((targets == null) ? 0 : targets.hashCode());
+		result = prime * result + type;
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final TeleporterTileEntity other = (TeleporterTileEntity) obj;
+		if (targets == null) {
+			if (other.targets != null)
+				return false;
+		} else if (!targets.equals(other.targets))
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equals(final IPeripheral other) {
+		return equals((Object) other);
 	}
 }

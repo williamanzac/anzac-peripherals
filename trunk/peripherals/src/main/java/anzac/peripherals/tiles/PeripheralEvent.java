@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import dan200.computer.api.IComputerAccess;
+import dan200.computercraft.api.peripheral.IComputerAccess;
 
 public enum PeripheralEvent {
 	/**

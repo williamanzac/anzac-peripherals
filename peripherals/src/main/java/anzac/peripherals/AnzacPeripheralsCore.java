@@ -9,27 +9,26 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.common.Configuration;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Property;
 
 import org.apache.commons.lang3.StringUtils;
 
+import anzac.peripherals.blocks.BlockFactory;
 import anzac.peripherals.blocks.ChargeBlock;
 import anzac.peripherals.blocks.PeripheralBlock;
 import anzac.peripherals.blocks.TeleporterBlock;
 import anzac.peripherals.gui.GuiHandler;
-import anzac.peripherals.items.ChargeItem;
 import anzac.peripherals.items.ComponentItem;
 import anzac.peripherals.items.HDDItem;
-import anzac.peripherals.items.PeripheralItem;
-import anzac.peripherals.items.TeleporterItem;
+import anzac.peripherals.items.ItemFactory;
 import anzac.peripherals.network.PacketHandler;
+import anzac.peripherals.providers.AnzacBundledRedstoneProvider;
+import anzac.peripherals.providers.AnzacPeripheralProvider;
 import anzac.peripherals.tiles.BasePeripheralTileEntity;
 import anzac.peripherals.tiles.ChargeStationTileEntity;
 import anzac.peripherals.tiles.CraftingRouterTileEntity;
@@ -52,9 +51,9 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.LanguageRegistry;
+import dan200.computercraft.api.ComputerCraftAPI;
 
-@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZAC Peripherals", version = "0.1.6", dependencies = "required-after:ComputerCraft;after:CCTurtle;required-after:BuildCraft|Energy")
+@Mod(modid = AnzacPeripheralsCore.MOD_ID, name = "ANZAC Peripherals", version = "0.1.6", dependencies = "required-after:ComputerCraft;required-after:BuildCraft|Energy")
 @NetworkMod(clientSideRequired = true, serverSideRequired = true, channels = { "anzac" }, packetHandler = PacketHandler.class)
 public class AnzacPeripheralsCore {
 	private static final int DEFAULT_HDD_ID = 1339;
@@ -65,7 +64,7 @@ public class AnzacPeripheralsCore {
 	private static final int DEFAULT_STORAGE_SIZE = 1024000;
 	private static final int DEFAULT_MJ_MULTIPLIER = 20;
 
-	static final String MOD_ID = "ANZACPeripherals";
+	public static final String MOD_ID = "ANZACPeripherals";
 
 	public static Logger logger;
 
@@ -73,11 +72,16 @@ public class AnzacPeripheralsCore {
 	public static AnzacPeripheralsCore instance;
 
 	public static Block peripheralBlock;
+	public static int peripheralBlockId;
 	public static Block chargeBlock;
+	public static int chargeBlockId;
 	public static Block teleporterBlock;
+	public static int teleporterBlockId;
 
 	public static Item component;
+	public static int componentId;
 	public static Item hdd;
+	public static int hddId;
 
 	public static final Map<Integer, Set<String>> computerLabels = new HashMap<Integer, Set<String>>();
 	public static final Map<String, BasePeripheralTileEntity> peripheralLabels = new HashMap<String, BasePeripheralTileEntity>();
@@ -114,52 +118,49 @@ public class AnzacPeripheralsCore {
 	}
 
 	@EventHandler
-	public void preInit(final FMLPreInitializationEvent event) {
+	public void preInit(final FMLPreInitializationEvent event) throws Exception {
 		final Configuration configuration = new Configuration(event.getSuggestedConfigurationFile());
 		logger = event.getModLog();
 
-		try {
-			configuration.load();
+		configuration.load();
 
-			Property propertySize = configuration.get("general", "hdd.size", DEFAULT_STORAGE_SIZE,
-					"The disk space limit for Hard Disk Drives");
-			storageSize = propertySize.getInt(DEFAULT_STORAGE_SIZE);
+		Property propertySize = configuration.get("general", "hdd.size", DEFAULT_STORAGE_SIZE,
+				"The disk space limit for Hard Disk Drives");
+		storageSize = propertySize.getInt(DEFAULT_STORAGE_SIZE);
 
-			propertySize = configuration.get("general", "mj.multiplier", DEFAULT_MJ_MULTIPLIER,
-					"Use to convert between mj and turtle moves");
-			mjMultiplier = propertySize.getInt(DEFAULT_MJ_MULTIPLIER);
+		propertySize = configuration.get("general", "mj.multiplier", DEFAULT_MJ_MULTIPLIER,
+				"Use to convert between mj and turtle moves");
+		mjMultiplier = propertySize.getInt(DEFAULT_MJ_MULTIPLIER);
 
-			final Property peripheralId = configuration.getBlock("peripheral.id", DEFAULT_PERIPHERAL_ID,
-					"The Block ID for the peripherals");
-			peripheralBlock = new PeripheralBlock(peripheralId.getInt(DEFAULT_PERIPHERAL_ID), Material.rock);
-			MinecraftForge.setBlockHarvestLevel(peripheralBlock, "pickaxe", 0);
-			GameRegistry.registerBlock(peripheralBlock, PeripheralItem.class, "anzacperipheral", MOD_ID);
+		final Property peripheralId = configuration.getBlock("peripheral.id", DEFAULT_PERIPHERAL_ID,
+				"The Block ID for the peripherals");
+		peripheralBlockId = peripheralId.getInt(DEFAULT_PERIPHERAL_ID);
+		peripheralBlock = BlockFactory.registerBlocks(PeripheralBlock.class, peripheralBlockId);
 
-			final Property chargeId = configuration.getBlock("charge.id", DEFAULT_CHARGE_ID,
-					"The Block ID for the charging stations");
-			chargeBlock = new ChargeBlock(chargeId.getInt(DEFAULT_CHARGE_ID), Material.iron);
-			MinecraftForge.setBlockHarvestLevel(chargeBlock, "pickaxe", 1);
-			GameRegistry.registerBlock(chargeBlock, ChargeItem.class, "anzacchargestation", MOD_ID);
+		final Property chargeId = configuration.getBlock("charge.id", DEFAULT_CHARGE_ID,
+				"The Block ID for the charging stations");
+		chargeBlockId = chargeId.getInt(DEFAULT_CHARGE_ID);
+		chargeBlock = BlockFactory.registerBlocks(ChargeBlock.class, chargeBlockId);
 
-			final Property teleporterId = configuration.getBlock("teleporter.id", DEFAULT_TELEPORTER_ID,
-					"The Block ID for the teleporters");
-			teleporterBlock = new TeleporterBlock(teleporterId.getInt(DEFAULT_TELEPORTER_ID), Material.rock);
-			MinecraftForge.setBlockHarvestLevel(teleporterBlock, "pickaxe", 2);
-			GameRegistry.registerBlock(teleporterBlock, TeleporterItem.class, "anzacteleporter", MOD_ID);
+		final Property teleporterId = configuration.getBlock("teleporter.id", DEFAULT_TELEPORTER_ID,
+				"The Block ID for the teleporters");
+		teleporterBlockId = teleporterId.getInt(DEFAULT_TELEPORTER_ID);
+		teleporterBlock = BlockFactory.registerBlocks(TeleporterBlock.class, teleporterBlockId);
 
-			final Property propertyCPUId = configuration.getItem("component.id", DEFAULT_COMPONENT_ID,
-					"The Item Id for Components");
-			component = new ComponentItem(propertyCPUId.getInt(DEFAULT_COMPONENT_ID));
-			GameRegistry.registerItem(component, "anzaccpu", MOD_ID);
+		final Property propertyCPUId = configuration.getItem("component.id", DEFAULT_COMPONENT_ID,
+				"The Item Id for Components");
+		componentId = propertyCPUId.getInt(DEFAULT_COMPONENT_ID);
+		component = ItemFactory.registerItems(ComponentItem.class, componentId);
 
-			final Property propertyHDDId = configuration.getItem("hdd.id", DEFAULT_HDD_ID, "The Item Id for HDDs");
-			hdd = new HDDItem(propertyHDDId.getInt(DEFAULT_HDD_ID));
-			GameRegistry.registerItem(hdd, "hdd", MOD_ID);
-		} finally {
-			if (configuration.hasChanged()) {
-				configuration.save();
-			}
-		}
+		final Property propertyHDDId = configuration.getItem("hdd.id", DEFAULT_HDD_ID, "The Item Id for HDDs");
+		hddId = propertyHDDId.getInt(DEFAULT_HDD_ID);
+		hdd = ItemFactory.registerItems(HDDItem.class, hddId);
+
+		configuration.save();
+	}
+
+	@EventHandler
+	public void load(final FMLInitializationEvent event) {
 		NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
 
 		GameRegistry.registerTileEntity(WorkbenchTileEntity.class, "anzac.peripherals.tiles.WorkbenchTitleEntity");
@@ -175,10 +176,9 @@ public class AnzacPeripheralsCore {
 		GameRegistry.registerTileEntity(ChargeStationTileEntity.class,
 				"anzac.peripherals.tiles.ChargeStationTileEntity");
 		GameRegistry.registerTileEntity(TeleporterTileEntity.class, "anzac.peripherals.tiles.TeleporterTileEntity");
-	}
 
-	@EventHandler
-	public void load(final FMLInitializationEvent event) {
+		ComputerCraftAPI.registerPeripheralProvider(new AnzacPeripheralProvider());
+		ComputerCraftAPI.registerBundledRedstoneProvider(new AnzacBundledRedstoneProvider());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -231,34 +231,13 @@ public class AnzacPeripheralsCore {
 		final ItemStack teleportGoldStack = new ItemStack(teleporterBlock, 1, 2);
 		final ItemStack teleportDiamondStack = new ItemStack(teleporterBlock, 1, 3);
 
-		LanguageRegistry.addName(basicStack, "Basic Processor");
-		LanguageRegistry.addName(advancedStack, "Advanced Processor");
-		LanguageRegistry.addName(benchStack, "Computerised Workbench");
-		LanguageRegistry.addName(hddStack, "Hard Disk");
-		LanguageRegistry.addName(storageStack, "Recipe Storage");
-		LanguageRegistry.addName(itemRouterStack, "Item Router");
-		LanguageRegistry.addName(fluidRouterStack, "Fluid Router");
-		LanguageRegistry.addName(itemStorageStack, "Item Storage");
-		LanguageRegistry.addName(fluidStorageStack, "Fluid Storage");
-		LanguageRegistry.addName(redstonePeripheralStack, "Redstone Control");
-		LanguageRegistry.addName(platterStack, "Platter");
-		LanguageRegistry.addName(spindleStack, "Spindle");
-		LanguageRegistry.addName(craftingRouterStack, "Crafting Router");
-		LanguageRegistry.addName(chargeIronStack, "Iron Charging Station");
-		LanguageRegistry.addName(chargeGoldStack, "Gold Charging Station");
-		LanguageRegistry.addName(chargeDiamondStack, "Diamond Charging Station");
-		LanguageRegistry.addName(teleportIronStack, "Iron Turtle Teleporter");
-		LanguageRegistry.addName(teleportGoldStack, "Gold Turtle Teleporter");
-		LanguageRegistry.addName(teleportDiamondStack, "Diamond Turtle Teleporter");
-		LanguageRegistry.addName(teleportCardStack, "Teleporter Card");
-
 		// ComputerCraft items
-		final Block blockPeripheral = GameRegistry.findBlock("ComputerCraft", "CC-Peripheral");
-		final Block blockComputer = GameRegistry.findBlock("ComputerCraft", "CC-Computer");
-		final Block blockTurtle = GameRegistry.findBlock("CCTurtle", "CC-Turtle");
-		final Block blockAdvancedTurtle = GameRegistry.findBlock("CCTurtle", "CC-TurtleAdvanced");
-		final Item diskItem = Utils.getItem("dan200.ComputerCraft$Items", "disk");
-		final Block cableBlock = Utils.getBlock("dan200.ComputerCraft$Blocks", "cable");
+		final Block blockPeripheral = Utils.getBlock("dan200.computercraft.ComputerCraft$Blocks", "peripheral");
+		final Block blockComputer = Utils.getBlock("dan200.computercraft.ComputerCraft$Blocks", "computer");
+		final Block blockTurtle = Utils.getBlock("dan200.computercraft.ComputerCraft$Blocks", "turtle");
+		final Block blockAdvancedTurtle = Utils.getBlock("dan200.computercraft.ComputerCraft$Blocks", "turtleAdvanced");
+		final Item diskItem = Utils.getItem("dan200.computercraft.ComputerCraft$Items", "disk");
+		final Block cableBlock = Utils.getBlock("dan200.computercraft.ComputerCraft$Blocks", "cable");
 		final ItemStack diskStack = new ItemStack(diskItem);
 		final ItemStack turtleStack = new ItemStack(blockTurtle);
 		final ItemStack advancedTurtleStack = new ItemStack(blockAdvancedTurtle);
@@ -286,23 +265,6 @@ public class AnzacPeripheralsCore {
 		final ItemStack fluidWoodStack = new ItemStack(fluidPipeWood);
 		final ItemStack fluidIronStack = new ItemStack(fluidPipeIron);
 		final ItemStack tankStack = new ItemStack(tankBlock);
-
-		// final boolean bceLoaded = isModLoaded("BuildCraft|Energy");
-		// final boolean bctLoaded = isModLoaded("BuildCraft|Transport");
-
-		// for (Item item : Item.itemsList) {
-		// if (item != null) {
-		// logger.info("Item: " + item.itemID + "," +
-		// item.getUnlocalizedName());
-		// }
-		// }
-		//
-		// for (Block block : Block.blocksList) {
-		// if (block != null) {
-		// logger.info("Item: " + block.blockID + "," +
-		// block.getUnlocalizedName());
-		// }
-		// }
 
 		// new recipes
 		GameRegistry.addShapedRecipe(basicStack, " r ", "rir", " r ", 'r', redstoneStack, 'i', ironIngotStack);
@@ -376,7 +338,8 @@ public class AnzacPeripheralsCore {
 				enderPearlStack);
 		GameRegistry.addShapedRecipe(cablesStack, "XXX", "YYY", "XXX", 'X', stoneStack, 'Y', redstoneStack);
 
-		final boolean turtlesNeedFuel = ClassUtils.getField("dan200.CCTurtle", "turtlesNeedFuel", boolean.class);
+		final boolean turtlesNeedFuel = ClassUtils.getField("dan200.computercraft.ComputerCraft", "turtlesNeedFuel",
+				boolean.class);
 		final Block engineBlock = GameRegistry.findBlock("BuildCraft|Energy", "engineBlock");
 		final ItemStack engineStack = new ItemStack(engineBlock, turtlesNeedFuel ? 1 : 0, 1);
 		GameRegistry.addShapedRecipe(turtleStack, "xcx", "xex", "x@x", 'x', ironIngotStack, 'c', chestStack, 'e',

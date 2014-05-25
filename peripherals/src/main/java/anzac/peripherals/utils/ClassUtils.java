@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import anzac.peripherals.AnzacPeripheralsCore;
-
 public class ClassUtils {
 
 	private static final Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
@@ -92,6 +90,9 @@ public class ClassUtils {
 
 	@SuppressWarnings("rawtypes")
 	private static Class[] argsToTypes(final Object[] args) {
+		if (args == null) {
+			return new Class[0];
+		}
 		final Class[] classes = new Class[args.length];
 		for (int i = 0; i < args.length; i++) {
 			classes[i] = args[i].getClass();
@@ -103,7 +104,7 @@ public class ClassUtils {
 	public static <R> R callMethod(final String classname, final String name, final Object[] args) {
 		try {
 			Class<?> clazz = getClass(classname);
-			Class[] classes = argsToTypes(args);
+			final Class[] classes = argsToTypes(args);
 			do {
 				try {
 					final Method method = clazz.getDeclaredMethod(name, classes);
@@ -143,15 +144,18 @@ public class ClassUtils {
 		// AnzacPeripheralsCore.logger.info("calling method");
 		Class<?> clazz = object.getClass();
 		// AnzacPeripheralsCore.logger.info("clazz:" + clazz);
-		Class[] classes = argsToTypes(args);
+		final Class[] classes = argsToTypes(args);
 		do {
 			try {
+				// AnzacPeripheralsCore.logger.info("clazz: " + clazz);
+				// AnzacPeripheralsCore.logger.info(Arrays.toString(clazz.getDeclaredMethods()));
 				final Method method = clazz.getDeclaredMethod(name, classes);
 				// AnzacPeripheralsCore.logger.info("method:" + method);
 				method.setAccessible(true);
 				// AnzacPeripheralsCore.logger.info("invoking and returning");
 				return (R) method.invoke(object, args);
 			} catch (final Throwable e) {
+				e.printStackTrace();
 			}
 			clazz = clazz.getSuperclass();
 			// AnzacPeripheralsCore.logger.info("parent clazz:" + clazz);
@@ -179,5 +183,18 @@ public class ClassUtils {
 		} while (clazz != null);
 		// AnzacPeripheralsCore.logger.info("returning null");
 		return null;
+	}
+
+	public static boolean instanceOf(final Object object, final String className) {
+		if (object == null) {
+			return false;
+		}
+		try {
+			final Class<?> clazz = getClass(className);
+			return clazz.isAssignableFrom(object.getClass());
+		} catch (final ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 }

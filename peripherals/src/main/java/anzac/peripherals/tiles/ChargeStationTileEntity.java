@@ -10,12 +10,14 @@ import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Position;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
-import dan200.turtle.api.ITurtleAccess;
+import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.api.turtle.ITurtleAccess;
 
 /**
  * @author Tony
@@ -108,25 +110,32 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 			final Position position = new Position(xCoord, yCoord, zCoord, direction);
 			position.moveForwards(1);
 			final TileEntity entity = worldObj.getBlockTileEntity(position.x, position.y, position.z);
-			if (entity instanceof ITurtleAccess) {
-				turtles.add((ITurtleAccess) entity);
+			if (ClassUtils.instanceOf(entity, "dan200.computercraft.shared.turtle.blocks.ITurtleTile")) {
+				AnzacPeripheralsCore.logger.info("found turtle");
+				turtles.add((ITurtleAccess) ClassUtils.callMethod(entity, "getAccess", null));
 			}
 		}
+		// AnzacPeripheralsCore.logger.info("found turtles: " + turtles);
 		if (!turtles.isEmpty()) {
-			// AnzacPeripheralsCore.logger.info("has turtle; stored: " + workProvider.getEnergyStored());
+			AnzacPeripheralsCore.logger.info("has turtle; stored: " + workProvider.getEnergyStored());
 			for (final ITurtleAccess turtle : turtles) {
 				final float useEnergy = workProvider.useEnergy(MJ, MJ, false);
-				// AnzacPeripheralsCore.logger.info("useEnergy: " + useEnergy);
+				AnzacPeripheralsCore.logger.info("useEnergy: " + useEnergy);
 				if (useEnergy != MJ) {
 					continue;
 				}
-				int amount = (int) (useEnergy / MJ);
+				int amount = (int) (useEnergy / AnzacPeripheralsCore.mjMultiplier);
+				AnzacPeripheralsCore.logger.info("amount: " + amount);
 				final int fuelLevel = turtle.getFuelLevel();
-				if (Integer.MAX_VALUE - amount <= fuelLevel) {
-					amount = Integer.MAX_VALUE - fuelLevel;
+				AnzacPeripheralsCore.logger.info("fuelLevel: " + fuelLevel);
+				final int fuelLimit = turtle.getFuelLimit();
+				AnzacPeripheralsCore.logger.info("fuelLimit: " + fuelLimit);
+				if (fuelLimit - amount <= fuelLevel) {
+					amount = fuelLimit - fuelLevel;
 				}
-				turtle.consumeFuel(-amount);
-				final int mj = amount * MJ;
+				AnzacPeripheralsCore.logger.info("amount: " + amount);
+				turtle.addFuel(amount);
+				final int mj = amount * AnzacPeripheralsCore.mjMultiplier;
 				workProvider.useEnergy(mj, mj, true);
 			}
 		}
@@ -153,5 +162,32 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 
 		handler.writeToNBT(par1nbtTagCompound);
 		par1nbtTagCompound.setInteger("type", type);
+	}
+
+	@Override
+	public boolean equals(final IPeripheral other) {
+		return equals((Object) other);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + type;
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final ChargeStationTileEntity other = (ChargeStationTileEntity) obj;
+		if (type != other.type)
+			return false;
+		return true;
 	}
 }

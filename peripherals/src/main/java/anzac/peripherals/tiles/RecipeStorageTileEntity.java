@@ -19,18 +19,9 @@ import net.minecraft.nbt.NBTTagList;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Utils;
-import dan200.computer.api.IWritableMount;
+import dan200.computercraft.api.filesystem.IWritableMount;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
-/**
- * This block allows you to store recipes on its internal HDD. The interface is similar to that of a vanilla crafting
- * table. This block is only usable when connected to a Computer. You must have all the items required for the recipe
- * and they are consumed when storing the recipe.The {@link PeripheralEvent#recipe_changed} event is fired when a valid
- * recipe has been defined. To save the recipe you need to call the {@link #storeRecipe()} method from a connected
- * Computer.The {@link #loadRecipe(int)} method can be used to load a recipe in to a variable. That variable can then be
- * used to {@link WorkbenchTileEntity#setRecipe(Map)} on a connected {@link WorkbenchTileEntity}.
- * 
- * @author Tony
- */
 @Peripheral(type = "RecipeStorage", events = { PeripheralEvent.recipe_changed })
 public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 
@@ -177,5 +168,41 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 	public boolean isUseableByPlayer(final EntityPlayer entityplayer) {
 		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
 				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((craftMatrix == null) ? 0 : craftMatrix.hashCode());
+		result = prime * result + ((craftResult == null) ? 0 : craftResult.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final RecipeStorageTileEntity other = (RecipeStorageTileEntity) obj;
+		if (craftMatrix == null) {
+			if (other.craftMatrix != null)
+				return false;
+		} else if (!craftMatrix.equals(other.craftMatrix))
+			return false;
+		if (craftResult == null) {
+			if (other.craftResult != null)
+				return false;
+		} else if (!craftResult.equals(other.craftResult))
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equals(final IPeripheral other) {
+		return equals((Object) other);
 	}
 }

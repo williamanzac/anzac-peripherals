@@ -7,14 +7,9 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang.text.StrBuilder;
 
-import anzac.peripherals.docs.APIDoclet;
-
-import com.sun.javadoc.Tag;
-
 public class ClassXML {
 	private String name;
 	private String fullName;
-	private Tag[] description;
 	private String type;
 	private final Set<MethodXML> methods = new TreeSet<MethodXML>();
 	private final List<EventXML> events = new ArrayList<EventXML>();
@@ -23,23 +18,15 @@ public class ClassXML {
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public Tag[] getDescription() {
-		return description;
-	}
-
-	public void setDescription(Tag[] description) {
-		this.description = description;
 	}
 
 	public String getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(final String type) {
 		this.type = type;
 	}
 
@@ -55,21 +42,12 @@ public class ClassXML {
 		return fullName;
 	}
 
-	public void setFullName(String fullName) {
+	public void setFullName(final String fullName) {
 		this.fullName = fullName;
 	}
 
 	public String toXML() {
 		final StrBuilder builder = new StrBuilder();
-		builder.appendln("<section id=\"description\">");
-		builder.appendln(APIDoclet.processText(name, description));
-		builder.appendln("</section>");
-		builder.appendln("<section id=\"recipe\">");
-		builder.appendln("<h3>Recipe</h3>");
-		builder.appendln("<img alt=\"Recipe for " + APIDoclet.camelCase(type)
-				+ "\" src=\"http://files.anzacgaming.co.uk/images/recipe_" + APIDoclet.lowerUnderscore(type)
-				+ ".png\" />");
-		builder.appendln("</section>");
 		builder.appendln("<section id=\"api\">");
 		builder.appendln("<h2>API</h2>");
 		builder.appendln("<dl>");

@@ -19,12 +19,8 @@ import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
-/**
- * This block allows you to control the flow of fluid via a connected computer.
- * 
- * @author Tony
- */
 @Peripheral(type = "FluidRouter", events = { PeripheralEvent.fluid_route })
 public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFluidHandler {
 
@@ -346,5 +342,35 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 			return fluidStack.amount;
 		}
 		return 0;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((fluidTank == null) ? 0 : fluidTank.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FluidRouterTileEntity other = (FluidRouterTileEntity) obj;
+		if (fluidTank == null) {
+			if (other.fluidTank != null)
+				return false;
+		} else if (!fluidTank.equals(other.fluidTank))
+			return false;
+		return true;
+	}
+
+	@Override
+	public boolean equals(IPeripheral other) {
+		return equals((Object) other);
 	}
 }

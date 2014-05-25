@@ -10,7 +10,7 @@ import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
 import anzac.peripherals.annotations.PeripheralMethod;
-import dan200.computer.api.IWritableMount;
+import dan200.computercraft.api.filesystem.IWritableMount;
 
 public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 
@@ -244,5 +244,33 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		if (fm != null) {
 			nbtTagCompound.setString("filter_mode", fm.name());
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
+		result = prime * result + ((filterMode == null) ? 0 : filterMode.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final BaseStorageTileEntity other = (BaseStorageTileEntity) obj;
+		if (filter == null) {
+			if (other.filter != null)
+				return false;
+		} else if (!filter.equals(other.filter))
+			return false;
+		if (filterMode != other.filterMode)
+			return false;
+		return true;
 	}
 }

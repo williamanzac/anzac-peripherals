@@ -1,5 +1,7 @@
 package anzac.peripherals.blocks;
 
+import static dan200.computercraft.api.ComputerCraftAPI.getBundledRedstoneOutput;
+
 import java.util.List;
 import java.util.Random;
 
@@ -22,20 +24,20 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
+import anzac.peripherals.annotations.Blocks;
 import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.tiles.CraftingRouterTileEntity;
-import anzac.peripherals.tiles.FluidRouterTileEntity;
+import anzac.peripherals.items.PeripheralItem;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
-import anzac.peripherals.tiles.ItemRouterTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
-import anzac.peripherals.tiles.RecipeStorageTileEntity;
 import anzac.peripherals.tiles.RedstoneTileEntity;
-import anzac.peripherals.tiles.WorkbenchTileEntity;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+@Blocks(itemType = PeripheralItem.class, key = "block.anzac.peripheral", tool = "pickaxe", value = {
+		BlockType.WORKBENCH, BlockType.RECIPE_STORAGE, BlockType.ITEM_ROUTER, BlockType.FLUID_ROUTER,
+		BlockType.ITEM_STORAGE, BlockType.FLUID_STORAGE, BlockType.REDSTONE_CONTROL, BlockType.CRAFTING_ROUTER, })
 public class PeripheralBlock extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
@@ -57,8 +59,8 @@ public class PeripheralBlock extends BlockContainer {
 	@SideOnly(Side.CLIENT)
 	private Icon redstoneSide;
 
-	public PeripheralBlock(final int blockId, final Material material) {
-		super(blockId, material);
+	public PeripheralBlock(final int blockId) {
+		super(blockId, Material.rock);
 		setCreativeTab(CreativeTabs.tabDecorations);
 		setStepSound(Block.soundStoneFootstep);
 		setHardness(1.5F);
@@ -220,40 +222,15 @@ public class PeripheralBlock extends BlockContainer {
 		return false;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	public void getSubBlocks(final int par1, final CreativeTabs par2CreativeTabs, final List par3List) {
-		par3List.add(new ItemStack(par1, 1, 0));
-		par3List.add(new ItemStack(par1, 1, 1));
-		par3List.add(new ItemStack(par1, 1, 2));
-		par3List.add(new ItemStack(par1, 1, 3));
-		par3List.add(new ItemStack(par1, 1, 4));
-		par3List.add(new ItemStack(par1, 1, 5));
-		par3List.add(new ItemStack(par1, 1, 6));
-		par3List.add(new ItemStack(par1, 1, 7));
+		BlockFactory.getSubBlocks(getClass(), par1, par3List);
 	}
 
 	@Override
 	public TileEntity createTileEntity(final World world, final int metadata) {
-		switch (metadata) {
-		case 0:
-			return new WorkbenchTileEntity();
-		case 1:
-			return new RecipeStorageTileEntity();
-		case 2:
-			return new ItemRouterTileEntity();
-		case 3:
-			return new FluidRouterTileEntity();
-		case 4:
-			return new ItemStorageTileEntity();
-		case 5:
-			return new FluidStorageTileEntity();
-		case 6:
-			return new RedstoneTileEntity();
-		case 7:
-			return new CraftingRouterTileEntity();
-		}
-		return null;
+		return BlockFactory.getTileEntity(getClass(), metadata);
 	}
 
 	@Override
@@ -285,8 +262,10 @@ public class PeripheralBlock extends BlockContainer {
 		final TileEntity entity = world.getBlockTileEntity(x, y, z);
 		if (entity instanceof RedstoneTileEntity) {
 			for (final ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
-				((RedstoneTileEntity) entity)
-						.setInput(direction.ordinal(), getInputStrength(world, x, y, z, direction));
+				final RedstoneTileEntity redstoneTileEntity = (RedstoneTileEntity) entity;
+				redstoneTileEntity.setInput(direction.ordinal(), getInputStrength(world, x, y, z, direction));
+				redstoneTileEntity.setBundledInput(direction.ordinal(),
+						getBundledRedstoneOutput(world, x, y, z, direction.getOpposite().ordinal()));
 			}
 		}
 	}
@@ -295,15 +274,6 @@ public class PeripheralBlock extends BlockContainer {
 	public boolean canProvidePower() {
 		return true;
 	}
-
-	// @Override
-	// public boolean shouldCheckWeakPower(final World world, final int x, final int y, final int z, final int side) {
-	// final TileEntity entity = world.getBlockTileEntity(x, y, z);
-	// if (entity instanceof RedstoneTileEntity) {
-	// return true;
-	// }
-	// return super.shouldCheckWeakPower(world, x, y, z, side);
-	// }
 
 	protected int getInputStrength(final World world, final int x, final int y, final int z, final ForgeDirection side) {
 		final Position p = new Position(x, y, z, side);
@@ -335,48 +305,4 @@ public class PeripheralBlock extends BlockContainer {
 	public int damageDropped(final int par1) {
 		return par1;
 	}
-
-	// @Override
-	// public void onNeighborTileChange(final World world, final int x, final int y, final int z, final int tileX,
-	// final int tileY, final int tileZ) {
-	// if (y == tileY) {
-	// onNeighborBlockChange(world, x, y, z, world.getBlockId(tileX, tileY, tileZ));
-	// }
-	// }
-
-	// @Override
-	// public void onBlockAdded(final World world, final int x, final int y, final int z) {
-	// if (world.isRemote) {
-	// return;
-	// }
-	// final TileEntity entity = world.getBlockTileEntity(x, y, z);
-	// if (entity instanceof FluidStorageTileEntity) {
-	// final FluidStorageTileEntity tr = (FluidStorageTileEntity) entity;
-	// tr.onBlockAdded();
-	// }
-	// }
-
-	// @Override
-	// public void onNeighborBlockChange(World world, int x, int y, int z, int blockId) {
-	// if (world.isRemote) {
-	// return;
-	// }
-	// final TileEntity entity = world.getBlockTileEntity(x, y, z);
-	// if (entity instanceof FluidStorageTileEntity) {
-	// final FluidStorageTileEntity te = (FluidStorageTileEntity) entity;
-	// te.onNeighborBlockChange(blockId);
-	// }
-	// }
-
-	// @Override
-	// public boolean removeBlockByPlayer(World world, EntityPlayer player, int x, int y, int z) {
-	// if (!world.isRemote) {
-	// TileEntity te = world.getBlockTileEntity(x, y, z);
-	// if (te instanceof FluidStorageTileEntity) {
-	// FluidStorageTileEntity cb = (FluidStorageTileEntity) te;
-	// cb.onBreakBlock();
-	// }
-	// }
-	// return super.removeBlockByPlayer(world, player, x, y, z);
-	// }
 }

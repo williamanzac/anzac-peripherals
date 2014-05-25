@@ -12,22 +12,18 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 import anzac.peripherals.AnzacPeripheralsCore;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import dan200.computer.api.ComputerCraftAPI;
-import dan200.computer.api.IMedia;
-import dan200.computer.api.IMount;
+import anzac.peripherals.annotations.Items;
+import dan200.computercraft.api.ComputerCraftAPI;
+import dan200.computercraft.api.filesystem.IMount;
+import dan200.computercraft.api.media.IMedia;
 
+@Items(value = { ItemType.HDD })
 public class HDDItem extends Item implements IMedia {
-
-	@SideOnly(Side.CLIENT)
-	private Icon icon;
 
 	public HDDItem(final int id) {
 		super(id);
 		setCreativeTab(CreativeTabs.tabRedstone);
 		setMaxStackSize(1);
-		setUnlocalizedName("hdd");
 	}
 
 	public int getDiskID(final ItemStack stack) {
@@ -58,17 +54,18 @@ public class HDDItem extends Item implements IMedia {
 
 	@Override
 	public void registerIcons(final IconRegister par1IconRegister) {
-		icon = par1IconRegister.registerIcon("anzac:hdd");
+		ItemFactory.registerIcons(getClass(), par1IconRegister);
 	}
 
 	@Override
 	public Icon getIconFromDamage(final int par1) {
-		return icon;
+		final Icon icon = ItemFactory.getIcon(getClass(), par1);
+		return icon != null ? icon : super.getIconFromDamage(par1);
 	}
 
 	@Override
 	public String getUnlocalizedName(final ItemStack par1ItemStack) {
-		return "item.hdd";
+		return ItemFactory.getUnlocalizedName(par1ItemStack);
 	}
 
 	@Override

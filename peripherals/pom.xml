@@ -428,16 +428,22 @@
 					<serverId>anzac-wordpress</serverId>
 					<url>http://anzacgaming.co.uk/xmlrpc.php</url>
 					<idToFile>
-						<Workbench>113</Workbench>
+						<ComputerisedWorkbench>113</ComputerisedWorkbench>
 						<RecipeStorage>115</RecipeStorage>
 						<ItemRouter>143</ItemRouter>
 						<FluidRouter>150</FluidRouter>
 						<ItemStorage>162</ItemStorage>
 						<FluidStorage>164</FluidStorage>
-						<Redstone>177</Redstone>
+						<RedstoneControl>177</RedstoneControl>
 						<CraftingRouter>179</CraftingRouter>
 						<ChargeStation>181</ChargeStation>
 						<Teleporter>183</Teleporter>
+						<AdvancedProcessor>127</AdvancedProcessor>
+						<BasicProcessor>125</BasicProcessor>
+						<HardDisk>129</HardDisk>
+						<Platter>206</Platter>
+						<Spindle>208</Spindle>
+						<TeleporterCard>210</TeleporterCard>
 					</idToFile>
 				</configuration>
 				<executions>

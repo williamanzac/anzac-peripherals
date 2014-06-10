@@ -20,7 +20,8 @@ import anzac.peripherals.tiles.TeleporterTileEntity;
 import cpw.mods.fml.common.network.PacketDispatcher;
 
 @Items(key = "item.anzac.component", value = { ItemType.BASIC_PROCESSOR, ItemType.ADVANCED_PROCESSOR, ItemType.PLATTER,
-		ItemType.SPINDLE, ItemType.TELEPORTER_CARD, })
+		ItemType.SPINDLE, ItemType.TELEPORTER_CARD, ItemType.BASIC_PERIPHERAL_FRAME,
+		ItemType.ADVANCED_PERIPHERAL_FRAME, ItemType.TELEPORTER_FRAME })
 public class ComponentItem extends Item {
 
 	public ComponentItem(final int id) {
@@ -59,7 +60,7 @@ public class ComponentItem extends Item {
 	@Override
 	public boolean onItemUseFirst(final ItemStack stack, final EntityPlayer player, final World world, final int x,
 			final int y, final int z, final int side, final float hitX, final float hitY, final float hitZ) {
-		if (stack.getItemDamage() != 4) {
+		if (stack.getItemDamage() != ItemType.TELEPORTER_CARD.getMeta()) {
 			return super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ);
 		}
 		final TileEntity entity = world.getBlockTileEntity(x, y, z);

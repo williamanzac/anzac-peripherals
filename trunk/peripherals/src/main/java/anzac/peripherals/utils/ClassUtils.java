@@ -1,9 +1,19 @@
 package anzac.peripherals.utils;
 
+import static anzac.peripherals.utils.TypeConverter.convertArguments;
+import static anzac.peripherals.utils.TypeConverter.convertReturn;
+import static java.lang.reflect.Modifier.isAbstract;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import anzac.peripherals.annotations.PeripheralMethod;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
 public class ClassUtils {
 
@@ -196,5 +206,53 @@ public class ClassUtils {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	private static final Map<Class<?>, List<Method>> classMethods = new HashMap<Class<?>, List<Method>>();
+
+	private static <T extends IPeripheral> List<Method> getPeripheralMethods(final Class<T> pClass) {
+		if (!classMethods.containsKey(pClass)) {
+			final List<Method> methods = new ArrayList<Method>();
+			classMethods.put(pClass, methods);
+			for (final Method method : pClass.getMethods()) {
+				if (method.isAnnotationPresent(PeripheralMethod.class) && !isAbstract(method.getModifiers())) {
+					methods.add(method);
+				}
+			}
+		}
+		return classMethods.get(pClass);
+	}
+
+	public static <T extends IPeripheral> List<String> getMethodNames(final Class<T> pClass) {
+		final List<String> methods = new ArrayList<String>();
+		for (final Method method : getPeripheralMethods(pClass)) {
+			if (!methods.contains(method.getName())) {
+				methods.add(method.getName());
+			}
+		}
+		return methods;
+	}
+
+	public static <T extends IPeripheral> Method getMethodByName(final Class<T> pClass, final String name,
+			final int argCount) throws Exception {
+		for (final Method method : getPeripheralMethods(pClass)) {
+			if (method.getName().equals(name) && method.getParameterTypes().length == argCount) {
+				return method;
+			}
+		}
+		throw new Exception("Unable to find a method called " + name + " with " + argCount + " arguments");
+	}
+
+	public static Object[] callPeripheralMethod(final IPeripheral object, final String methodName,
+			final Object[] arguments) throws Exception {
+		final Method method = getMethodByName(object.getClass(), methodName, arguments.length);
+		method.setAccessible(true);
+		final Object[] parameters = convertArguments(arguments, method);
+		try {
+			final Object ret = method.invoke(object, parameters);
+			return convertReturn(ret, method.getReturnType());
+		} catch (final InvocationTargetException e) {
+			throw (Exception) e.getCause();
+		}
 	}
 }

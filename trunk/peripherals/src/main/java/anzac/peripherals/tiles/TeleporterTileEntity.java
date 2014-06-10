@@ -23,6 +23,7 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
+import cofh.api.energy.IEnergyHandler;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
@@ -31,7 +32,7 @@ import dan200.computercraft.api.turtle.ITurtleAccess;
  * 
  */
 @Peripheral(type = "Teleporter")
-public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor {
+public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler {
 
 	public static class Target {
 		private int dimension;
@@ -90,6 +91,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 	}
 
 	private static final int MJ = AnzacPeripheralsCore.mjMultiplier;
+	private static final int RF_TO_MJ = 10;
 
 	private final PowerHandler handler = new PowerHandler(this, Type.MACHINE);
 	private int type;
@@ -106,7 +108,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(TeleporterTileEntity.class);
+		return ClassUtils.getMethodNames(TeleporterTileEntity.class);
 	}
 
 	private int maxTargets() {
@@ -133,11 +135,11 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 	 */
 	@PeripheralMethod
 	public float getStoredEnergy() {
-		return handler.getEnergyStored();
+		return handler.getEnergyStored() / MJ;
 	}
 
 	public void setStoredEnergy(final float stored) {
-		handler.setEnergy(stored);
+		handler.setEnergy(stored * MJ);
 	}
 
 	/**
@@ -145,7 +147,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 	 */
 	@PeripheralMethod
 	public float getMaxEnergy() {
-		return handler.getMaxEnergyStored();
+		return handler.getMaxEnergyStored() / MJ;
 	}
 
 	/**
@@ -231,7 +233,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		if (useEnergy != required) {
 			throw new Exception("Not enough power");
 		}
-		AnzacPeripheralsCore.logger.info("teleporting");
+		// AnzacPeripheralsCore.logger.info("teleporting");
 		if (turtle.teleportTo(destWorld, position.x, position.y, position.z)) {
 			handler.useEnergy(required, required, true);
 			onTeleport();
@@ -317,7 +319,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			return;
 		}
 		final double requiredPower = requiredPower(x, y, z, d);
-		AnzacPeripheralsCore.logger.info("requiredPower:" + requiredPower);
+		// AnzacPeripheralsCore.logger.info("requiredPower:" + requiredPower);
 		if (requiredPower <= handler.getMaxEnergyStored()) {
 			targets.add(target);
 			player.sendChatToPlayer(ChatMessageComponent.createFromText("Added target; x:" + x + ",y:" + y + ",z:" + z
@@ -358,5 +360,38 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 	@Override
 	public boolean equals(final IPeripheral other) {
 		return equals((Object) other);
+	}
+
+	@Override
+	public boolean canInterface(final ForgeDirection arg0) {
+		return true;
+	}
+
+	@Override
+	public int extractEnergy(final ForgeDirection arg0, final int arg1, final boolean arg2) {
+		return 0;
+	}
+
+	@Override
+	public int getEnergyStored(final ForgeDirection arg0) {
+		return (int) (handler.getEnergyStored() * RF_TO_MJ);
+	}
+
+	@Override
+	public int getMaxEnergyStored(final ForgeDirection arg0) {
+		return (int) (handler.getMaxEnergyStored() * RF_TO_MJ);
+	}
+
+	@Override
+	public int receiveEnergy(final ForgeDirection arg0, final int arg1, final boolean arg2) {
+		final int quantity = arg1 / RF_TO_MJ;
+		if (arg2) {
+			if (handler.getEnergyStored() + quantity <= handler.getMaxEnergyStored()) {
+				return quantity;
+			} else {
+				return (int) ((handler.getMaxEnergyStored() - handler.getEnergyStored()) * RF_TO_MJ);
+			}
+		}
+		return (int) (handler.addEnergy(quantity) * RF_TO_MJ);
 	}
 }

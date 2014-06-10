@@ -24,6 +24,7 @@ public class HDDItem extends Item implements IMedia {
 		super(id);
 		setCreativeTab(CreativeTabs.tabRedstone);
 		setMaxStackSize(1);
+		setFull3D();
 	}
 
 	public int getDiskID(final ItemStack stack) {
@@ -54,7 +55,8 @@ public class HDDItem extends Item implements IMedia {
 
 	@Override
 	public void registerIcons(final IconRegister par1IconRegister) {
-		ItemFactory.registerIcons(getClass(), par1IconRegister);
+		// no icon needed as this has a customer renderer
+		// ItemFactory.registerIcons(getClass(), par1IconRegister);
 	}
 
 	@Override

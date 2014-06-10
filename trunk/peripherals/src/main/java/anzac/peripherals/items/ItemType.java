@@ -18,6 +18,12 @@ public enum ItemType {
 	/**  */
 	TELEPORTER_CARD(4, "item.anzac.teleportercard", "Teleporter Card", "anzac:teleport_card"),
 	/**  */
+	BASIC_PERIPHERAL_FRAME(5, "item.anzac.basicframe", "Basic Peripheral Frame", "anzac:basic_frame"),
+	/**  */
+	ADVANCED_PERIPHERAL_FRAME(6, "item.anzac.advancedframe", "Advanced Peripheral Frame", "anzac:advanced_frame"),
+	/**  */
+	TELEPORTER_FRAME(7, "item.anzac.teleporterframe", "Turtle Teleporter Frame", "anzac:teleport_frame"),
+	/**  */
 	CHARGE_IRON(1, "item.anzac.chargeiron", "Iron Charging Station", ""),
 	/**  */
 	CHARGE_GOLD(2, "item.anzac.chargegold", "Gold Charging Station", ""),
@@ -49,7 +55,7 @@ public enum ItemType {
 	 * This item is used as a storage device by some of the peripherals added by this mod. It has a similar capacity to
 	 * that of a standard ComputerCraft computer.
 	 */
-	HDD(0, "item.anzac.hdd", "Hard Disk", "anzac:hdd"), ;
+	HDD(0, "item.anzac.hdd", "Hard Disk", ""), ;
 
 	private final String key;
 

@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Position;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
@@ -21,7 +22,7 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(RedstoneTileEntity.class);
+		return ClassUtils.getMethodNames(RedstoneTileEntity.class);
 	}
 
 	/**

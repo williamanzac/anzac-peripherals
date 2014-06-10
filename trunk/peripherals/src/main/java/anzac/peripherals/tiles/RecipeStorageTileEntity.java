@@ -18,6 +18,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Utils;
 import dan200.computercraft.api.filesystem.IWritableMount;
 import dan200.computercraft.api.peripheral.IPeripheral;
@@ -53,7 +54,7 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(RecipeStorageTileEntity.class);
+		return ClassUtils.getMethodNames(RecipeStorageTileEntity.class);
 	}
 
 	/**

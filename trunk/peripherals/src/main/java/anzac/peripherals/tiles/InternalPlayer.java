@@ -1,30 +1,31 @@
 package anzac.peripherals.tiles;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.world.World;
+import net.minecraftforge.common.FakePlayer;
 
-final class InternalPlayer extends EntityPlayer {
+public final class InternalPlayer extends FakePlayer {
 
 	public InternalPlayer(final TileEntity tileEntity) {
-		super(tileEntity.worldObj, "[Anzac]");
+		this(tileEntity.worldObj);
 		posX = tileEntity.xCoord;
 		posY = tileEntity.yCoord + 1;
 		posZ = tileEntity.zCoord;
 	}
 
-	@Override
-	public void sendChatToPlayer(final ChatMessageComponent var1) {
-	}
-
-	@Override
-	public boolean canCommandSenderUseCommand(final int var1, final String var2) {
-		return false;
+	public InternalPlayer(final World world) {
+		super(world, "[Anzac]");
 	}
 
 	@Override
 	public ChunkCoordinates getPlayerCoordinates() {
 		return null;
+	}
+
+	public void loadInventory(ItemStack copy) {
+		inventory.currentItem = 0;
+		inventory.setInventorySlotContents(0, copy);
 	}
 }

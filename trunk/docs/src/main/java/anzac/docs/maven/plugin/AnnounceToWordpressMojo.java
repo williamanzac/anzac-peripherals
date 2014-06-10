@@ -13,7 +13,6 @@ import net.bican.wordpress.Wordpress;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -46,7 +45,7 @@ public class AnnounceToWordpressMojo extends AbstractWordpressMojo {
 	@Parameter(required = false, defaultValue = "true")
 	private boolean publish;
 
-	@Component
+	@Parameter(readonly = true, defaultValue = "${project}")
 	private MavenProject project;
 
 	@SuppressWarnings("unchecked")

@@ -51,10 +51,7 @@ public class AnnounceToWordpressMojo extends AbstractWordpressMojo {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		super.execute();
-		final Wordpress wordpress = createWordpress();
-
+	public void execute(final Wordpress wordpress) throws MojoExecutionException, MojoFailureException {
 		final String name = project.getName();
 		final String version = project.getVersion();
 

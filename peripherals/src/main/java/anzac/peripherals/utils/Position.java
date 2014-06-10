@@ -1,6 +1,7 @@
 package anzac.peripherals.utils;
 
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraftforge.common.ForgeDirection;
 
 public class Position {
@@ -11,12 +12,20 @@ public class Position {
 		this(x, y, z, ForgeDirection.UNKNOWN);
 	}
 
-	public Position(final int x, final int y, final int z,
-			final ForgeDirection orientation) {
+	public Position(final int x, final int y, final int z, final ForgeDirection orientation) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.orientation = orientation;
+	}
+
+	public Position(final ChunkCoordinates c) {
+		this(c.posX, c.posY, c.posZ);
+	}
+
+	public Position(final ChunkCoordinates c, int d) {
+		this(c.posX, c.posY, c.posZ, ForgeDirection.UNKNOWN);
+
 	}
 
 	public Position(final Position p) {
@@ -110,8 +119,7 @@ public class Position {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((orientation == null) ? 0 : orientation.hashCode());
+		result = prime * result + ((orientation == null) ? 0 : orientation.hashCode());
 		result = prime * result + x;
 		result = prime * result + y;
 		result = prime * result + z;

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>anzac</groupId>
@@ -7,7 +8,7 @@
 		<version>0.1.10-SNAPSHOT</version>
 	</parent>
 	<artifactId>peripherals</artifactId>
-	<name>peripherals</name>
+	<name>ANZAC Peripherals</name>
 	<url>http://anzacgaming.co.uk</url>
 	<properties>
 		<forge.library.dir>${forge.jars.dir}/libraries</forge.library.dir>
@@ -33,6 +34,14 @@
 		<dependency>
 			<groupId>railcraft</groupId>
 			<artifactId>Railcraft_1.6.4</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>cofh</groupId>
+			<artifactId>CoFHCore</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>cofh</groupId>
+			<artifactId>ThermalExpansion</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>anzac</groupId>
@@ -94,6 +103,20 @@
 			<version>20120107</version>
 			<scope>system</scope>
 			<systemPath>${forge.library.dir}/com/paulscode/soundsystem/20120107/soundsystem-20120107.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-compiler</artifactId>
+			<version>2.10.2</version>
+			<scope>system</scope>
+			<systemPath>${forge.library.dir}/org/scala-lang/scala-compiler/2.10.2/scala-compiler-2.10.2.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>2.10.2</version>
+			<scope>system</scope>
+			<systemPath>${forge.library.dir}/org/scala-lang/scala-library/2.10.2/scala-library-2.10.2.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -285,6 +308,7 @@
 									<includes>
 										<include>**/*</include>
 									</includes>
+									<filtering>true</filtering>
 								</resource>
 							</resources>
 						</configuration>
@@ -346,6 +370,7 @@
 								<delete dir="${forge.bin.dir}/buildcraft" />
 								<delete dir="${forge.bin.dir}/dan200" />
 								<delete dir="${forge.bin.dir}/mods" />
+								<delete dir="${forge.bin.dir}/cofh" />
 								<delete dir="${forge.bin.dir}/assets/anzac" />
 							</tasks>
 						</configuration>
@@ -426,24 +451,6 @@
 					<docSource>${project.build.directory}/site/apidocs</docSource>
 					<serverId>anzac-wordpress</serverId>
 					<url>http://anzacgaming.co.uk/xmlrpc.php</url>
-					<idToFile>
-						<ComputerisedWorkbench>113</ComputerisedWorkbench>
-						<RecipeStorage>115</RecipeStorage>
-						<ItemRouter>143</ItemRouter>
-						<FluidRouter>150</FluidRouter>
-						<ItemStorage>162</ItemStorage>
-						<FluidStorage>164</FluidStorage>
-						<RedstoneControl>177</RedstoneControl>
-						<CraftingRouter>179</CraftingRouter>
-						<ChargeStation>181</ChargeStation>
-						<Teleporter>183</Teleporter>
-						<AdvancedProcessor>127</AdvancedProcessor>
-						<BasicProcessor>125</BasicProcessor>
-						<HardDisk>129</HardDisk>
-						<Platter>206</Platter>
-						<Spindle>208</Spindle>
-						<TeleporterCard>210</TeleporterCard>
-					</idToFile>
 				</configuration>
 				<executions>
 					<execution>
@@ -453,6 +460,49 @@
 							<goal>PublishToWordpress</goal>
 						</goals>
 						<inherited>false</inherited>
+						<configuration>
+							<idToFile>
+								<ComputerisedWorkbench>113</ComputerisedWorkbench>
+								<RecipeStorage>115</RecipeStorage>
+								<ItemRouter>143</ItemRouter>
+								<FluidRouter>150</FluidRouter>
+								<ItemStorage>162</ItemStorage>
+								<FluidStorage>164</FluidStorage>
+								<RedstoneControl>177</RedstoneControl>
+								<CraftingRouter>179</CraftingRouter>
+								<ChargeStation>181</ChargeStation>
+								<Teleporter>183</Teleporter>
+								<AdvancedProcessor>127</AdvancedProcessor>
+								<BasicProcessor>125</BasicProcessor>
+								<HardDisk>129</HardDisk>
+								<Platter>206</Platter>
+								<Spindle>208</Spindle>
+								<TeleporterCard>210</TeleporterCard>
+							</idToFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>Announce</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>AnnounceToWordpress</goal>
+						</goals>
+						<inherited>false</inherited>
+						<configuration>
+							<skip>true</skip>
+							<categories>
+								<category>Announcement</category>
+								<category>${project.name}</category>
+							</categories>
+							<tags>
+								<tag>ComputerCraft</tag>
+								<tag>Forge</tag>
+								<tag>Minecraft</tag>
+								<tag>mod</tag>
+							</tags>
+							<authorId>3</authorId>
+							<publish>false</publish>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

@@ -14,6 +14,7 @@ import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
@@ -27,7 +28,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(ItemRouterTileEntity.class);
+		return ClassUtils.getMethodNames(ItemRouterTileEntity.class);
 	}
 
 	private int[] accessibleSlots(final ForgeDirection extractSide, final IInventory inv) {

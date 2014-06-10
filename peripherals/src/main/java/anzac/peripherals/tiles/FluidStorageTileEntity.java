@@ -18,6 +18,7 @@ import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Utils;
 import dan200.computercraft.api.peripheral.IPeripheral;
 
@@ -50,7 +51,7 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(FluidStorageTileEntity.class);
+		return ClassUtils.getMethodNames(FluidStorageTileEntity.class);
 	}
 
 	@Override

@@ -26,6 +26,8 @@ public class Utils {
 	private static final List<ForgeDirection> directions = new ArrayList<ForgeDirection>(
 			Arrays.asList(ForgeDirection.VALID_DIRECTIONS));
 	private static final Random RANDOM = new Random();
+	private static final int FIRST_UPGRADE_ID = 26714;
+	private static int nextTurtleId = FIRST_UPGRADE_ID;
 
 	public static int[] createSlotArray(final int first, final int count) {
 		final int[] slots = new int[count];
@@ -335,4 +337,9 @@ public class Utils {
 		}
 		return size - copy.stackSize;
 	}
+
+	public static int nextUpgradeId() {
+		return nextTurtleId++;
+	}
+
 }

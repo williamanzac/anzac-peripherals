@@ -21,6 +21,7 @@ import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
 import dan200.computercraft.api.peripheral.IPeripheral;
@@ -42,7 +43,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(WorkbenchTileEntity.class);
+		return ClassUtils.getMethodNames(WorkbenchTileEntity.class);
 	}
 
 	public void updateCraftingRecipe() {

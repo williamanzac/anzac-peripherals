@@ -16,6 +16,7 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
+import cofh.api.energy.IEnergyHandler;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
@@ -24,9 +25,10 @@ import dan200.computercraft.api.turtle.ITurtleAccess;
  * 
  */
 @Peripheral(type = "ChargeStation")
-public class ChargeStationTileEntity extends BasePeripheralTileEntity implements IPowerReceptor {
+public class ChargeStationTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler {
 
 	private static final int MJ = AnzacPeripheralsCore.mjMultiplier;
+	private static final int RF_TO_MJ = 10;
 	private PowerHandler handler = new PowerHandler(this, Type.MACHINE);
 	private int type;
 
@@ -41,7 +43,7 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(ChargeStationTileEntity.class);
+		return ClassUtils.getMethodNames(ChargeStationTileEntity.class);
 	}
 
 	private void configure() {
@@ -56,11 +58,11 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 	 */
 	@PeripheralMethod
 	public float getStoredEnergy() {
-		return handler.getEnergyStored();
+		return handler.getEnergyStored() / MJ;
 	}
 
 	public void setStoredEnergy(final float stored) {
-		handler.setEnergy(stored);
+		handler.setEnergy(stored * MJ);
 	}
 
 	/**
@@ -68,7 +70,7 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 	 */
 	@PeripheralMethod
 	public float getMaxEnergy() {
-		return handler.getMaxEnergyStored();
+		return handler.getMaxEnergyStored() / MJ;
 	}
 
 	@Override
@@ -111,29 +113,29 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 			position.moveForwards(1);
 			final TileEntity entity = worldObj.getBlockTileEntity(position.x, position.y, position.z);
 			if (ClassUtils.instanceOf(entity, "dan200.computercraft.shared.turtle.blocks.ITurtleTile")) {
-				AnzacPeripheralsCore.logger.info("found turtle");
+				// AnzacPeripheralsCore.logger.info("found turtle");
 				turtles.add((ITurtleAccess) ClassUtils.callMethod(entity, "getAccess", null));
 			}
 		}
 		// AnzacPeripheralsCore.logger.info("found turtles: " + turtles);
 		if (!turtles.isEmpty()) {
-			AnzacPeripheralsCore.logger.info("has turtle; stored: " + workProvider.getEnergyStored());
+			// AnzacPeripheralsCore.logger.info("has turtle; stored: " + workProvider.getEnergyStored());
 			for (final ITurtleAccess turtle : turtles) {
 				final float useEnergy = workProvider.useEnergy(MJ, MJ, false);
-				AnzacPeripheralsCore.logger.info("useEnergy: " + useEnergy);
+				// AnzacPeripheralsCore.logger.info("useEnergy: " + useEnergy);
 				if (useEnergy != MJ) {
 					continue;
 				}
 				int amount = (int) (useEnergy / AnzacPeripheralsCore.mjMultiplier);
-				AnzacPeripheralsCore.logger.info("amount: " + amount);
+				// AnzacPeripheralsCore.logger.info("amount: " + amount);
 				final int fuelLevel = turtle.getFuelLevel();
-				AnzacPeripheralsCore.logger.info("fuelLevel: " + fuelLevel);
+				// AnzacPeripheralsCore.logger.info("fuelLevel: " + fuelLevel);
 				final int fuelLimit = turtle.getFuelLimit();
-				AnzacPeripheralsCore.logger.info("fuelLimit: " + fuelLimit);
+				// AnzacPeripheralsCore.logger.info("fuelLimit: " + fuelLimit);
 				if (fuelLimit - amount <= fuelLevel) {
 					amount = fuelLimit - fuelLevel;
 				}
-				AnzacPeripheralsCore.logger.info("amount: " + amount);
+				// AnzacPeripheralsCore.logger.info("amount: " + amount);
 				turtle.addFuel(amount);
 				final int mj = amount * AnzacPeripheralsCore.mjMultiplier;
 				workProvider.useEnergy(mj, mj, true);
@@ -189,5 +191,38 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 		if (type != other.type)
 			return false;
 		return true;
+	}
+
+	@Override
+	public boolean canInterface(final ForgeDirection arg0) {
+		return true;
+	}
+
+	@Override
+	public int extractEnergy(final ForgeDirection arg0, final int arg1, final boolean arg2) {
+		return 0;
+	}
+
+	@Override
+	public int getEnergyStored(final ForgeDirection arg0) {
+		return (int) (handler.getEnergyStored() * RF_TO_MJ);
+	}
+
+	@Override
+	public int getMaxEnergyStored(final ForgeDirection arg0) {
+		return (int) (handler.getMaxEnergyStored() * RF_TO_MJ);
+	}
+
+	@Override
+	public int receiveEnergy(final ForgeDirection arg0, final int arg1, final boolean arg2) {
+		final int quantity = arg1 / RF_TO_MJ;
+		if (arg2) {
+			if (handler.getEnergyStored() + quantity <= handler.getMaxEnergyStored()) {
+				return quantity;
+			} else {
+				return (int) ((handler.getMaxEnergyStored() - handler.getEnergyStored()) * RF_TO_MJ);
+			}
+		}
+		return (int) (handler.addEnergy(quantity) * RF_TO_MJ);
 	}
 }

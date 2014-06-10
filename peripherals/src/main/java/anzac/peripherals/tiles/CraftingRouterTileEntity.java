@@ -15,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Utils;
 import dan200.computercraft.api.filesystem.IWritableMount;
 
@@ -26,7 +27,7 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 
 	@Override
 	protected List<String> methodNames() {
-		return getMethodNames(CraftingRouterTileEntity.class);
+		return ClassUtils.getMethodNames(CraftingRouterTileEntity.class);
 	}
 
 	@Override

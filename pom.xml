@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>anzac</groupId>
 	<artifactId>root</artifactId>
@@ -111,6 +112,16 @@
 				<artifactId>Railcraft_1.6.4</artifactId>
 				<version>${railcraft.version}</version>
 				<type>jar</type>
+			</dependency>
+			<dependency>
+				<groupId>cofh</groupId>
+				<artifactId>CoFHCore</artifactId>
+				<version>2.0.0.5</version>
+			</dependency>
+			<dependency>
+				<groupId>cofh</groupId>
+				<artifactId>ThermalExpansion</artifactId>
+				<version>3.0.0.7</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -240,6 +251,20 @@
 						<url>ftp://ftp.anzacgaming.co.uk</url>
 						<fromDir>${project.build.directory}</fromDir>
 						<includes>*.jar</includes>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-changelog-plugin</artifactId>
+					<version>2.2</version>
+					<configuration>
+						<type>range</type>
+						<tagBase>tags</tagBase>
+						<range>30</range>
+						<tags>
+							<tag implementation="java.lang.String">root-0.1.8</tag>
+							<tag implementation="java.lang.String">root-0.1.9</tag>
+						</tags>
 					</configuration>
 				</plugin>
 			</plugins>

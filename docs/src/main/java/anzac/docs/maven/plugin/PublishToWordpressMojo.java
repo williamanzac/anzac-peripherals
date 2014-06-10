@@ -25,9 +25,7 @@ public class PublishToWordpressMojo extends AbstractWordpressMojo {
 	private Map<String, String> idToFile;
 
 	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		super.execute();
-		final Wordpress wordpress = createWordpress();
+	public void execute(final Wordpress wordpress) throws MojoExecutionException, MojoFailureException {
 		if (idToFile != null) {
 			for (final Entry<String, String> entry : idToFile.entrySet()) {
 				if (entry == null || entry.getKey() == null || entry.getValue() == null) {

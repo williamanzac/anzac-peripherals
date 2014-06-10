@@ -25,16 +25,11 @@ public abstract class AbstractWordpressMojo extends AbstractMojo {
 	@Parameter(defaultValue = "false")
 	protected boolean skip;
 
-	protected Wordpress createWordpress() throws MojoFailureException {
+	protected Wordpress createWordpress() throws MalformedURLException {
 		final Server server = settings.getServer(serverId);
 		final String password = server.getPassword();
 		final String username = server.getUsername();
-		final Wordpress wordpress;
-		try {
-			wordpress = new Wordpress(username, password, url);
-		} catch (final MalformedURLException e) {
-			throw new MojoFailureException("Invalid url", e);
-		}
+		final Wordpress wordpress = new Wordpress(username, password, url);
 		return wordpress;
 	}
 
@@ -47,5 +42,14 @@ public abstract class AbstractWordpressMojo extends AbstractMojo {
 		if (!docSource.isDirectory()) {
 			throw new MojoFailureException("docSource is not a valid directory.");
 		}
+		final Wordpress wordpress;
+		try {
+			wordpress = createWordpress();
+			execute(wordpress);
+		} catch (MalformedURLException e) {
+			throw new MojoExecutionException("Error handling resource", e);
+		}
 	}
+
+	protected abstract void execute(final Wordpress wordpress) throws MojoExecutionException, MojoFailureException;
 }

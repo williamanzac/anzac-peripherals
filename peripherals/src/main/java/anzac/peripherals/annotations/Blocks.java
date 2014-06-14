@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.tileentity.TileEntity;
 import anzac.peripherals.blocks.BlockType;
+import anzac.peripherals.peripheral.BasePeripheral;
+import dan200.computercraft.api.peripheral.IPeripheral;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -23,4 +25,6 @@ public @interface Blocks {
 	Class<? extends ItemBlock> itemType() default ItemBlock.class;
 
 	Class<? extends TileEntity> tileType() default TileEntity.class;
+
+	Class<? extends IPeripheral> peripheralType() default BasePeripheral.class;
 }

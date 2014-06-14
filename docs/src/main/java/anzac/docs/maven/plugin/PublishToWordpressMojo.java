@@ -21,11 +21,16 @@ import redstone.xmlrpc.XmlRpcFault;
 @Mojo(name = "PublishToWordpress", defaultPhase = LifecyclePhase.DEPLOY)
 public class PublishToWordpressMojo extends AbstractWordpressMojo {
 
+	@Parameter
+	protected File docSource;
 	@Parameter(required = false)
 	private Map<String, String> idToFile;
 
 	@Override
 	public void execute(final Wordpress wordpress) throws MojoExecutionException, MojoFailureException {
+		if (!docSource.isDirectory()) {
+			throw new MojoFailureException("docSource is not a valid directory.");
+		}
 		if (idToFile != null) {
 			for (final Entry<String, String> entry : idToFile.entrySet()) {
 				if (entry == null || entry.getKey() == null || entry.getValue() == null) {

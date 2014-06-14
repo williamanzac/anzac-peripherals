@@ -3,7 +3,6 @@ package anzac.peripherals.docs.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 
 import anzac.peripherals.docs.APIDoclet;
@@ -14,7 +13,7 @@ public class BlockXML {
 	private String name;
 	private Tag[] description;
 	private String key;
-	private ClassXML tile;
+	private ClassXML peripheral;
 	private final List<ItemXML> items = new ArrayList<>();
 	private String tool;
 	private int toolLevel;
@@ -25,14 +24,6 @@ public class BlockXML {
 
 	public void setKey(final String key) {
 		this.key = key;
-	}
-
-	public ClassXML getTile() {
-		return tile;
-	}
-
-	public void setTile(final ClassXML tile) {
-		this.tile = tile;
 	}
 
 	public List<ItemXML> getItems() {
@@ -74,7 +65,7 @@ public class BlockXML {
 	public String toXML() {
 		final StrBuilder builder = new StrBuilder();
 		builder.appendln("<section id=\"description\">");
-		builder.appendln(APIDoclet.processText(StringUtils.deleteWhitespace(name), description));
+		builder.appendln(APIDoclet.processText(peripheral.getName(), description));
 		builder.appendln("</section>");
 		if (!items.isEmpty()) {
 			builder.appendln("<section id=\"recipe\">");
@@ -89,9 +80,17 @@ public class BlockXML {
 			}
 			builder.appendln("</section>");
 		}
-		if (tile != null) {
-			builder.append(tile.toXML());
+		if (peripheral != null) {
+			builder.append(peripheral.toXML());
 		}
 		return builder.toString();
+	}
+
+	public ClassXML getPeripheral() {
+		return peripheral;
+	}
+
+	public void setPeripheral(ClassXML peripheral) {
+		this.peripheral = peripheral;
 	}
 }

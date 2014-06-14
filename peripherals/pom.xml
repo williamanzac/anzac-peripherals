@@ -225,7 +225,7 @@
 						<version>${project.version}</version>
 					</docletArtifact>
 					<useStandardDocletOptions>false</useStandardDocletOptions>
-					<excludePackageNames>buildcraft.*,dan200.*,mods.railcraft.*,cpw.*,ibxm*,net.minecraft.*,net.minecraftforge.*,paulscode.*</excludePackageNames>
+					<excludePackageNames>buildcraft.*,dan200.*,mods.railcraft.*,cpw.*,ibxm*,net.minecraft.*,net.minecraftforge.*,paulscode.*,cofh.*</excludePackageNames>
 					<outputDirectory>${project.build.directory}/apidocs</outputDirectory>
 					<skip>false</skip>
 					<additionalparam>-url http://anzacgaming.co.uk/</additionalparam>
@@ -447,7 +447,6 @@
 				<version>${project.version}</version>
 				<configuration>
 					<skip>${skipUpload}</skip>
-					<docSource>${project.build.directory}/site/apidocs</docSource>
 					<serverId>anzac-wordpress</serverId>
 					<url>http://anzacgaming.co.uk/xmlrpc.php</url>
 				</configuration>
@@ -460,6 +459,7 @@
 						</goals>
 						<inherited>false</inherited>
 						<configuration>
+							<docSource>${project.build.directory}/site/apidocs</docSource>
 							<idToFile>
 								<ComputerisedWorkbench>113</ComputerisedWorkbench>
 								<RecipeStorage>115</RecipeStorage>

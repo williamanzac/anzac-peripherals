@@ -15,11 +15,12 @@ import net.minecraft.world.World;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Blocks;
 import anzac.peripherals.items.TeleporterItem;
+import anzac.peripherals.peripheral.TeleporterPeripheral;
 import anzac.peripherals.tiles.TeleporterTileEntity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Blocks(itemType = TeleporterItem.class, key = "block.anzac.teleporter", tool = "pickaxe", toolLevel = 2, tileType = TeleporterTileEntity.class)
+@Blocks(itemType = TeleporterItem.class, key = "block.anzac.teleporter", tool = "pickaxe", toolLevel = 2, tileType = TeleporterTileEntity.class, peripheralType = TeleporterPeripheral.class)
 public class TeleporterBlock extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
@@ -86,7 +87,13 @@ public class TeleporterBlock extends BlockContainer {
 
 	@Override
 	public TileEntity createTileEntity(final World world, final int metadata) {
-		return new TeleporterTileEntity(metadata);
+		try {
+			return new TeleporterTileEntity(metadata);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override

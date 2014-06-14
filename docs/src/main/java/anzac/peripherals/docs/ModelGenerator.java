@@ -70,6 +70,7 @@ public class ModelGenerator {
 		boolean hasBlocks = false;
 		AnnotationValue[] blocks = null;
 		String tileClass = null;
+		String peripheralClass = null;
 		String itemClass = null;
 		int toolLevel = -1;
 		String tool = null;
@@ -80,6 +81,9 @@ public class ModelGenerator {
 			}
 			if (pair.element().name().equals("tileType")) {
 				tileClass = ((ClassDoc) pair.value().value()).simpleTypeName();
+			}
+			if (pair.element().name().equals("peripheralType")) {
+				peripheralClass = ((ClassDoc) pair.value().value()).simpleTypeName();
 			}
 			if (pair.element().name().equals("key")) {
 				key = (String) pair.value().value();
@@ -103,10 +107,10 @@ public class ModelGenerator {
 			}
 		} else {
 			final List<ItemXML> itemXMLs = findItemXMLs(itemClass);
-			final ClassXML classXML = findClassXML(tileClass);
+			final ClassXML classXML = findClassXML(peripheralClass);
 			final BlockXML blockXML = new BlockXML();
 			blockXML.getItems().addAll(itemXMLs);
-			blockXML.setTile(classXML);
+			blockXML.setPeripheral(classXML);
 			blockXML.setKey(key);
 			blockXML.setTool(tool);
 			blockXML.setToolLevel(toolLevel);
@@ -118,12 +122,13 @@ public class ModelGenerator {
 	}
 
 	private static final Pattern blockPattern = Pattern
-			.compile("\\/\\*public static final\\*\\/\\s+(.*)\\s+\\/\\* = new BlockType\\((\\d+), \"(.*)\". \"(.*)\", (.*)\\.class\\) \\*\\/");
+			.compile("\\/\\*public static final\\*\\/\\s+(.*)\\s+\\/\\* = new BlockType\\((\\d+), \"(.*)\". \"(.*)\", (.*)\\.class, (.*)\\.class\\) \\*\\/");
 
 	private static BlockXML toBlockXML(final AnnotationValue value, String key, final String tool, final int toolLevel) {
 		final BlockXML blockXML = new BlockXML();
 		final FieldDoc fieldDoc = (FieldDoc) value.value();
 		String tileClass = null;
+		String peripheralClass = null;
 		String name = null;
 		try {
 			final Field f = fieldDoc.getClass().getSuperclass().getSuperclass().getDeclaredField("tree");
@@ -134,6 +139,7 @@ public class ModelGenerator {
 				key = matcher.group(3);
 				name = matcher.group(4);
 				tileClass = matcher.group(5);
+				peripheralClass = matcher.group(6);
 			}
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
@@ -142,9 +148,9 @@ public class ModelGenerator {
 		blockXML.setKey(key);
 		blockXML.setTool(tool);
 		blockXML.setToolLevel(toolLevel);
-		final ClassXML classXML = findClassXML(tileClass);
+		final ClassXML classXML = findClassXML(peripheralClass);
 		if (classXML != null) {
-			blockXML.setTile(classXML);
+			blockXML.setPeripheral(classXML);
 		}
 		final ItemXML itemXML = findItemXML(key);
 		if (itemXML != null) {

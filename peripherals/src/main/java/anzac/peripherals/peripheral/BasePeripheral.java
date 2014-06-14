@@ -4,10 +4,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.tiles.BasePeripheralTileEntity;
+import anzac.peripherals.tiles.PeripheralEvent;
 import anzac.peripherals.utils.ClassUtils;
 import dan200.computercraft.api.lua.ILuaContext;
 import dan200.computercraft.api.peripheral.IComputerAccess;
@@ -25,14 +28,14 @@ public abstract class BasePeripheral implements IPeripheral {
 		this.entity = entity;
 	}
 
+	protected abstract BasePeripheralTileEntity getEntity();
+
 	@Override
 	public String[] getMethodNames() {
 		return methodNames().toArray(new String[0]);
 	}
 
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(BasePeripheralTileEntity.class);
-	}
+	protected abstract List<String> methodNames();
 
 	@Override
 	public final String getType() {
@@ -86,8 +89,29 @@ public abstract class BasePeripheral implements IPeripheral {
 		for (final IComputerAccess computer : computers) {
 			AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), getLabel());
 		}
+		entity.setLabel(label);
 		for (final IComputerAccess computer : computers) {
 			AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, entity);
 		}
+	}
+
+	public void queueEvent(final String event, final Object... parameters) {
+		for (final IComputerAccess computer : computers) {
+			final Object[] clone = ArrayUtils.clone(parameters);
+			ArrayUtils.add(clone, 0, computer.getAttachmentName());
+			computer.queueEvent(event, clone);
+		}
+	}
+
+	public void queueEvent(final PeripheralEvent event, final Object... parameters) {
+		event.fire(computers, parameters);
+	}
+
+	@Override
+	public boolean equals(IPeripheral other) {
+		if (other instanceof BasePeripheral) {
+			return entity.equals(((BasePeripheral) other).entity);
+		}
+		return false;
 	}
 }

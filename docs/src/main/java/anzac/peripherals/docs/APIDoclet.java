@@ -141,13 +141,14 @@ public class APIDoclet {
 		final StrBuilder strBuilder = new StrBuilder();
 		if (tags != null) {
 			for (final Tag tag : tags) {
+				final String text = StringUtils.strip(tag.text());
 				if ("Text".equals(tag.name())) {
-					strBuilder.append(tag.text());
+					strBuilder.append(text);
 				} else if ("@link".equals(tag.name())) {
-					strBuilder.append("<a href=\"").append(processSig(name, tag.text(), true)).append("\"><code>")
-							.append(processSig(name, tag.text(), false)).append("</code></a>");
+					strBuilder.append(" <a href=\"").append(processSig(name, text, true)).append("\"><code>")
+							.append(processSig(name, text, false)).append("</code></a> ");
 				} else if ("@code".equals(tag.name())) {
-					strBuilder.append("<code>").append(processSig(name, tag.text(), false)).append("</code>");
+					strBuilder.append(" <code>").append(processSig(name, text, false)).append("</code> ");
 				}
 			}
 		}
@@ -163,7 +164,7 @@ public class APIDoclet {
 			// get Class
 			final String strClass = methodMatcher.group(1);
 			ClassXML classXML;
-			if (StringUtils.isNotBlank(strClass)) {
+			if (StringUtils.isNotBlank(strClass) && !name.equals(strClass)) {
 				classXML = peripheralClasses.get(strClass);
 				if (!link) {
 					builder.append(className(classXML));
@@ -211,7 +212,7 @@ public class APIDoclet {
 
 	protected static String className(final ClassXML classXML) {
 		final String typeName = classXML.getName();
-		final int index = typeName.indexOf("TileEntity");
+		final int index = typeName.indexOf("Peripheral");
 		final String fileName = typeName.substring(0, index);
 		return fileName;
 	}
@@ -227,7 +228,7 @@ public class APIDoclet {
 	private static String classFullFileName(final ClassXML classXML) {
 		final String lowerDash = lowerDash(className(classXML));
 		final String pkg = classXML.getFullName().replace("anzac.peripherals", "anzac-peripherals")
-				.replace("tiles", "blocks").replace(classXML.getName(), lowerDash).replaceAll("\\.", "/");
+				.replace("peripheral.", "blocks.").replace(classXML.getName(), lowerDash).replaceAll("\\.", "/");
 		return pkg;
 	}
 

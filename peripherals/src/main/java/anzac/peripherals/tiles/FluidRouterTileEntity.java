@@ -1,7 +1,6 @@
 package anzac.peripherals.tiles;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,52 +14,18 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.FluidRouterPeripheral;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
-import dan200.computercraft.api.peripheral.IPeripheral;
 
-@Peripheral(type = "FluidRouter", events = { PeripheralEvent.fluid_route })
 public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFluidHandler {
+
+	public FluidRouterTileEntity() throws Exception {
+		super(FluidRouterPeripheral.class);
+	}
 
 	public FluidTank fluidTank = new FluidTank(FluidContainerRegistry.BUCKET_VOLUME);
 
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(FluidRouterTileEntity.class);
-	}
-
-	/**
-	 * Transfer {@code amount} amount of fluid from the internal tank to the tanks connected on {@code toDir} side.
-	 * 
-	 * @param toDir
-	 *            the side the tanks are connected to.
-	 * @param amount
-	 *            the amount of fluid to transfer.
-	 * @return the actual amount transferred.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
-	public int routeTo(final ForgeDirection toDir, final int amount) throws Exception {
-		return routeTo(toDir, toDir.getOpposite(), amount);
-	}
-
-	/**
-	 * Transfer {@code amount} amount of fluid from the internal tank to the {@code side} side of the tanks connected on
-	 * {@code toDir} side.
-	 * 
-	 * @param toDir
-	 *            the side the tanks are connected to.
-	 * @param insertDir
-	 *            the side the tank to insert the fluid from.
-	 * @param amount
-	 *            the amount of fluid to transfer.
-	 * @return the actual amount transferred.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public int routeTo(final ForgeDirection toDir, final ForgeDirection insetDir, final int amount) throws Exception {
 		final FluidStack copy = fluidTank.getFluid().copy();
 		copy.amount = amount;
@@ -108,7 +73,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		}
 		final int fill = fluidTank.fill(resource, doFill);
 		if (fill > 0 && doFill) {
-			PeripheralEvent.fluid_route.fire(computers, Utils.getUUID(resource), fill);
+			queueEvent(PeripheralEvent.fluid_route, Utils.getUUID(resource), fill);
 		}
 		return fill;
 	}
@@ -144,43 +109,6 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		return new FluidTankInfo[] { fluidTank.getInfo() };
 	}
 
-	/**
-	 * Will return a table containing the uuid and count of the fluid in the internal tank.
-	 * 
-	 * @return A table of the internal contents.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
-	public Map<?, ?> contents() throws Exception {
-		return contents(ForgeDirection.UNKNOWN);
-	}
-
-	/**
-	 * Will return a table containing the uuid and count of each fluid in the tanks connected to {@code direction} side
-	 * of this block.
-	 * 
-	 * @param direction
-	 *            which side of this block to examine the tanks of.
-	 * @return A table of the contents of the connected tanks.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
-	public Map<?, ?> contents(final ForgeDirection direction) throws Exception {
-		return contents(direction, direction.getOpposite());
-	}
-
-	/**
-	 * Will return a table containing the uuid and count of each fluid in the tanks connected to <code>direction</code>
-	 * side of this block and limited the to those tanks accessible from <code>side</code> side.
-	 * 
-	 * @param direction
-	 *            which side of this block to examine the tanks of.
-	 * @param dir
-	 *            which side of the tanks to examine.
-	 * @return A table of the contents of the connected tanks.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Map<Integer, Map<String, Integer>> contents(final ForgeDirection direction, final ForgeDirection dir)
 			throws Exception {
 		final TileEntity te;
@@ -219,39 +147,6 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		return table;
 	}
 
-	/**
-	 * Extract {@code amount} amount of fluid with {@code uuid} from the tanks connected to {@code fromDir} side.
-	 * 
-	 * @param fromDir
-	 *            which side of this block to extract from.
-	 * @param uuid
-	 *            the uuid of the fluid to extract.
-	 * @param amount
-	 *            the amount of the fluid to extract.
-	 * @return The actual amount extracted.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
-	public int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount) throws Exception {
-		return extractFrom(fromDir, uuid, amount, fromDir.getOpposite());
-	}
-
-	/**
-	 * Extract {@code amount} amount of fluid with {@code uuid} from the {@code side} side of the tanks connected to
-	 * {@code fromDir} side.
-	 * 
-	 * @param fromDir
-	 *            which side of this block to extract from.
-	 * @param uuid
-	 *            the uuid of the fluid to extract.
-	 * @param amount
-	 *            the amount of fluid to extract.
-	 * @param extractSide
-	 *            which side of the tanks to extract from.
-	 * @return The actual amount extracted.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,
 			final ForgeDirection extractSide) throws Exception {
 		final Position pos = new Position(xCoord, yCoord, zCoord, fromDir);
@@ -270,18 +165,6 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		return 0;
 	}
 
-	/**
-	 * Transfer {@code amount} amount of fluid from the internal tank to another connected peripheral with {@code label}
-	 * label. The peripheral must be connected to the same computer.
-	 * 
-	 * @param label
-	 *            the label of the peripheral.
-	 * @param amount
-	 *            the amount of fluid to transfer.
-	 * @return the actual amount transferred.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public int sendTo(final String label, final int amount) throws Exception {
 		if (fluidTank.getFluid() == null) {
 			throw new Exception("No fluid to transfer");
@@ -310,20 +193,6 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		return amount - copy.amount;
 	}
 
-	/**
-	 * Transfer {@code amount} amount of fluid from another connected peripheral with {@code label} label to the
-	 * internal tank. The peripheral must be connected to the same computer.
-	 * 
-	 * @param label
-	 *            the label of the peripheral.
-	 * @param uuid
-	 *            the uuid of the fluid to transfer.
-	 * @param amount
-	 *            the amount of fluid to transfer.
-	 * @return the actual amount transferred.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public int requestFrom(String label, int uuid, int amount) throws Exception {
 		if (amount <= 0) {
 			throw new Exception("Amount must be greater than 0");
@@ -368,10 +237,5 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		} else if (!fluidTank.equals(other.fluidTank))
 			return false;
 		return true;
-	}
-
-	@Override
-	public boolean equals(IPeripheral other) {
-		return equals((Object) other);
 	}
 }

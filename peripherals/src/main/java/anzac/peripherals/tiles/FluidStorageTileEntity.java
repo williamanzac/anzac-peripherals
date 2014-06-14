@@ -16,13 +16,9 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.FluidStoragePeripheral;
 import anzac.peripherals.utils.Utils;
-import dan200.computercraft.api.peripheral.IPeripheral;
 
-@Peripheral(type = "FluidStorage")
 public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFluidHandler {
 
 	private final class DiscListener implements InventoryListener {
@@ -36,8 +32,8 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 	private static final int CAPACITY = AnzacPeripheralsCore.storageSize / maxTanks;
 	private final Map<Integer, FluidTank> fluidTanks = new HashMap<Integer, FluidTank>(maxTanks);
 
-	public FluidStorageTileEntity() {
-		super();
+	public FluidStorageTileEntity() throws Exception {
+		super(FluidStoragePeripheral.class);
 		discInv.addListner(new DiscListener());
 		clear();
 	}
@@ -47,11 +43,6 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 			final FluidTank fluidTank = new FluidTank(CAPACITY);
 			fluidTanks.put(i, fluidTank);
 		}
-	}
-
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(FluidStorageTileEntity.class);
 	}
 
 	@Override
@@ -174,11 +165,6 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		return isAllowed(id);
 	}
 
-	/**
-	 * @return
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Map<Integer, Map<String, Integer>> contents() throws Exception {
 		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
 		for (final FluidTank tank : fluidTanks.values()) {
@@ -227,10 +213,5 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		} else if (!fluidTanks.equals(other.fluidTanks))
 			return false;
 		return true;
-	}
-
-	@Override
-	public boolean equals(final IPeripheral other) {
-		return equals((Object) other);
 	}
 }

@@ -16,15 +16,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.RecipeStoragePeripheral;
 import anzac.peripherals.utils.Utils;
 import dan200.computercraft.api.filesystem.IWritableMount;
-import dan200.computercraft.api.peripheral.IPeripheral;
 
-@Peripheral(type = "RecipeStorage", events = { PeripheralEvent.recipe_changed })
 public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
+
+	public RecipeStorageTileEntity() throws Exception {
+		super(RecipeStoragePeripheral.class);
+	}
 
 	public InventoryCrafting craftMatrix = new InternalInventoryCrafting(3);
 	public InventoryCraftResult craftResult = new InventoryCraftResult();
@@ -33,16 +33,9 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		final ItemStack matchingRecipe = CraftingManager.getInstance().findMatchingRecipe(craftMatrix, worldObj);
 		craftResult.setInventorySlotContents(0, matchingRecipe);
 		final int uuid = Utils.getUUID(craftResult.getStackInSlot(0));
-		PeripheralEvent.recipe_changed.fire(computers, uuid);
+		queueEvent(PeripheralEvent.recipe_changed, uuid);
 	}
 
-	/**
-	 * Returns a list of the currently known recipes.
-	 * 
-	 * @return An array of all the stored recipe uuids.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Object[] getRecipes() throws Exception {
 		final List<String> recipes = new ArrayList<String>();
 		if (getMount() == null) {
@@ -52,20 +45,6 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		return recipes.toArray();
 	}
 
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(RecipeStorageTileEntity.class);
-	}
-
-	/**
-	 * Will return the definition for the specified recipe.
-	 * 
-	 * @param id
-	 *            The uuid for the recipe to get.
-	 * @return A table defining the recipe.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -86,15 +65,6 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		return table;
 	}
 
-	/**
-	 * Will remove the specified recipe from the internal HDD.
-	 * 
-	 * @param id
-	 *            The uuid of the recipe to remove.
-	 * @return {@code true} if the recipe was successfully removed.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public boolean removeRecipe(final int id) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -103,13 +73,6 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		return true;
 	}
 
-	/**
-	 * Will add the current recipe to the internal HDD.
-	 * 
-	 * @return {@code true} if the recipe was successfully added.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public boolean storeRecipe() throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -200,10 +163,5 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		} else if (!craftResult.equals(other.craftResult))
 			return false;
 		return true;
-	}
-
-	@Override
-	public boolean equals(final IPeripheral other) {
-		return equals((Object) other);
 	}
 }

@@ -9,12 +9,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
-import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.peripheral.BaseStoragePeripheral;
 import dan200.computercraft.api.filesystem.IWritableMount;
 
 public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 
-	protected static enum FilterMode {
+	public BaseStorageTileEntity(Class<? extends BaseStoragePeripheral> peripheralClass) throws Exception {
+		super(peripheralClass);
+	}
+
+	public static enum FilterMode {
 		WHITELIST, BLACKLIST, NONE;
 	}
 
@@ -115,42 +119,23 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		}
 	}
 
-	/**
-	 * @return
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Integer[] listFilter() throws Exception {
 		final Set<Integer> f = getFilter();
 		return f.toArray(new Integer[f.size()]);
 	}
 
-	/**
-	 * @param id
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public void removeFilter(final int id) throws Exception {
 		final Set<Integer> f = getFilter();
 		f.remove(id);
 		setFilter(f);
 	}
 
-	/**
-	 * @param id
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public void addFilter(final int id) throws Exception {
 		final Set<Integer> f = getFilter();
 		f.add(id);
 		setFilter(f);
 	}
 
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public FilterMode getFilterMode() {
 		if (getMount() != null && worldObj != null && !worldObj.isRemote) {
 			// read from disk
@@ -182,10 +167,6 @@ public abstract class BaseStorageTileEntity extends BasePeripheralTileEntity {
 		return filterMode;
 	}
 
-	/**
-	 * @param mode
-	 */
-	@PeripheralMethod
 	public void setFilterMode(final FilterMode mode) {
 		filterMode = mode;
 		if (getMount() != null && (getMount() instanceof IWritableMount) && worldObj != null && !worldObj.isRemote) {

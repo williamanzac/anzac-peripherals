@@ -1,7 +1,6 @@
 package anzac.peripherals.tiles;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,14 +13,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.ItemStoragePeripheral;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
-import dan200.computercraft.api.peripheral.IPeripheral;
 
-@Peripheral(type = "ItemStorage")
 public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
 
@@ -42,21 +37,11 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 	private boolean useOreDict = true;
 	private boolean ignoreMeta = true;
 
-	public ItemStorageTileEntity() {
-		super();
+	public ItemStorageTileEntity() throws Exception {
+		super(ItemStoragePeripheral.class);
 		discInv.addListner(new DiscListener());
 	}
 
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(ItemStorageTileEntity.class);
-	}
-
-	/**
-	 * @return
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Map<Integer, Integer> contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
 		for (int slot = 0; slot < getSizeInventory(); slot++) {
@@ -277,45 +262,18 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		return discInv.getHDDItem() != null && isConnected() && isAllowed(itemstack);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see anzac.peripherals.tiles.BaseStorageTileEntity#addFilter(int)
-	 */
-	@Override
-	@PeripheralMethod
-	public void addFilter(final int id) throws Exception {
-		super.addFilter(id);
-	}
-
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public boolean isUseOreDict() {
 		return useOreDict;
 	}
 
-	/**
-	 * @param useOreDict
-	 */
-	@PeripheralMethod
 	public void setUseOreDict(final boolean useOreDict) {
 		this.useOreDict = useOreDict;
 	}
 
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public boolean isIgnoreMeta() {
 		return ignoreMeta;
 	}
 
-	/**
-	 * @param ignoreMeta
-	 */
-	@PeripheralMethod
 	public void setIgnoreMeta(final boolean ignoreMeta) {
 		this.ignoreMeta = ignoreMeta;
 	}
@@ -360,10 +318,5 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		if (useOreDict != other.useOreDict)
 			return false;
 		return true;
-	}
-
-	@Override
-	public boolean equals(IPeripheral other) {
-		return equals((Object) other);
 	}
 }

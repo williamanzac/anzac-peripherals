@@ -15,16 +15,19 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.peripheral.BaseRouterPeripheral;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.gates.ActionManager;
 import buildcraft.api.gates.ITrigger;
 import buildcraft.api.gates.ITriggerParameter;
 import buildcraft.api.transport.IPipeTile;
-import dan200.computercraft.api.peripheral.IComputerAccess;
 
 public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
+
+	public BaseRouterTileEntity(final Class<? extends BaseRouterPeripheral> peripheralClass) throws Exception {
+		super(peripheralClass);
+	}
 
 	protected List<Trigger> triggers = new ArrayList<Trigger>();
 
@@ -96,12 +99,7 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 		}
 	}
 
-	/**
-	 * @param side
-	 * @return table
-	 */
 	@SuppressWarnings("deprecation")
-	@PeripheralMethod
 	public Map<String, Map<String, Object>> getAvailableTriggers(final ForgeDirection side) {
 		// AnzacPeripheralsCore.logger.info("getTriggers");
 		final Position p = new Position(xCoord, yCoord, zCoord, side);
@@ -136,13 +134,6 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 		return table;
 	}
 
-	/**
-	 * @param name
-	 * @param uuid
-	 * @param side
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public void addTrigger(final String name, final int uuid, final ForgeDirection side) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -158,13 +149,6 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 		triggers.add(trigger);
 	}
 
-	/**
-	 * @param name
-	 * @param uuid
-	 * @param side
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public void removeTrigger(final String name, final int uuid, final ForgeDirection side) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -195,13 +179,10 @@ public abstract class BaseRouterTileEntity extends BasePeripheralTileEntity {
 		for (final Trigger trigger : triggers) {
 			if (trigger != null) {
 				if (isTriggerActive(trigger)) {
-					for (final IComputerAccess computer : computers) {
-						if (trigger.getParameter() <= 0) {
-							computer.queueEvent(trigger.getUniqueTag(), new Object[] { computer.getAttachmentName() });
-						} else {
-							computer.queueEvent(trigger.getUniqueTag(), new Object[] { computer.getAttachmentName(),
-									trigger.getParameter() });
-						}
+					if (trigger.getParameter() <= 0) {
+						queueEvent(trigger.getUniqueTag());
+					} else {
+						queueEvent(trigger.getUniqueTag(), new Object[] { trigger.getParameter() });
 					}
 				}
 			}

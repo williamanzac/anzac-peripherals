@@ -1,62 +1,24 @@
 package anzac.peripherals.tiles;
 
 import java.util.Arrays;
-import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
-import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.RedstonePeripheral;
 import anzac.peripherals.utils.Position;
-import dan200.computercraft.api.peripheral.IComputerAccess;
-import dan200.computercraft.api.peripheral.IPeripheral;
 
-@Peripheral(type = "Redstone", hasGUI = false)
 public class RedstoneTileEntity extends BasePeripheralTileEntity {
+
+	public RedstoneTileEntity() throws Exception {
+		super(RedstonePeripheral.class);
+	}
 
 	private final int[] input = new int[6];
 	private int[] output = new int[6];
 	private final int[] bundledInput = new int[6];
 	private int[] bundledOutput = new int[6];
 
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(RedstoneTileEntity.class);
-	}
-
-	/**
-	 * @param side
-	 * @param on
-	 */
-	@PeripheralMethod
-	public void setOutput(final ForgeDirection side, final boolean on) {
-		setAnalogOutput(side, on ? 15 : 0);
-	}
-
-	/**
-	 * @param side
-	 * @return
-	 */
-	@PeripheralMethod
-	public boolean getOutput(final ForgeDirection side) {
-		return getAnalogInput(side) > 0;
-	}
-
-	/**
-	 * @param side
-	 * @return
-	 */
-	@PeripheralMethod
-	public boolean getInput(final ForgeDirection side) {
-		return getAnalogInput(side) > 0;
-	}
-
-	/**
-	 * @param side
-	 * @param value
-	 */
-	@PeripheralMethod
 	public void setBundledOutput(final ForgeDirection side, final int value) {
 		if (bundledOutput[side.ordinal()] != value) {
 			bundledOutput[side.ordinal()] = value;
@@ -64,39 +26,18 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 		}
 	}
 
-	/**
-	 * @param side
-	 * @return
-	 */
-	@PeripheralMethod
 	public int getBundledOutput(final ForgeDirection side) {
 		return bundledOutput[side.ordinal()];
 	}
 
-	/**
-	 * @param side
-	 * @return
-	 */
-	@PeripheralMethod
 	public int getBundledInput(final ForgeDirection side) {
 		return bundledInput[side.ordinal()];
 	}
 
-	/**
-	 * @param side
-	 * @param mask
-	 * @return
-	 */
-	@PeripheralMethod
 	public boolean testBundledInput(final ForgeDirection side, final int mask) {
 		return (input[side.ordinal()] & mask) == mask;
 	}
 
-	/**
-	 * @param side
-	 * @param value
-	 */
-	@PeripheralMethod
 	public void setAnalogOutput(final ForgeDirection side, final int value) {
 		if (output[side.ordinal()] != value) {
 			output[side.ordinal()] = value;
@@ -106,15 +47,6 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 			worldObj.notifyBlockOfNeighborChange(p.x, p.y, p.z, id);
 			worldObj.notifyBlocksOfNeighborChange(p.x, p.y, p.z, id, side.ordinal());
 		}
-	}
-
-	/**
-	 * @param side
-	 * @param value
-	 */
-	@PeripheralMethod
-	public void setAnalogueOutput(final ForgeDirection side, final int value) {
-		setAnalogOutput(side, value);
 	}
 
 	/**
@@ -131,27 +63,8 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 	 * @return
 	 */
 	@PeripheralMethod
-	public int getAnalogueOutput(final ForgeDirection side) {
-		return getAnalogOutput(side);
-	}
-
-	/**
-	 * @param side
-	 * @return
-	 */
-	@PeripheralMethod
 	public int getAnalogInput(final ForgeDirection side) {
 		return input[side.ordinal()];
-	}
-
-	/**
-	 * @param side
-	 * @param value
-	 * @return
-	 */
-	@PeripheralMethod
-	public int getAnalogueInput(final ForgeDirection side, final int value) {
-		return getAnalogInput(side);
 	}
 
 	// used by PeripheralBlock
@@ -163,9 +76,7 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 	public void setInput(final int side, final int inputStrength) {
 		if (input[side] != inputStrength) {
 			input[side] = inputStrength;
-			for (final IComputerAccess computer : computers) {
-				computer.queueEvent("redstone", new Object[] { computer.getAttachmentName(), side });
-			}
+			queueEvent("redstone", side);
 		}
 	}
 
@@ -173,9 +84,7 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 	public void setBundledInput(final int side, final int combination) {
 		if (bundledInput[side] != combination) {
 			bundledInput[side] = combination;
-			for (final IComputerAccess computer : computers) {
-				computer.queueEvent("redstone", new Object[] { computer.getAttachmentName(), side });
-			}
+			queueEvent("redstone", side);
 		}
 	}
 
@@ -224,11 +133,6 @@ public class RedstoneTileEntity extends BasePeripheralTileEntity {
 		if (!Arrays.equals(output, other.output))
 			return false;
 		return true;
-	}
-
-	@Override
-	public boolean equals(final IPeripheral other) {
-		return equals((Object) other);
 	}
 
 	@Override

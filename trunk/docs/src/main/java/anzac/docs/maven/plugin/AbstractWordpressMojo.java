@@ -1,6 +1,5 @@
 package anzac.docs.maven.plugin;
 
-import java.io.File;
 import java.net.MalformedURLException;
 
 import net.bican.wordpress.Wordpress;
@@ -14,8 +13,6 @@ import org.apache.maven.settings.Settings;
 
 public abstract class AbstractWordpressMojo extends AbstractMojo {
 
-	@Parameter
-	protected File docSource;
 	@Parameter
 	protected String serverId;
 	@Parameter(readonly = true, defaultValue = "${settings}")
@@ -38,9 +35,6 @@ public abstract class AbstractWordpressMojo extends AbstractMojo {
 		if (skip) {
 			getLog().info("Skipping");
 			return;
-		}
-		if (!docSource.isDirectory()) {
-			throw new MojoFailureException("docSource is not a valid directory.");
 		}
 		final Wordpress wordpress;
 		try {

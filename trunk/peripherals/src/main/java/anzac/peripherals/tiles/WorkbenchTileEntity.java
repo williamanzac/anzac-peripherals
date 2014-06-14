@@ -19,16 +19,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.WorkbenchPeripheral;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
-import dan200.computercraft.api.peripheral.IPeripheral;
 
-@Peripheral(type = "Workbench", events = { PeripheralEvent.crafted })
 public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
+
+	public WorkbenchTileEntity() throws Exception {
+		super(WorkbenchPeripheral.class);
+	}
 
 	private static final String INVENTORY = "inventory";
 	private static final String SLOT = "Slot";
@@ -41,25 +41,11 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 	private SlotCrafting craftSlot;
 	private InternalPlayer internalPlayer;
 
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(WorkbenchTileEntity.class);
-	}
-
 	public void updateCraftingRecipe() {
 		final ItemStack matchingRecipe = CraftingManager.getInstance().findMatchingRecipe(craftMatrix, worldObj);
 		craftResult.setInventorySlotContents(0, matchingRecipe);
 	}
 
-	/**
-	 * Will set the current recipe for this peripheral.
-	 * 
-	 * @param recipe
-	 *            a table containing the definition of the recipe. The recipe can also be obtained from a connected
-	 *            {@link RecipeStorageTileEntity} using the {@link RecipeStorageTileEntity#loadRecipe(int)} method.
-	 * @return {@code true} if the recipe was successfully defined.
-	 */
-	@PeripheralMethod
 	public boolean setRecipe(final Map<Double, Double> recipe) {
 		craftMatrix.clear();
 		for (final Entry<Double, Double> entry : recipe.entrySet()) {
@@ -70,21 +56,10 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		return craftResult.getStackInSlot(0) != null;
 	}
 
-	/**
-	 * Clears the current recipe.
-	 */
-	@PeripheralMethod
 	public void clear() {
 		craftMatrix.clear();
 	}
 
-	/**
-	 * Will return a table with the uuid and count of each item in the internal cache.
-	 * 
-	 * @return A table of the internal contents.
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Map<Integer, Integer> contents() throws Exception {
 		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
 		for (final ItemStack stackInSlot : inventory) {
@@ -103,14 +78,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		return table;
 	}
 
-	/**
-	 * Will try and craft one unit of the specified recipe. The {@link PeripheralEvent#crafted} event will be fired if
-	 * successful.
-	 * 
-	 * @throws Exception
-	 */
-	@PeripheralMethod
-	public void craft() throws Exception {
+	public ItemStack craft() throws Exception {
 		if (internalPlayer == null) {
 			internalPlayer = new InternalPlayer(this);
 			craftSlot = new SlotCrafting(internalPlayer, craftMatrix, craftResult, 0, 0, 0);
@@ -165,7 +133,7 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 				throw new Exception("Not enough space left in output: " + itemStack.stackSize);
 			}
 		}
-		PeripheralEvent.crafted.fire(computers, Utils.getUUID(notifyStack), notifyStack.stackSize);
+		return notifyStack;
 	}
 
 	private boolean hasSpace(final ItemStack itemStack) {
@@ -422,10 +390,5 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		if (!Arrays.equals(inventory, other.inventory))
 			return false;
 		return true;
-	}
-
-	@Override
-	public boolean equals(final IPeripheral other) {
-		return equals((Object) other);
 	}
 }

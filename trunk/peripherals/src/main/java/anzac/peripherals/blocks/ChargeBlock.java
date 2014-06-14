@@ -14,11 +14,12 @@ import net.minecraft.world.World;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Blocks;
 import anzac.peripherals.items.ChargeItem;
+import anzac.peripherals.peripheral.ChargeStationPeripheral;
 import anzac.peripherals.tiles.ChargeStationTileEntity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Blocks(itemType = ChargeItem.class, key = "block.anzac.chargestation", tool = "pickaxe", toolLevel = 1, tileType = ChargeStationTileEntity.class)
+@Blocks(itemType = ChargeItem.class, key = "block.anzac.chargestation", tool = "pickaxe", toolLevel = 1, tileType = ChargeStationTileEntity.class, peripheralType = ChargeStationPeripheral.class)
 public class ChargeBlock extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
@@ -84,7 +85,12 @@ public class ChargeBlock extends BlockContainer {
 
 	@Override
 	public TileEntity createTileEntity(final World world, final int metadata) {
-		return new ChargeStationTileEntity(metadata);
+		try {
+			return new ChargeStationTileEntity(metadata);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override

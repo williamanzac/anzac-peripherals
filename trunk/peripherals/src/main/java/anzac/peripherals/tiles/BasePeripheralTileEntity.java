@@ -1,73 +1,40 @@
 package anzac.peripherals.tiles;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
-import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.network.PacketHandler;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.BasePeripheral;
 import dan200.computercraft.api.filesystem.IMount;
-import dan200.computercraft.api.lua.ILuaContext;
-import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 
-public abstract class BasePeripheralTileEntity extends TileEntity implements IPeripheral {
-
-	protected final Set<IComputerAccess> computers = new HashSet<IComputerAccess>();
+public abstract class BasePeripheralTileEntity extends TileEntity {
 
 	public SimpleDiscInventory discInv = new SimpleDiscInventory(this, true);
 
-	@Override
-	public String[] getMethodNames() {
-		return methodNames().toArray(new String[0]);
-	}
+	private final BasePeripheral peripheral;
 
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(BasePeripheralTileEntity.class);
-	}
+	// private final Class<P> peripheralClass;
 
-	@Override
-	public final String getType() {
-		final Peripheral annotation = getClass().getAnnotation(Peripheral.class);
-		final String type = annotation.type();
-		return type;
-	}
-
-	@Override
-	public Object[] callMethod(final IComputerAccess computer, final ILuaContext context, final int method,
-			final Object[] arguments) throws Exception {
-		final String methodName = getMethodNames()[method];
-
-		return ClassUtils.callPeripheralMethod(this, methodName, arguments);
-	}
-
-	@Override
-	public void attach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), getLabel(), this);
-		computers.add(computer);
-		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-	}
-
-	@Override
-	public void detach(final IComputerAccess computer) {
-		AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), getLabel());
-		computers.remove(computer);
-		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-	}
-
-	protected boolean isConnected() {
-		return !computers.isEmpty();
+	public BasePeripheralTileEntity(final Class<? extends BasePeripheral> peripheralClass) throws Exception {
+		peripheral = peripheralClass.getConstructor(getClass()).newInstance(this);
 	}
 
 	@Override
 	public Packet getDescriptionPacket() {
 		return PacketHandler.createTileEntityPacket("anzac", PacketHandler.ID_TILE_ENTITY, this);
+	}
+
+	protected boolean isConnected() {
+		return peripheral.isConnected();
+	}
+
+	protected void queueEvent(final String event, final Object... parameters) {
+		peripheral.queueEvent(event, parameters);
+	}
+
+	protected void queueEvent(final PeripheralEvent event, final Object... parameters) {
+		peripheral.queueEvent(event, parameters);
 	}
 
 	@Override
@@ -94,31 +61,12 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		return discInv.hasLabel();
 	}
 
-	/**
-	 * Get the label for this peripheral
-	 * 
-	 * @return the label
-	 */
-	@PeripheralMethod
 	public String getLabel() {
 		return discInv.getLabel();
 	}
 
-	/**
-	 * Sets the label for this peripheral
-	 * 
-	 * @param label
-	 *            The label to use
-	 */
-	@PeripheralMethod
 	public void setLabel(final String label) {
-		for (final IComputerAccess computer : computers) {
-			AnzacPeripheralsCore.removePeripheralLabel(computer.getID(), getLabel());
-		}
 		discInv.setLabel(label);
-		for (final IComputerAccess computer : computers) {
-			AnzacPeripheralsCore.addPeripheralLabel(computer.getID(), label, this);
-		}
 	}
 
 	protected IMount getMount() {
@@ -148,5 +96,9 @@ public abstract class BasePeripheralTileEntity extends TileEntity implements IPe
 		} else if (!discInv.equals(other.discInv))
 			return false;
 		return true;
+	}
+
+	public IPeripheral getPeripheral() {
+		return peripheral;
 	}
 }

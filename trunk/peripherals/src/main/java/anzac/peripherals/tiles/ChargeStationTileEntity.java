@@ -8,8 +8,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.peripheral.ChargeStationPeripheral;
 import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Position;
 import buildcraft.api.power.IPowerReceptor;
@@ -17,14 +16,12 @@ import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
 import cofh.api.energy.IEnergyHandler;
-import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
 /**
  * @author Tony
  * 
  */
-@Peripheral(type = "ChargeStation")
 public class ChargeStationTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler {
 
 	private static final int MJ = AnzacPeripheralsCore.mjMultiplier;
@@ -32,18 +29,14 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 	private PowerHandler handler = new PowerHandler(this, Type.MACHINE);
 	private int type;
 
-	public ChargeStationTileEntity() {
+	public ChargeStationTileEntity() throws Exception {
+		super(ChargeStationPeripheral.class);
 	}
 
-	public ChargeStationTileEntity(final int metadata) {
+	public ChargeStationTileEntity(final int metadata) throws Exception {
 		this();
 		type = metadata;
 		configure();
-	}
-
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(ChargeStationTileEntity.class);
 	}
 
 	private void configure() {
@@ -53,10 +46,6 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 		handler.configurePowerPerdition(0, 0);
 	}
 
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public float getStoredEnergy() {
 		return handler.getEnergyStored() / MJ;
 	}
@@ -65,10 +54,6 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 		handler.setEnergy(stored * MJ);
 	}
 
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public float getMaxEnergy() {
 		return handler.getMaxEnergyStored() / MJ;
 	}
@@ -164,11 +149,6 @@ public class ChargeStationTileEntity extends BasePeripheralTileEntity implements
 
 		handler.writeToNBT(par1nbtTagCompound);
 		par1nbtTagCompound.setInteger("type", type);
-	}
-
-	@Override
-	public boolean equals(final IPeripheral other) {
-		return equals((Object) other);
 	}
 
 	@Override

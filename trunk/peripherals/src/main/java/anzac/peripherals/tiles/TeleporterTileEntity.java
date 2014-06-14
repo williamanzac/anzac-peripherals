@@ -15,8 +15,7 @@ import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.peripheral.TeleporterPeripheral;
 import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Position;
 import buildcraft.api.power.IPowerReceptor;
@@ -24,14 +23,12 @@ import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
 import cofh.api.energy.IEnergyHandler;
-import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
 /**
  * @author Tony
  * 
  */
-@Peripheral(type = "Teleporter")
 public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler {
 
 	public static class Target {
@@ -97,18 +94,14 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 	private int type;
 	private final List<Target> targets = new ArrayList<Target>();
 
-	public TeleporterTileEntity() {
+	public TeleporterTileEntity() throws Exception {
+		super(TeleporterPeripheral.class);
 	}
 
-	public TeleporterTileEntity(final int metadata) {
+	public TeleporterTileEntity(final int metadata) throws Exception {
 		this();
 		type = metadata;
 		configure();
-	}
-
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(TeleporterTileEntity.class);
 	}
 
 	private int maxTargets() {
@@ -130,10 +123,6 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		handler.configurePowerPerdition(0, 0);
 	}
 
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public float getStoredEnergy() {
 		return handler.getEnergyStored() / MJ;
 	}
@@ -142,18 +131,10 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		handler.setEnergy(stored * MJ);
 	}
 
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public float getMaxEnergy() {
 		return handler.getMaxEnergyStored() / MJ;
 	}
 
-	/**
-	 * @return
-	 */
-	@PeripheralMethod
 	public Map<Integer, Map<String, Integer>> getTargets() {
 		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
@@ -189,11 +170,6 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		return dist * samed * MJ;
 	}
 
-	/**
-	 * @param index
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public void teleport(final int index) throws Exception {
 		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 		final Target target = targets.get(index);
@@ -355,11 +331,6 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		if (type != other.type)
 			return false;
 		return true;
-	}
-
-	@Override
-	public boolean equals(final IPeripheral other) {
-		return equals((Object) other);
 	}
 
 	@Override

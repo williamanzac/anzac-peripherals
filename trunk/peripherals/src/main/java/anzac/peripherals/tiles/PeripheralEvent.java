@@ -54,7 +54,7 @@ public enum PeripheralEvent {
 		for (final IComputerAccess computer : computers) {
 			final Object[] clone = ArrayUtils.clone(values);
 			ArrayUtils.add(clone, 0, computer.getAttachmentName());
-			computer.queueEvent("crafted", clone);
+			computer.queueEvent(this.name(), clone);
 		}
 	}
 }

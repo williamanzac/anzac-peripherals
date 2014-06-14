@@ -13,22 +13,18 @@ import java.util.Map.Entry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
-import anzac.peripherals.annotations.Peripheral;
-import anzac.peripherals.annotations.PeripheralMethod;
-import anzac.peripherals.utils.ClassUtils;
+import anzac.peripherals.peripheral.CraftingRouterPeripheral;
 import anzac.peripherals.utils.Utils;
 import dan200.computercraft.api.filesystem.IWritableMount;
 
-@Peripheral(type = "CraftingRouter")
 public class CraftingRouterTileEntity extends ItemRouterTileEntity {
+
+	public CraftingRouterTileEntity() throws Exception {
+		super(CraftingRouterPeripheral.class);
+	}
 
 	public SimpleInventory craftMatrix = new SimpleInventory(9);
 	public SimpleInventory craftResult = new SimpleInventory(1);
-
-	@Override
-	protected List<String> methodNames() {
-		return ClassUtils.getMethodNames(CraftingRouterTileEntity.class);
-	}
 
 	@Override
 	public void readFromNBT(final NBTTagCompound tagCompound) {
@@ -40,11 +36,6 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		super.writeToNBT(tagCompound);
 	}
 
-	/**
-	 * @return
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Object[] getRecipes() throws Exception {
 		final List<String> recipes = new ArrayList<String>();
 		if (getMount() == null) {
@@ -54,12 +45,6 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		return recipes.toArray();
 	}
 
-	/**
-	 * @param id
-	 * @return
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -80,12 +65,6 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		return table;
 	}
 
-	/**
-	 * @param id
-	 * @return
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public boolean removeRecipe(final int id) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -94,11 +73,6 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		return true;
 	}
 
-	/**
-	 * @return
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public boolean addRecipe() throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
@@ -121,23 +95,10 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		}
 	}
 
-	/**
-	 * @param uuid
-	 * @param side
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public void craft(final int uuid, final ForgeDirection side) throws Exception {
 		craft(uuid, side, side.getOpposite());
 	}
 
-	/**
-	 * @param uuid
-	 * @param side
-	 * @param inputDir
-	 * @throws Exception
-	 */
-	@PeripheralMethod
 	public void craft(final int uuid, final ForgeDirection side, final ForgeDirection inputDir) throws Exception {
 		final Map<Integer, Integer> recipe = loadRecipe(uuid);
 		final ItemStack target = Utils.getItemStack(uuid);

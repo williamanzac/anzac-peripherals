@@ -40,7 +40,7 @@ public class AnnounceToWordpressMojo extends AbstractWordpressMojo {
 	private int authorId;
 
 	@Parameter(required = false, defaultValue = "releasenotes.xml")
-	private String releaseNotes;
+	private File releaseNotes;
 
 	@Parameter(required = false, defaultValue = "true")
 	private boolean publish;
@@ -54,13 +54,12 @@ public class AnnounceToWordpressMojo extends AbstractWordpressMojo {
 		final String name = project.getName();
 		final String version = project.getVersion();
 
-		final File releaseNotesFile = new File(docSource, releaseNotes);
-		if (!releaseNotesFile.isFile()) {
+		if (!releaseNotes.isFile()) {
 			throw new MojoFailureException(releaseNotes + " is not a valid file.");
 		}
 
 		try {
-			final String description = readFileToString(releaseNotesFile);
+			final String description = readFileToString(releaseNotes);
 			final Page page = new Page();
 			page.setDescription(description);
 			page.setTitle(format("{0} {1} released", name, version));

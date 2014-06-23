@@ -9,6 +9,7 @@ import anzac.peripherals.peripheral.FluidRouterPeripheral;
 import anzac.peripherals.peripheral.FluidStoragePeripheral;
 import anzac.peripherals.peripheral.ItemRouterPeripheral;
 import anzac.peripherals.peripheral.ItemStoragePeripheral;
+import anzac.peripherals.peripheral.NotePeripheral;
 import anzac.peripherals.peripheral.RecipeStoragePeripheral;
 import anzac.peripherals.peripheral.RedstonePeripheral;
 import anzac.peripherals.peripheral.WorkbenchPeripheral;
@@ -17,6 +18,7 @@ import anzac.peripherals.tiles.FluidRouterTileEntity;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
 import anzac.peripherals.tiles.ItemRouterTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
+import anzac.peripherals.tiles.NoteTileEntity;
 import anzac.peripherals.tiles.PeripheralEvent;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
 import anzac.peripherals.tiles.RedstoneTileEntity;
@@ -63,6 +65,8 @@ public enum BlockType {
 	/**  */
 	CRAFTING_ROUTER(7, "item.anzac.craftingrouter", "Crafting Router", CraftingRouterTileEntity.class,
 			CraftingRouterPeripheral.class),
+	/**  */
+	NOTE_BLOCK(8, "item.anzac.noteblock", "Note Block", NoteTileEntity.class, NotePeripheral.class),
 
 	;
 	private final String key;

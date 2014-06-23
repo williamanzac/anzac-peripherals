@@ -8,7 +8,7 @@ import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.tiles.RedstoneTileEntity;
 import anzac.peripherals.utils.ClassUtils;
 
-@Peripheral(type = "Redstone", hasGUI = false)
+@Peripheral(type = "Redstone")
 public class RedstonePeripheral extends BasePeripheral {
 
 	public RedstonePeripheral(RedstoneTileEntity entity) {

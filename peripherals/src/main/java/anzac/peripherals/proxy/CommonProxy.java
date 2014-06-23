@@ -13,18 +13,35 @@ import static anzac.peripherals.AnzacPeripheralsCore.peripheralBlockId;
 import static anzac.peripherals.AnzacPeripheralsCore.teleporterBlock;
 import static anzac.peripherals.AnzacPeripheralsCore.teleporterBlockId;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.EnumToolMaterial;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemFlintAndSteel;
+import net.minecraft.item.ItemHoe;
+import net.minecraft.item.ItemPickaxe;
+import net.minecraft.item.ItemShears;
+import net.minecraft.item.ItemSpade;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.item.ItemTool;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.packet.Packet;
 import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ForgeSubscribe;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 import anzac.peripherals.AnzacPeripheralsCore;
@@ -42,18 +59,16 @@ import anzac.peripherals.providers.AnzacBundledRedstoneProvider;
 import anzac.peripherals.providers.AnzacPeripheralProvider;
 import anzac.peripherals.render.RenderComponentItem;
 import anzac.peripherals.render.RenderHDD;
-import anzac.peripherals.tiles.ChargeStationTileEntity;
-import anzac.peripherals.tiles.CraftingRouterTileEntity;
-import anzac.peripherals.tiles.FluidRouterTileEntity;
-import anzac.peripherals.tiles.FluidStorageTileEntity;
-import anzac.peripherals.tiles.ItemRouterTileEntity;
-import anzac.peripherals.tiles.ItemStorageTileEntity;
-import anzac.peripherals.tiles.RecipeStorageTileEntity;
-import anzac.peripherals.tiles.RedstoneTileEntity;
-import anzac.peripherals.tiles.TeleporterTileEntity;
-import anzac.peripherals.tiles.WorkbenchTileEntity;
+import anzac.peripherals.upgrade.DropConsumer;
+import anzac.peripherals.upgrade.FlintUpgrade;
+import anzac.peripherals.upgrade.GenericToolUpgrade;
+import anzac.peripherals.upgrade.HoeUpgrade;
+import anzac.peripherals.upgrade.ShearingUpgrade;
+import anzac.peripherals.upgrade.SwordUpgrade;
+import anzac.peripherals.upgrade.WrenchUpgrade;
 import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Utils;
+import buildcraft.api.tools.IToolWrench;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
@@ -61,6 +76,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import dan200.computercraft.api.ComputerCraftAPI;
 
 public class CommonProxy {
+	private final static Map<Entity, DropConsumer> dropConsumers = new WeakHashMap<Entity, DropConsumer>();
 
 	public void preInit() throws Exception {
 		registerItems();
@@ -98,26 +114,60 @@ public class CommonProxy {
 	private void registerTileEntities() {
 		NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
 
-		GameRegistry.registerTileEntity(WorkbenchTileEntity.class, "anzac.peripherals.tiles.WorkbenchTitleEntity");
-		GameRegistry.registerTileEntity(RecipeStorageTileEntity.class,
-				"anzac.peripherals.tiles.RecipeStorageTitleEntity");
-		GameRegistry.registerTileEntity(ItemRouterTileEntity.class, "anzac.peripherals.tiles.ItemRouterTileEntity");
-		GameRegistry.registerTileEntity(FluidRouterTileEntity.class, "anzac.peripherals.tiles.FluidRouterTileEntity");
-		GameRegistry.registerTileEntity(ItemStorageTileEntity.class, "anzac.peripherals.tiles.ItemStorageTileEntity");
-		GameRegistry.registerTileEntity(FluidStorageTileEntity.class, "anzac.peripherals.tiles.FluidStorageTileEntity");
-		GameRegistry.registerTileEntity(RedstoneTileEntity.class, "anzac.peripherals.tiles.ReadstoneTileEntity");
-		GameRegistry.registerTileEntity(CraftingRouterTileEntity.class,
-				"anzac.peripherals.tiles.CraftingRouterTileEntity");
-		GameRegistry.registerTileEntity(ChargeStationTileEntity.class,
-				"anzac.peripherals.tiles.ChargeStationTileEntity");
-		GameRegistry.registerTileEntity(TeleporterTileEntity.class, "anzac.peripherals.tiles.TeleporterTileEntity");
+		BlockFactory.registerTileEntities(PeripheralBlock.class);
+		BlockFactory.registerTileEntities(ChargeBlock.class);
+		BlockFactory.registerTileEntities(TeleporterBlock.class);
 
 		ComputerCraftAPI.registerPeripheralProvider(new AnzacPeripheralProvider());
 		ComputerCraftAPI.registerBundledRedstoneProvider(new AnzacBundledRedstoneProvider());
-		// ComputerCraftAPI.registerTurtleUpgrade(new BucketUpgrade());
+		registerTurtleUpgrades();
 
 		MinecraftForgeClient.registerItemRenderer(AnzacPeripheralsCore.component.itemID, RenderComponentItem.instance);
 		MinecraftForgeClient.registerItemRenderer(AnzacPeripheralsCore.hdd.itemID, RenderHDD.instance);
+	}
+
+	private void registerTurtleUpgrades() {
+		// ComputerCraftAPI.registerTurtleUpgrade(new BucketUpgrade());
+		for (final Item item : Item.itemsList) {
+			if (item instanceof ItemShears) {
+				ComputerCraftAPI.registerTurtleUpgrade(new ShearingUpgrade((ItemShears) item, Utils.nextUpgradeId()));
+			}
+			if (item instanceof ItemSword) {
+				if (!((ItemSword) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
+					ComputerCraftAPI.registerTurtleUpgrade(new SwordUpgrade((ItemSword) item, Utils.nextUpgradeId()));
+				}
+			}
+			if (item instanceof ItemAxe || ClassUtils.instanceOf(item, "cofh.item.ItemAxeAdv")) {
+				if (!((ItemTool) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
+					ComputerCraftAPI.registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, Utils
+							.nextUpgradeId(), "Felling"));
+				}
+			}
+			if (item instanceof ItemPickaxe || ClassUtils.instanceOf(item, "cofh.item.ItemPickaxeAdv")) {
+				if (!((ItemTool) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
+					ComputerCraftAPI.registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, Utils
+							.nextUpgradeId(), "Mining"));
+				}
+			}
+			if (item instanceof ItemSpade || ClassUtils.instanceOf(item, "cofh.item.ItemShovelAdv")) {
+				if (!((ItemTool) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
+					ComputerCraftAPI.registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, Utils
+							.nextUpgradeId(), "Digging"));
+				}
+			}
+			if (item instanceof ItemHoe) {
+				if (!((ItemHoe) item).getMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
+					ComputerCraftAPI.registerTurtleUpgrade(new HoeUpgrade((ItemHoe) item, Utils.nextUpgradeId()));
+				}
+			}
+			if (item instanceof IToolWrench) {
+				ComputerCraftAPI.registerTurtleUpgrade(new WrenchUpgrade((IToolWrench) item, Utils.nextUpgradeId()));
+			}
+			if (item instanceof ItemFlintAndSteel) {
+				ComputerCraftAPI
+						.registerTurtleUpgrade(new FlintUpgrade((ItemFlintAndSteel) item, Utils.nextUpgradeId()));
+			}
+		}
 	}
 
 	private void registerRecpies() {
@@ -142,6 +192,7 @@ public class CommonProxy {
 		final ItemStack redstonePeripheralStack = new ItemStack(peripheralBlockId, 1,
 				BlockType.REDSTONE_CONTROL.getMeta());
 		final ItemStack craftingRouterStack = new ItemStack(peripheralBlockId, 1, BlockType.CRAFTING_ROUTER.getMeta());
+		final ItemStack noteBlockStack = new ItemStack(peripheralBlockId, 1, BlockType.NOTE_BLOCK.getMeta());
 
 		final ItemStack chargeIronStack = new ItemStack(chargeBlockId, 1, ItemType.CHARGE_IRON.getMeta());
 		final ItemStack chargeGoldStack = new ItemStack(chargeBlockId, 1, ItemType.CHARGE_GOLD.getMeta());
@@ -186,6 +237,9 @@ public class CommonProxy {
 		addShapelessRecipe(fluidRouterStack, fluidPipeIron, advancedFrameStack, fluidPipeWood, driveStack);
 		addShapedRecipe(craftingRouterStack, "w", "p", "r", 'w', Block.workbench, 'p', basicFrameStack, 'r',
 				itemRouterStack);
+
+		addShapedRecipe(noteBlockStack, "wns", "nbn", "gna", 'n', Block.music, 'w', "plankWood", 's', "stone", 'b',
+				basicFrameStack, 'g', Block.glass, 'a', Block.sand);
 
 		addShapedRecipe(chargeIronStack, "i i", " f ", "i i", 'i', "ingotIron", 'f', redstonePeripheralStack);
 		addShapedRecipe(chargeGoldStack, "g g", " f ", "g g", 'f', chargeIronStack, 'g', "ingotGold");
@@ -291,5 +345,63 @@ public class CommonProxy {
 	}
 
 	private void registerForgeHandlers() {
+		final ForgeHandlers handlers = new ForgeHandlers();
+		MinecraftForge.EVENT_BUS.register(handlers);
+	}
+
+	public static void setEntityDropConsumer(final Entity entity, final DropConsumer consumer) {
+		if (!dropConsumers.containsKey(entity)) {
+			final boolean captured = entity.captureDrops;
+
+			if (!captured) {
+				entity.captureDrops = true;
+
+				final ArrayList<EntityItem> items = entity.capturedDrops;
+
+				if ((items == null) || (items.size() == 0)) {
+					dropConsumers.put(entity, consumer);
+				}
+			}
+		}
+	}
+
+	public static void clearEntityDropConsumer(final Entity entity) {
+		if (dropConsumers.containsKey(entity)) {
+			final boolean captured = entity.captureDrops;
+
+			if (captured) {
+				entity.captureDrops = false;
+
+				final ArrayList<EntityItem> items = entity.capturedDrops;
+
+				if (items != null) {
+					dispatchEntityDrops(entity, items);
+					items.clear();
+				}
+			}
+			dropConsumers.remove(entity);
+		}
+	}
+
+	private static void dispatchEntityDrops(final Entity entity, final ArrayList<EntityItem> drops) {
+		final DropConsumer consumer = dropConsumers.get(entity);
+		if (consumer != null) {
+			final Iterator<EntityItem> it = drops.iterator();
+			while (it.hasNext()) {
+				final EntityItem entityItem = it.next();
+				consumer.consumeDrop(entity, entityItem.getEntityItem());
+			}
+			drops.clear();
+		}
+	}
+
+	public class ForgeHandlers {
+		private ForgeHandlers() {
+		}
+
+		@ForgeSubscribe
+		public void onEntityLivingDrops(final LivingDropsEvent event) {
+			dispatchEntityDrops(event.entity, event.drops);
+		}
 	}
 }

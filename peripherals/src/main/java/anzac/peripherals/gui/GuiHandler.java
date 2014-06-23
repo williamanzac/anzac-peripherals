@@ -20,6 +20,8 @@ public class GuiHandler implements IGuiHandler {
 			final Class<?> containerClass = Class.forName("anzac.peripherals.inventory." + containerClassName);
 			final Constructor<?> constructor = containerClass.getConstructor(InventoryPlayer.class, tileClass);
 			return constructor.newInstance(player.inventory, tileEntity);
+		} catch (final ClassNotFoundException e) {
+			// ignore
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -36,6 +38,8 @@ public class GuiHandler implements IGuiHandler {
 			final Class<?> containerClass = Class.forName("anzac.peripherals.gui." + containerClassName);
 			final Constructor<?> constructor = containerClass.getConstructor(InventoryPlayer.class, tileClass);
 			return constructor.newInstance(player.inventory, tileEntity);
+		} catch (final ClassNotFoundException e) {
+			// ignore
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}

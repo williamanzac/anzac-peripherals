@@ -65,4 +65,20 @@ public class BlockFactory {
 		}
 		return null;
 	}
+
+	public static <B extends Block> void registerTileEntities(final Class<B> blockClass) {
+		if (blockClass.isAnnotationPresent(Blocks.class)) {
+			final Blocks blocks = blockClass.getAnnotation(Blocks.class);
+			if (blocks.value() == null || blocks.value().length == 0) {
+				final Class<? extends TileEntity> tileType = blocks.tileType();
+				GameRegistry.registerTileEntity(tileType, tileType.getCanonicalName());
+			} else {
+				final BlockType[] blockTypes = blocks.value();
+				for (final BlockType blockType : blockTypes) {
+					final Class<? extends TileEntity> tileType = blockType.getTileType();
+					GameRegistry.registerTileEntity(tileType, tileType.getCanonicalName());
+				}
+			}
+		}
+	}
 }

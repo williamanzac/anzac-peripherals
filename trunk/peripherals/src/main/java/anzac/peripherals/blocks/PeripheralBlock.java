@@ -25,7 +25,6 @@ import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Blocks;
-import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.items.PeripheralItem;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
@@ -37,7 +36,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 @Blocks(itemType = PeripheralItem.class, key = "block.anzac.peripheral", tool = "pickaxe", value = {
 		BlockType.WORKBENCH, BlockType.RECIPE_STORAGE, BlockType.ITEM_ROUTER, BlockType.FLUID_ROUTER,
-		BlockType.ITEM_STORAGE, BlockType.FLUID_STORAGE, BlockType.REDSTONE_CONTROL, BlockType.CRAFTING_ROUTER, })
+		BlockType.ITEM_STORAGE, BlockType.FLUID_STORAGE, BlockType.REDSTONE_CONTROL, BlockType.CRAFTING_ROUTER,
+		BlockType.NOTE_BLOCK })
 public class PeripheralBlock extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
@@ -58,6 +58,8 @@ public class PeripheralBlock extends BlockContainer {
 	private Icon genericSide;
 	@SideOnly(Side.CLIENT)
 	private Icon redstoneSide;
+	@SideOnly(Side.CLIENT)
+	private Icon noteSide;
 
 	public PeripheralBlock(final int blockId) {
 		super(blockId, Material.rock);
@@ -122,6 +124,8 @@ public class PeripheralBlock extends BlockContainer {
 			default:
 				return routerIconSide;
 			}
+		case 8: // note
+			return noteSide;
 		}
 		return genericSide;
 	}
@@ -139,6 +143,7 @@ public class PeripheralBlock extends BlockContainer {
 		fluidStorageSide = par1IconRegister.registerIcon("anzac:fluid_storage_side");
 		genericSide = par1IconRegister.registerIcon("anzac:generic_side");
 		redstoneSide = par1IconRegister.registerIcon("anzac:redstone_side");
+		noteSide = par1IconRegister.registerIcon("anzac:note_side");
 	}
 
 	@Override
@@ -158,11 +163,6 @@ public class PeripheralBlock extends BlockContainer {
 			final IInventory inventory = (IInventory) tileEntity;
 			if (handleItems(player, inventory)) {
 				return true;
-			}
-		}
-		if (tileEntity.getClass().isAnnotationPresent(Peripheral.class)) {
-			if (!tileEntity.getClass().getAnnotation(Peripheral.class).hasGUI()) {
-				return false;
 			}
 		}
 		player.openGui(AnzacPeripheralsCore.instance, 0, world, x, y, z);

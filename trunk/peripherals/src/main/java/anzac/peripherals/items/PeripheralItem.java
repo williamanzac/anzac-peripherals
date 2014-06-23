@@ -6,7 +6,7 @@ import anzac.peripherals.annotations.Items;
 
 @Items(key = "item.anzac.peripheral", value = { ItemType.WORKBENCH, ItemType.RECIPE_STORAGE, ItemType.ITEM_ROUTER,
 		ItemType.FLUID_ROUTER, ItemType.ITEM_STORAGE, ItemType.FLUID_STORAGE, ItemType.REDSTONE_CONTROL,
-		ItemType.CRAFTING_ROUTER, })
+		ItemType.CRAFTING_ROUTER, ItemType.NOTE_BLOCK })
 public class PeripheralItem extends ItemBlock {
 
 	public PeripheralItem(final int par1) {

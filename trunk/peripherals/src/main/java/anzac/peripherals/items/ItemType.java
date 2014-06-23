@@ -46,6 +46,8 @@ public enum ItemType {
 	/**  */
 	CRAFTING_ROUTER(7, "item.anzac.craftingrouter", "Crafting Router", ""),
 	/**  */
+	NOTE_BLOCK(8, "item.anzac.noteblock", "Computerized Note Block", ""),
+	/**  */
 	TELEPORTER_IRON(1, "item.anzac.teleportiron", "Iron Turtle Teleporter", ""),
 	/**  */
 	TELEPORTER_GOLD(2, "item.anzac.teleportgold", "Gold Turtle Teleporter", ""),

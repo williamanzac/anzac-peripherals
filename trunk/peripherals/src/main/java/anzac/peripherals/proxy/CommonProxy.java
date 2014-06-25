@@ -12,6 +12,11 @@ import static anzac.peripherals.AnzacPeripheralsCore.peripheralBlock;
 import static anzac.peripherals.AnzacPeripheralsCore.peripheralBlockId;
 import static anzac.peripherals.AnzacPeripheralsCore.teleporterBlock;
 import static anzac.peripherals.AnzacPeripheralsCore.teleporterBlockId;
+import static anzac.peripherals.utils.Utils.nextUpgradeId;
+import static dan200.computercraft.api.ComputerCraftAPI.registerBundledRedstoneProvider;
+import static dan200.computercraft.api.ComputerCraftAPI.registerPeripheralProvider;
+import static dan200.computercraft.api.ComputerCraftAPI.registerTurtleUpgrade;
+import static net.minecraftforge.client.MinecraftForgeClient.registerItemRenderer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +43,6 @@ import net.minecraft.item.ItemTool;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.packet.Packet;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
@@ -73,7 +77,6 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.common.registry.GameRegistry;
-import dan200.computercraft.api.ComputerCraftAPI;
 
 public class CommonProxy {
 	private final static Map<Entity, DropConsumer> dropConsumers = new WeakHashMap<Entity, DropConsumer>();
@@ -118,54 +121,50 @@ public class CommonProxy {
 		BlockFactory.registerTileEntities(ChargeBlock.class);
 		BlockFactory.registerTileEntities(TeleporterBlock.class);
 
-		ComputerCraftAPI.registerPeripheralProvider(new AnzacPeripheralProvider());
-		ComputerCraftAPI.registerBundledRedstoneProvider(new AnzacBundledRedstoneProvider());
+		registerPeripheralProvider(new AnzacPeripheralProvider());
+		registerBundledRedstoneProvider(new AnzacBundledRedstoneProvider());
 		registerTurtleUpgrades();
 
-		MinecraftForgeClient.registerItemRenderer(AnzacPeripheralsCore.component.itemID, RenderComponentItem.instance);
-		MinecraftForgeClient.registerItemRenderer(AnzacPeripheralsCore.hdd.itemID, RenderHDD.instance);
+		registerItemRenderer(AnzacPeripheralsCore.component.itemID, RenderComponentItem.instance);
+		registerItemRenderer(AnzacPeripheralsCore.hdd.itemID, RenderHDD.instance);
 	}
 
 	private void registerTurtleUpgrades() {
 		// ComputerCraftAPI.registerTurtleUpgrade(new BucketUpgrade());
 		for (final Item item : Item.itemsList) {
 			if (item instanceof ItemShears) {
-				ComputerCraftAPI.registerTurtleUpgrade(new ShearingUpgrade((ItemShears) item, Utils.nextUpgradeId()));
+				registerTurtleUpgrade(new ShearingUpgrade((ItemShears) item, nextUpgradeId()));
 			}
 			if (item instanceof ItemSword) {
 				if (!((ItemSword) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
-					ComputerCraftAPI.registerTurtleUpgrade(new SwordUpgrade((ItemSword) item, Utils.nextUpgradeId()));
+					registerTurtleUpgrade(new SwordUpgrade((ItemSword) item, nextUpgradeId()));
 				}
 			}
 			if (item instanceof ItemAxe || ClassUtils.instanceOf(item, "cofh.item.ItemAxeAdv")) {
 				if (!((ItemTool) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
-					ComputerCraftAPI.registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, Utils
-							.nextUpgradeId(), "Felling"));
+					registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, nextUpgradeId(), "Felling"));
 				}
 			}
 			if (item instanceof ItemPickaxe || ClassUtils.instanceOf(item, "cofh.item.ItemPickaxeAdv")) {
 				if (!((ItemTool) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
-					ComputerCraftAPI.registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, Utils
-							.nextUpgradeId(), "Mining"));
+					registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, nextUpgradeId(), "Mining"));
 				}
 			}
 			if (item instanceof ItemSpade || ClassUtils.instanceOf(item, "cofh.item.ItemShovelAdv")) {
 				if (!((ItemTool) item).getToolMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
-					ComputerCraftAPI.registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, Utils
-							.nextUpgradeId(), "Digging"));
+					registerTurtleUpgrade(new GenericToolUpgrade((ItemTool) item, nextUpgradeId(), "Digging"));
 				}
 			}
 			if (item instanceof ItemHoe) {
 				if (!((ItemHoe) item).getMaterialName().equals(EnumToolMaterial.EMERALD.name())) {
-					ComputerCraftAPI.registerTurtleUpgrade(new HoeUpgrade((ItemHoe) item, Utils.nextUpgradeId()));
+					registerTurtleUpgrade(new HoeUpgrade((ItemHoe) item, nextUpgradeId()));
 				}
 			}
 			if (item instanceof IToolWrench) {
-				ComputerCraftAPI.registerTurtleUpgrade(new WrenchUpgrade((IToolWrench) item, Utils.nextUpgradeId()));
+				registerTurtleUpgrade(new WrenchUpgrade((IToolWrench) item, nextUpgradeId()));
 			}
 			if (item instanceof ItemFlintAndSteel) {
-				ComputerCraftAPI
-						.registerTurtleUpgrade(new FlintUpgrade((ItemFlintAndSteel) item, Utils.nextUpgradeId()));
+				registerTurtleUpgrade(new FlintUpgrade((ItemFlintAndSteel) item, nextUpgradeId()));
 			}
 		}
 	}

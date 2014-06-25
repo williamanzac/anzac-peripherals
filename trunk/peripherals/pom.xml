@@ -477,6 +477,10 @@
 								<Platter>206</Platter>
 								<Spindle>208</Spindle>
 								<TeleporterCard>210</TeleporterCard>
+								<NoteBlock>247</NoteBlock>
+								<AdvancedPeripheralFrame>270</AdvancedPeripheralFrame>
+								<BasicPeripheralFrame>268</BasicPeripheralFrame>
+								<TurtleTeleporterFrame>272</TurtleTeleporterFrame>
 							</idToFile>
 						</configuration>
 					</execution>

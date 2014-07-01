@@ -29,6 +29,7 @@ import anzac.peripherals.tiles.InternalPlayer;
 import buildcraft.api.inventory.ISpecialInventory;
 import buildcraft.api.transport.IPipeTile;
 import buildcraft.api.transport.IPipeTile.PipeType;
+import cofh.api.transport.IItemConduit;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
 public class Utils {
@@ -108,38 +109,8 @@ public class Utils {
 		return merged;
 	}
 
-	public static int addToRandomPipe(final World world, final int x, final int y, final int z, final ItemStack stack) {
-		return addToPipe(world, x, y, z, randomDirection(), stack);
-	}
-
 	private static ForgeDirection randomDirection() {
 		return directions.get(RANDOM.nextInt(directions.size()));
-	}
-
-	public static int addToPipe(final World world, final int x, final int y, final int z, final ForgeDirection side,
-			final ItemStack stack) {
-		final Position pos = new Position(x, y, z, side);
-		pos.moveForwards(1);
-
-		final TileEntity tile = world.getBlockTileEntity(pos.x, pos.y, pos.z);
-		final ForgeDirection opposite = side.getOpposite();
-		if (tile instanceof IPipeTile) {
-			final IPipeTile pipe = (IPipeTile) tile;
-			if (pipe.getPipeType() != PipeType.ITEM) {
-				return 0;
-			}
-			if (!pipe.isPipeConnected(opposite)) {
-				return 0;
-			}
-			final int injected = pipe.injectItem(stack, true, opposite);
-			return injected;
-		}
-		return 0;
-	}
-
-	public static int addToRandomInventory(final World world, final int x, final int y, final int z,
-			final ItemStack stack) {
-		return addToInventory(world, x, y, z, randomDirection(), stack);
 	}
 
 	public static int addToRandomFluidHandler(final World world, final int x, final int y, final int z,
@@ -161,20 +132,31 @@ public class Utils {
 		}
 	}
 
-	public static int addToInventory(final World world, final int x, final int y, final int z,
-			final ForgeDirection side, final ItemStack stack) {
-		return addToInventory(world, x, y, z, side, side.getOpposite(), stack);
-	}
-
-	public static int addToInventory(final World world, final int x, final int y, final int z,
-			final ForgeDirection side, final ForgeDirection insertSide, final ItemStack stack) {
+	public static int routeTo(final World world, final int x, final int y, final int z, final ForgeDirection side,
+			final ForgeDirection insertSide, final ItemStack stack) {
 		final Position pos = new Position(x, y, z, side);
 		pos.moveForwards(1);
 
-		final TileEntity tileInventory = world.getBlockTileEntity(pos.x, pos.y, pos.z);
-		if (tileInventory != null && tileInventory instanceof IInventory) {
-			final IInventory inv = (IInventory) tileInventory;
+		final TileEntity tile = world.getBlockTileEntity(pos.x, pos.y, pos.z);
+		if (tile instanceof IInventory) {
+			final IInventory inv = (IInventory) tile;
 			return addToInventory(insertSide, stack, inv);
+		} else if (tile instanceof IPipeTile) {
+			final IPipeTile pipe = (IPipeTile) tile;
+			if (pipe.getPipeType() != PipeType.ITEM) {
+				return 0;
+			}
+			if (!pipe.isPipeConnected(insertSide)) {
+				return 0;
+			}
+			final int injected = pipe.injectItem(stack, true, insertSide);
+			return injected;
+		} else if (tile instanceof IItemConduit) {
+			final ItemStack insertItem = ((IItemConduit) tile).insertItem(insertSide, stack);
+			if (insertItem == null) {
+				return stack.stackSize;
+			}
+			return stack.stackSize - insertItem.stackSize;
 		}
 		return 0;
 	}

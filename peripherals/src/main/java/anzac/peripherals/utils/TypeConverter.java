@@ -1,8 +1,13 @@
 package anzac.peripherals.utils;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.ForgeDirection;
+import anzac.peripherals.tiles.CraftingRouterTileEntity.CraftingRecipe;
 
 public class TypeConverter {
 	public static Object[] convertArguments(final Object[] arguments, final Method method) throws Exception {
@@ -21,9 +26,12 @@ public class TypeConverter {
 			return null;
 		}
 		if (object.getClass().isArray()) {
-			Class<?> componentType = object.getClass().getComponentType();
+			final Class<?> componentType = object.getClass().getComponentType();
 			// TODO convert array of complex objects to map of maps
 			return (Object[]) object;
+		}
+		if (toClass.isAssignableFrom(CraftingRecipe.class)) {
+			return new Object[] { convertCraftingRecipeToMap((CraftingRecipe) object) };
 		}
 		// TODO convert complex object to map
 		return new Object[] { object };
@@ -44,6 +52,8 @@ public class TypeConverter {
 			return convertToDirection(object);
 		} else if (toClass.isEnum()) {
 			return convertToEnum(object, toClass);
+		} else if (toClass.isAssignableFrom(CraftingRecipe.class)) {
+			return convertToCraftingRecipe((Map<?, ?>) object);
 		}
 		throw new Exception("Expected argument of type " + toClass.getName() + " got " + object.getClass());
 	}
@@ -105,5 +115,50 @@ public class TypeConverter {
 			}
 		}
 		throw new Exception("Unexpected value");
+	}
+
+	private static Map<?, ?> convertCraftingRecipeToMap(final CraftingRecipe recipe) {
+		final Map<String, Map<?, ?>> table = new HashMap<String, Map<?, ?>>();
+
+		final Map<String, Integer> outputTable = new HashMap<String, Integer>();
+		outputTable.put("uuid", Utils.getUUID(recipe.craftResult));
+		outputTable.put("count", recipe.craftResult.stackSize);
+
+		final Map<Integer, Map<String, Integer>> inputTable = new HashMap<Integer, Map<String, Integer>>();
+		for (int i = 0; i < recipe.craftMatrix.getSizeInventory(); i++) {
+			final ItemStack stackInSlot = recipe.craftMatrix.getStackInSlot(i);
+			if (stackInSlot != null) {
+				final Map<String, Integer> itemTable = new HashMap<String, Integer>();
+				itemTable.put("uuid", Utils.getUUID(stackInSlot));
+				itemTable.put("count", stackInSlot.stackSize);
+				inputTable.put(i, itemTable);
+			}
+		}
+
+		table.put("output", outputTable);
+		table.put("input", inputTable);
+		return table;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static CraftingRecipe convertToCraftingRecipe(final Map<?, ?> table) {
+		final CraftingRecipe recipe = new CraftingRecipe();
+		if (table.containsKey("output")) {
+			final Map<String, Double> outputTable = (Map<String, Double>) table.get("output");
+			final int uuid = outputTable.get("uuid").intValue();
+			final int count = outputTable.get("count").intValue();
+			recipe.craftResult = Utils.getItemStack(uuid, count);
+		}
+		if (table.containsKey("input")) {
+			final Map<Double, Map<String, Double>> inputTable = (Map<Double, Map<String, Double>>) table.get("input");
+			for (final Entry<Double, Map<String, Double>> entry : inputTable.entrySet()) {
+				final Map<String, Double> itemTable = entry.getValue();
+				final int uuid = itemTable.get("uuid").intValue();
+				final int count = itemTable.get("count").intValue();
+				final ItemStack itemStack = Utils.getItemStack(uuid, count);
+				recipe.craftMatrix.setInventorySlotContents(entry.getKey().intValue(), itemStack);
+			}
+		}
+		return recipe;
 	}
 }

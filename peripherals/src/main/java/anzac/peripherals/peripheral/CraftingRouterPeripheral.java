@@ -1,12 +1,12 @@
 package anzac.peripherals.peripheral;
 
 import java.util.List;
-import java.util.Map;
 
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.tiles.CraftingRouterTileEntity;
+import anzac.peripherals.tiles.CraftingRouterTileEntity.CraftingRecipe;
 import anzac.peripherals.utils.ClassUtils;
 
 @Peripheral(type = "CraftingRouter")
@@ -41,7 +41,7 @@ public class CraftingRouterPeripheral extends ItemRouterPeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
+	public CraftingRecipe loadRecipe(final int id) throws Exception {
 		return getEntity().loadRecipe(id);
 	}
 
@@ -65,23 +65,38 @@ public class CraftingRouterPeripheral extends ItemRouterPeripheral {
 	}
 
 	/**
-	 * @param uuid
+	 * @param recipe
+	 * @throws Exception
+	 */
+	@PeripheralMethod
+	public void setRecipe(final CraftingRecipe recipe) throws Exception {
+		getEntity().setRecipe(recipe);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@PeripheralMethod
+	public void clearRecipe() throws Exception {
+		getEntity().clearRecipe();
+	}
+
+	/**
 	 * @param side
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public void craft(final int uuid, final ForgeDirection side) throws Exception {
-		craft(uuid, side, side.getOpposite());
+	public void craft(final ForgeDirection side) throws Exception {
+		craft(side, side.getOpposite());
 	}
 
 	/**
-	 * @param uuid
 	 * @param side
 	 * @param inputDir
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public void craft(final int uuid, final ForgeDirection side, final ForgeDirection inputDir) throws Exception {
-		getEntity().craft(uuid, side, inputDir);
+	public void craft(final ForgeDirection side, final ForgeDirection inputDir) throws Exception {
+		getEntity().craft(side, inputDir);
 	}
 }

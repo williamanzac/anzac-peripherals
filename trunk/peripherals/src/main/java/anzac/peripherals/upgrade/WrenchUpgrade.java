@@ -6,7 +6,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
-import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.tiles.InternalPlayer;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
@@ -17,7 +16,7 @@ import dan200.computercraft.api.turtle.TurtleCommandResult;
 public class WrenchUpgrade extends ToolTurtleUpgrade {
 
 	public WrenchUpgrade(final IToolWrench tool, final int upgradeId) {
-		super(new ItemStack((Item) tool, 1, OreDictionary.WILDCARD_VALUE), upgradeId, "Wrench");
+		super(new ItemStack((Item) tool), upgradeId, "Wrench");
 	}
 
 	@Override

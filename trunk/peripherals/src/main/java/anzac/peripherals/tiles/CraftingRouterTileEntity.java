@@ -5,35 +5,53 @@ import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
+import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.peripheral.CraftingRouterPeripheral;
 import anzac.peripherals.utils.Utils;
 import dan200.computercraft.api.filesystem.IWritableMount;
 
 public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 
+	private static final int[] INPUT_ARRAY = Utils.createSlotArray(0, 9);
+
+	public static class CraftingRecipe {
+		public final SimpleInventory craftMatrix = new SimpleInventory(9);
+		public ItemStack craftResult;
+	}
+
 	public CraftingRouterTileEntity() throws Exception {
 		super(CraftingRouterPeripheral.class);
 	}
 
-	public SimpleInventory craftMatrix = new SimpleInventory(9);
-	public SimpleInventory craftResult = new SimpleInventory(1);
+	public final SimpleInventory craftMatrix = new SimpleInventory(9);
+	public final SimpleInventory craftResult = new SimpleInventory(1);
+	private final SimpleInventory input = new SimpleInventory(9);
+	private CraftingRecipe target;
 
 	@Override
 	public void readFromNBT(final NBTTagCompound tagCompound) {
 		super.readFromNBT(tagCompound);
+		if (tagCompound.hasKey("targetRecipe")) {
+			int uuid = tagCompound.getInteger("targetRecipe");
+			try {
+				target = loadRecipe(uuid);
+			} catch (Exception e) {
+				AnzacPeripheralsCore.logger.warning("Unable to read target Recipe: " + uuid);
+			}
+		}
 	}
 
 	@Override
 	public void writeToNBT(final NBTTagCompound tagCompound) {
 		super.writeToNBT(tagCompound);
+		if (target != null) {
+			tagCompound.setInteger("targetRecipe", Utils.getUUID(target.craftResult));
+		}
 	}
 
 	public Object[] getRecipes() throws Exception {
@@ -45,24 +63,29 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		return recipes.toArray();
 	}
 
-	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
+	public CraftingRecipe loadRecipe(final int id) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
 		}
-		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+		final CraftingRecipe recipe = new CraftingRecipe();
 		final InputStream stream = getMount().openForRead(String.valueOf(id));
 		final DataInputStream in = new DataInputStream(stream);
 		try {
-			for (int i = 0; i < craftMatrix.getSizeInventory(); i++) {
+			for (int i = 0; i < recipe.craftMatrix.getSizeInventory(); i++) {
 				final int uuid = in.readInt();
 				if (uuid > 0) {
-					table.put(i, uuid);
+					final int stackSize = in.readInt();
+					recipe.craftMatrix.setInventorySlotContents(i, Utils.getItemStack(uuid, stackSize));
+				} else {
+					recipe.craftMatrix.setInventorySlotContents(i, null);
 				}
 			}
+			final int stackSize = in.readInt();
+			recipe.craftResult = Utils.getItemStack(id, stackSize);
 		} finally {
 			in.close();
 		}
-		return table;
+		return recipe;
 	}
 
 	public boolean removeRecipe(final int id) throws Exception {
@@ -85,47 +108,69 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 				final ItemStack stackInSlot = craftMatrix.getStackInSlot(i);
 				if (stackInSlot != null) {
 					out.writeInt(Utils.getUUID(stackInSlot));
+					out.writeInt(stackInSlot.stackSize);
 				} else {
 					out.writeInt(0);
 				}
 			}
+			out.writeInt(craftResult.getStackInSlot(0).stackSize);
 			return true;
 		} finally {
 			out.close();
 		}
 	}
 
-	public void craft(final int uuid, final ForgeDirection side) throws Exception {
-		craft(uuid, side, side.getOpposite());
-	}
-
-	public void craft(final int uuid, final ForgeDirection side, final ForgeDirection inputDir) throws Exception {
-		final Map<Integer, Integer> recipe = loadRecipe(uuid);
-		final ItemStack target = Utils.getItemStack(uuid);
-		setRecipe(recipe);
-		craftResult.setInventorySlotContents(0, target);
-		final int amount = itemSlot.stackSize;
-		routeTo(side, inputDir, amount);
-		// for (final IComputerAccess computer : computers) {
-		// computer.queueEvent("crafted", new Object[] { computer.getAttachmentName(), Utils.getUUID(notifyStack),
-		// notifyStack.stackSize });
-		// }
-		clear();
-	}
-
-	private void setRecipe(final Map<Integer, Integer> recipe) {
-		clear();
-		for (final Entry<Integer, Integer> entry : recipe.entrySet()) {
-			craftMatrix.setInventorySlotContents(entry.getKey(), Utils.getItemStack(entry.getValue(), 1));
+	public void setRecipe(final CraftingRecipe recipe) throws Exception {
+		if (target != null) {
+			throw new Exception("A recipe has already been set.");
 		}
+		target = recipe;
 	}
 
-	private void clear() {
-		for (int i = 0; i < craftMatrix.getSizeInventory(); i++) {
-			craftMatrix.setInventorySlotContents(i, null);
+	public void setRecipe(final int uuid) throws Exception {
+		setRecipe(loadRecipe(uuid));
+	}
+
+	public void clearRecipe() throws Exception {
+		for (int i = 0; i < input.getSizeInventory(); i++) {
+			if (input.getStackInSlot(i) != null) {
+				throw new Exception("Cannot clear the recipe. The internal cache is not empty.");
+			}
 		}
-		for (int i = 0; i < craftResult.getSizeInventory(); i++) {
-			craftResult.setInventorySlotContents(i, null);
+		target = null;
+	}
+
+	public void craft(final ForgeDirection side, final ForgeDirection inputDir) throws Exception {
+		if (target == null) {
+			throw new Exception("No recipe set");
+		}
+		for (int i = 0; i < input.getSizeInventory(); i++) {
+			final ItemStack inStack = input.getStackInSlot(i);
+			final ItemStack targetStack = target.craftMatrix.getStackInSlot(i);
+			if (inStack == null && targetStack == null) {
+				continue;
+			}
+			if (!Utils.stacksMatch(targetStack, inStack) || targetStack.stackSize != inStack.stackSize) {
+				throw new Exception("Internal cache does not match the recipe.");
+			}
+		}
+		routeTo(side, inputDir);
+	}
+
+	private void routeTo(final ForgeDirection toDir, final ForgeDirection insertDir) throws Exception {
+		for (int i = 0; i < input.getSizeInventory(); i++) {
+			final ItemStack stackInSlot = input.getStackInSlot(i);
+			if (stackInSlot != null) {
+				final ItemStack copy = stackInSlot.copy();
+				final int size = copy.stackSize;
+				copy.stackSize -= Utils.routeTo(worldObj, xCoord, yCoord, zCoord, toDir, insertDir, copy);
+				final int toDec = size - copy.stackSize;
+				if (toDec > 0) {
+					input.decrStackSize(i, toDec);
+				} else {
+					throw new Exception("Unable to transfer all items to target.");
+				}
+			}
 		}
 	}
 
@@ -158,5 +203,63 @@ public class CraftingRouterTileEntity extends ItemRouterTileEntity {
 		} else if (!craftResult.equals(other.craftResult))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int getSizeInventory() {
+		return target == null ? super.getSizeInventory() : input.getSizeInventory();
+	}
+
+	@Override
+	public ItemStack getStackInSlot(final int i) {
+		return target == null ? super.getStackInSlot(i) : input.getStackInSlot(i);
+	}
+
+	@Override
+	public void setInventorySlotContents(final int slot, final ItemStack stack) {
+		if (target == null) {
+			super.setInventorySlotContents(slot, stack);
+		} else {
+			if (Utils.stacksMatch(target.craftResult, stack)) {
+				itemSlot = stack;
+				if (stack.stackSize > getInventoryStackLimit()) {
+					stack.stackSize = getInventoryStackLimit();
+				}
+				queueEvent(PeripheralEvent.crafted, Utils.getUUID(stack), stack.stackSize);
+				onInventoryChanged();
+			} else {
+				input.setInventorySlotContents(slot, stack);
+			}
+		}
+	}
+
+	@Override
+	public int getInventoryStackLimit() {
+		return target == null ? super.getInventoryStackLimit() : input.getInventoryStackLimit();
+	}
+
+	@Override
+	public boolean isItemValidForSlot(final int i, final ItemStack itemstack) {
+		if (target == null) {
+			return super.isItemValidForSlot(i, itemstack);
+		}
+		return isConnected()
+				&& (Utils.stacksMatch(itemstack, target.craftMatrix.getStackInSlot(i)) || Utils.stacksMatch(
+						target.craftResult, itemstack));
+	}
+
+	@Override
+	public int[] getAccessibleSlotsFromSide(final int var1) {
+		return target == null ? super.getAccessibleSlotsFromSide(var1) : INPUT_ARRAY;
+	}
+
+	@Override
+	public boolean canInsertItem(final int i, final ItemStack itemstack, final int j) {
+		if (target == null) {
+			return super.canInsertItem(i, itemstack, j);
+		}
+		return isConnected()
+				&& (Utils.stacksMatch(itemstack, target.craftMatrix.getStackInSlot(i)) || Utils.stacksMatch(
+						target.craftResult, itemstack));
 	}
 }

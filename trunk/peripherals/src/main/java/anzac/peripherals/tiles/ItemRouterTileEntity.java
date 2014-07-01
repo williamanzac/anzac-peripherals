@@ -23,7 +23,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		super(ItemRouterPeripheral.class);
 	}
 
-	protected ItemRouterTileEntity(Class<? extends ItemRouterPeripheral> class1) throws Exception {
+	protected ItemRouterTileEntity(final Class<? extends ItemRouterPeripheral> class1) throws Exception {
 		super(class1);
 	}
 
@@ -84,32 +84,32 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		}
 		final IInventory inv = (IInventory) te;
 		final ItemStack stackToFind = Utils.getItemStack(uuid);
-		final int[] slots = accessibleSlots(extractSide, inv);
+		final int[] slots = accessibleSlots(ForgeDirection.UNKNOWN, inv);
 		for (final int i : slots) {
 			final ItemStack stackInSlot = inv.getStackInSlot(i);
 			if (Utils.stacksMatch(stackInSlot, stackToFind)) {
-				final ItemStack extracted = inv.decrStackSize(i, amount);
-				setInventorySlotContents(0, extracted);
-				return extracted.stackSize;
+				return addItem(stackInSlot, true, ForgeDirection.UNKNOWN);
 			}
 		}
 		return 0;
 	}
 
 	public int routeTo(final ForgeDirection toDir, final ForgeDirection insertDir, final int amount) {
-		final ItemStack copy = itemSlot.copy();
-		copy.stackSize = amount;
-		final int amount1 = copy.stackSize;
-		copy.stackSize -= Utils.addToInventory(worldObj, xCoord, yCoord, zCoord, toDir, insertDir, copy);
-
-		if (copy.stackSize > 0) {
-			copy.stackSize -= Utils.addToPipe(worldObj, xCoord, yCoord, zCoord, toDir, copy);
+		for (int i = 0; i < getSizeInventory(); i++) {
+			final ItemStack stackInSlot = getStackInSlot(i);
+			if (stackInSlot != null) {
+				final ItemStack copy = stackInSlot.copy();
+				copy.stackSize = amount;
+				final int amount1 = copy.stackSize;
+				copy.stackSize -= Utils.routeTo(worldObj, xCoord, yCoord, zCoord, toDir, insertDir, copy);
+				final int toDec = amount1 - copy.stackSize;
+				if (toDec > 0) {
+					decrStackSize(i, toDec);
+				}
+				return amount - copy.stackSize;
+			}
 		}
-		final int toDec = amount1 - copy.stackSize;
-		if (toDec > 0) {
-			decrStackSize(0, toDec);
-		}
-		return amount - copy.stackSize;
+		return 0;
 	}
 
 	@Override
@@ -233,9 +233,6 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 	}
 
 	public int sendTo(final String label, final int amount) throws Exception {
-		if (itemSlot == null || itemSlot.stackSize == 0) {
-			throw new Exception("No Items to transfer");
-		}
 		if (amount <= 0) {
 			throw new Exception("Amount must be greater than 0");
 		}
@@ -246,18 +243,24 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		if (!(entity instanceof IInventory)) {
 			throw new Exception("Invalid target for label " + label);
 		}
-		final ItemStack copy = itemSlot.copy();
-		if (amount < copy.stackSize) {
-			copy.stackSize = amount;
+		for (int i = 0; i < getSizeInventory(); i++) {
+			final ItemStack stackInSlot = getStackInSlot(i);
+			if (stackInSlot != null) {
+				final ItemStack copy = stackInSlot.copy();
+				if (amount < copy.stackSize) {
+					copy.stackSize = amount;
+				}
+				final int size = copy.stackSize;
+				final int amount1 = copy.stackSize;
+				copy.stackSize -= Utils.addToInventory(ForgeDirection.UNKNOWN, copy, (IInventory) entity);
+				final int toDec = amount1 - copy.stackSize;
+				if (toDec > 0) {
+					decrStackSize(0, toDec);
+				}
+				return size - copy.stackSize;
+			}
 		}
-		final int size = copy.stackSize;
-		final int amount1 = copy.stackSize;
-		copy.stackSize -= Utils.addToInventory(ForgeDirection.UNKNOWN, copy, (IInventory) entity);
-		final int toDec = amount1 - copy.stackSize;
-		if (toDec > 0) {
-			decrStackSize(0, toDec);
-		}
-		return size - copy.stackSize;
+		return 0;
 	}
 
 	public int requestFrom(final String label, final int uuid, final int amount) throws Exception {
@@ -277,9 +280,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		for (final int i : slots) {
 			final ItemStack stackInSlot = inv.getStackInSlot(i);
 			if (Utils.stacksMatch(stackInSlot, stackToFind)) {
-				final ItemStack extracted = inv.decrStackSize(i, amount);
-				setInventorySlotContents(0, extracted);
-				return extracted.stackSize;
+				return addItem(stackInSlot, true, ForgeDirection.UNKNOWN);
 			}
 		}
 		return 0;

@@ -1,12 +1,12 @@
 package anzac.peripherals.peripheral;
 
 import java.util.List;
-import java.util.Map;
 
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.tiles.ItemRouterTileEntity;
+import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
 import anzac.peripherals.tiles.PeripheralEvent;
 import anzac.peripherals.utils.ClassUtils;
 
@@ -34,7 +34,7 @@ public class ItemRouterPeripheral extends BaseRouterPeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<?, ?> contents() throws Exception {
+	public StackInfo[] contents() throws Exception {
 		return contents(ForgeDirection.UNKNOWN);
 	}
 
@@ -48,7 +48,7 @@ public class ItemRouterPeripheral extends BaseRouterPeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<?, ?> contents(final ForgeDirection direction) throws Exception {
+	public StackInfo[] contents(final ForgeDirection direction) throws Exception {
 		return contents(direction, direction.getOpposite());
 	}
 
@@ -64,7 +64,7 @@ public class ItemRouterPeripheral extends BaseRouterPeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<Integer, Integer> contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
+	public StackInfo[] contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
 		return getEntity().contents(direction, dir);
 	}
 

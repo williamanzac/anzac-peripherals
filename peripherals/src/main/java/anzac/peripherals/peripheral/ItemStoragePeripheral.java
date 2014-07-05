@@ -1,10 +1,10 @@
 package anzac.peripherals.peripheral;
 
 import java.util.List;
-import java.util.Map;
 
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.utils.ClassUtils;
 
@@ -30,7 +30,7 @@ public class ItemStoragePeripheral extends BaseStoragePeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<Integer, Integer> contents() throws Exception {
+	public StackInfo[] contents() throws Exception {
 		return getEntity().contents();
 	}
 

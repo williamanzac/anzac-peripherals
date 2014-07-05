@@ -5,9 +5,7 @@ import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryCraftResult;
@@ -17,10 +15,15 @@ import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import anzac.peripherals.peripheral.RecipeStoragePeripheral;
+import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
 import anzac.peripherals.utils.Utils;
 import dan200.computercraft.api.filesystem.IWritableMount;
 
 public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
+
+	public static class Recipe {
+		public StackInfo[] craftMatrix = new StackInfo[9];
+	}
 
 	public RecipeStorageTileEntity() throws Exception {
 		super(RecipeStoragePeripheral.class);
@@ -36,27 +39,27 @@ public class RecipeStorageTileEntity extends BasePeripheralTileEntity {
 		queueEvent(PeripheralEvent.recipe_changed, uuid);
 	}
 
-	public Object[] getRecipes() throws Exception {
+	public String[] getRecipes() throws Exception {
 		final List<String> recipes = new ArrayList<String>();
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
 		}
 		getMount().list(".", recipes);
-		return recipes.toArray();
+		return recipes.toArray(new String[recipes.size()]);
 	}
 
-	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
+	public Recipe loadRecipe(final int id) throws Exception {
 		if (getMount() == null) {
 			throw new Exception("No disk loaded");
 		}
-		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+		final Recipe table = new Recipe();
 		final InputStream stream = getMount().openForRead(String.valueOf(id));
 		final DataInputStream in = new DataInputStream(stream);
 		try {
 			for (int i = 0; i < craftMatrix.getSizeInventory(); i++) {
 				final int uuid = in.readInt();
 				if (uuid > 0) {
-					table.put(i, uuid);
+					table.craftMatrix[i] = new StackInfo(uuid, 1);
 				}
 			}
 		} finally {

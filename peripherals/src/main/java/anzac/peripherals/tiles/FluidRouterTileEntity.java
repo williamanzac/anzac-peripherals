@@ -20,6 +20,12 @@ import anzac.peripherals.utils.Utils;
 
 public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFluidHandler {
 
+	public static class TankInfo {
+		public int fluidId;
+		public int capacity;
+		public int amount;
+	}
+
 	public FluidRouterTileEntity() throws Exception {
 		super(FluidRouterPeripheral.class);
 	}
@@ -109,8 +115,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		return new FluidTankInfo[] { fluidTank.getInfo() };
 	}
 
-	public Map<Integer, Map<String, Integer>> contents(final ForgeDirection direction, final ForgeDirection dir)
-			throws Exception {
+	public TankInfo[] contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
 		final TileEntity te;
 		if (direction == ForgeDirection.UNKNOWN) {
 			te = this;
@@ -124,7 +129,7 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 		}
 		final IFluidHandler handler = (IFluidHandler) te;
 		final FluidTankInfo[] tankInfo = handler.getTankInfo(dir);
-		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
+		final Map<Integer, TankInfo> table = new HashMap<Integer, TankInfo>();
 		for (final FluidTankInfo info : tankInfo) {
 			if (info != null) {
 				final FluidStack fluid = info.fluid;
@@ -132,19 +137,20 @@ public class FluidRouterTileEntity extends BaseRouterTileEntity implements IFlui
 				final int amount = fluid == null ? 0 : fluid.amount;
 				final int capacity = info.capacity;
 				if (table.containsKey(uuid)) {
-					final Map<String, Integer> map = table.get(uuid);
-					map.put("amount", map.get("amount") + amount);
-					map.put("capacity", map.get("capacity") + capacity);
+					final TankInfo map = table.get(uuid);
+					map.amount += amount;
+					map.capacity += capacity;
 				} else {
-					final Map<String, Integer> map = new HashMap<String, Integer>();
+					final TankInfo map = new TankInfo();
 					table.put(uuid, map);
-					map.put("amount", amount);
-					map.put("capacity", capacity);
+					map.fluidId = uuid;
+					map.amount = amount;
+					map.capacity = capacity;
 				}
 			}
 		}
 		AnzacPeripheralsCore.logger.info("table:" + table);
-		return table;
+		return table.values().toArray(new TankInfo[table.size()]);
 	}
 
 	public int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,

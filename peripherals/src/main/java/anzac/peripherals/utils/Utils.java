@@ -26,6 +26,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.tiles.InternalPlayer;
+import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
 import buildcraft.api.inventory.ISpecialInventory;
 import buildcraft.api.transport.IPipeTile;
 import buildcraft.api.transport.IPipeTile.PipeType;
@@ -234,6 +235,10 @@ public class Utils {
 		final int meta = getMeta(uuid);
 		final int id = getId(uuid);
 		return new ItemStack(id, stackSize, meta);
+	}
+
+	public static ItemStack getItemStack(final StackInfo info) {
+		return getItemStack(info.uuid, info.size);
 	}
 
 	public static int getId(final int uuid) {

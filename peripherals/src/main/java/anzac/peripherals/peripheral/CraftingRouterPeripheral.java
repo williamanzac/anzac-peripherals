@@ -31,7 +31,7 @@ public class CraftingRouterPeripheral extends ItemRouterPeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Object[] getRecipes() throws Exception {
+	public String[] getRecipes() throws Exception {
 		return getEntity().getRecipes();
 	}
 

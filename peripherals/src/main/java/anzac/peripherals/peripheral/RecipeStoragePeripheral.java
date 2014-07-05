@@ -1,12 +1,12 @@
 package anzac.peripherals.peripheral;
 
 import java.util.List;
-import java.util.Map;
 
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.tiles.PeripheralEvent;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
+import anzac.peripherals.tiles.RecipeStorageTileEntity.Recipe;
 import anzac.peripherals.utils.ClassUtils;
 
 @Peripheral(type = "RecipeStorage", events = { PeripheralEvent.recipe_changed })
@@ -33,7 +33,7 @@ public class RecipeStoragePeripheral extends BasePeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Object[] getRecipes() throws Exception {
+	public String[] getRecipes() throws Exception {
 		return getEntity().getRecipes();
 	}
 
@@ -46,7 +46,7 @@ public class RecipeStoragePeripheral extends BasePeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<Integer, Integer> loadRecipe(final int id) throws Exception {
+	public Recipe loadRecipe(final int id) throws Exception {
 		return getEntity().loadRecipe(id);
 	}
 

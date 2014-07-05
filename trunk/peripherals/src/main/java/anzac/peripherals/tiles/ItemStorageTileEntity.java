@@ -14,6 +14,7 @@ import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.peripheral.ItemStoragePeripheral;
+import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
 
@@ -42,23 +43,24 @@ public class ItemStorageTileEntity extends BaseStorageTileEntity implements IInv
 		discInv.addListner(new DiscListener());
 	}
 
-	public Map<Integer, Integer> contents() throws Exception {
-		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+	public StackInfo[] contents() throws Exception {
+		final Map<Integer, StackInfo> table = new HashMap<Integer, StackInfo>();
 		for (int slot = 0; slot < getSizeInventory(); slot++) {
 			final ItemStack stack = getStackInSlot(slot);
 			if (stack != null) {
 				final int uuid = Utils.getUUID(stack);
 				final int amount = stack.stackSize;
 				if (table.containsKey(uuid)) {
-					final int a = table.get(uuid);
-					table.put(uuid, a + amount);
+					final StackInfo stackInfo = table.get(uuid);
+					stackInfo.size += amount;
 				} else {
-					table.put(uuid, amount);
+					StackInfo stackInfo = new StackInfo(uuid, amount);
+					table.put(uuid, stackInfo);
 				}
 			}
 		}
 		AnzacPeripheralsCore.logger.info("table:" + table);
-		return table;
+		return table.values().toArray(new StackInfo[table.size()]);
 	}
 
 	@Override

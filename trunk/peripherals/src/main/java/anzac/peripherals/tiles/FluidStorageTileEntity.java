@@ -17,6 +17,7 @@ import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.peripheral.FluidStoragePeripheral;
+import anzac.peripherals.tiles.FluidRouterTileEntity.TankInfo;
 import anzac.peripherals.utils.Utils;
 
 public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFluidHandler {
@@ -165,8 +166,8 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 		return isAllowed(id);
 	}
 
-	public Map<Integer, Map<String, Integer>> contents() throws Exception {
-		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
+	public TankInfo[] contents() throws Exception {
+		final Map<Integer, TankInfo> table = new HashMap<Integer, TankInfo>();
 		for (final FluidTank tank : fluidTanks.values()) {
 			if (tank == null) {
 				continue;
@@ -176,18 +177,19 @@ public class FluidStorageTileEntity extends BaseStorageTileEntity implements IFl
 			final int amount = fluid == null ? 0 : fluid.amount;
 			final int capacity = tank.getCapacity();
 			if (table.containsKey(uuid)) {
-				final Map<String, Integer> map = table.get(uuid);
-				map.put("amount", map.get("amount") + amount);
-				map.put("capacity", map.get("capacity") + capacity);
+				final TankInfo map = table.get(uuid);
+				map.amount += amount;
+				map.capacity += capacity;
 			} else {
-				final Map<String, Integer> map = new HashMap<String, Integer>();
+				final TankInfo map = new TankInfo();
 				table.put(uuid, map);
-				map.put("amount", amount);
-				map.put("capacity", capacity);
+				map.fluidId = uuid;
+				map.amount = amount;
+				map.capacity = capacity;
 			}
 		}
 		AnzacPeripheralsCore.logger.info("table:" + table);
-		return table;
+		return table.values().toArray(new TankInfo[table.size()]);
 	}
 
 	@Override

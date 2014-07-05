@@ -1,12 +1,13 @@
 package anzac.peripherals.peripheral;
 
 import java.util.List;
-import java.util.Map;
 
 import net.minecraft.item.ItemStack;
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
 import anzac.peripherals.tiles.PeripheralEvent;
+import anzac.peripherals.tiles.RecipeStorageTileEntity.Recipe;
 import anzac.peripherals.tiles.WorkbenchTileEntity;
 import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Utils;
@@ -32,7 +33,7 @@ public class WorkbenchPeripheral extends BasePeripheral {
 	 * @return {@code true} if the recipe was successfully defined.
 	 */
 	@PeripheralMethod
-	public boolean setRecipe(final Map<Double, Double> recipe) {
+	public boolean setRecipe(final Recipe recipe) {
 		return getEntity().setRecipe(recipe);
 	}
 
@@ -51,7 +52,7 @@ public class WorkbenchPeripheral extends BasePeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<Integer, Integer> contents() throws Exception {
+	public StackInfo[] contents() throws Exception {
 		return getEntity().contents();
 	}
 

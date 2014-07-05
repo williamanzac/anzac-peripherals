@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -20,6 +19,8 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.peripheral.WorkbenchPeripheral;
+import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
+import anzac.peripherals.tiles.RecipeStorageTileEntity.Recipe;
 import anzac.peripherals.utils.Utils;
 import buildcraft.api.inventory.ISpecialInventory;
 
@@ -46,11 +47,13 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		craftResult.setInventorySlotContents(0, matchingRecipe);
 	}
 
-	public boolean setRecipe(final Map<Double, Double> recipe) {
+	public boolean setRecipe(final Recipe recipe) {
 		craftMatrix.clear();
-		for (final Entry<Double, Double> entry : recipe.entrySet()) {
-			craftMatrix.setInventorySlotContents(entry.getKey().intValue(),
-					Utils.getItemStack(entry.getValue().intValue(), 1));
+		for (int i = 0; i < recipe.craftMatrix.length; i++) {
+			StackInfo info = recipe.craftMatrix[i];
+			if (info != null) {
+				craftMatrix.setInventorySlotContents(i, Utils.getItemStack(info));
+			}
 		}
 		updateCraftingRecipe();
 		return craftResult.getStackInSlot(0) != null;
@@ -60,22 +63,23 @@ public class WorkbenchTileEntity extends BasePeripheralTileEntity implements IIn
 		craftMatrix.clear();
 	}
 
-	public Map<Integer, Integer> contents() throws Exception {
-		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+	public StackInfo[] contents() throws Exception {
+		final Map<Integer, StackInfo> table = new HashMap<Integer, StackInfo>();
 		for (final ItemStack stackInSlot : inventory) {
 			if (stackInSlot != null) {
 				final int uuid = Utils.getUUID(stackInSlot);
 				final int amount = stackInSlot.stackSize;
 				if (table.containsKey(uuid)) {
-					final int a = table.get(uuid);
-					table.put(uuid, a + amount);
+					final StackInfo stackInfo = table.get(uuid);
+					stackInfo.size += amount;
 				} else {
-					table.put(uuid, amount);
+					StackInfo stackInfo = new StackInfo(uuid, amount);
+					table.put(uuid, stackInfo);
 				}
 			}
 		}
 		AnzacPeripheralsCore.logger.info("table:" + table);
-		return table;
+		return table.values().toArray(new StackInfo[table.size()]);
 	}
 
 	public ItemStack craft() throws Exception {

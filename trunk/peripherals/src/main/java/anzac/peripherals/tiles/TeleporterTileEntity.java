@@ -1,9 +1,7 @@
 package anzac.peripherals.tiles;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -32,8 +30,8 @@ import dan200.computercraft.api.turtle.ITurtleAccess;
 public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler {
 
 	public static class Target {
-		private int dimension;
-		private Position position;
+		public int dimension;
+		public Position position;
 
 		public void readFromNBT(final NBTTagCompound tag) {
 			final int x = tag.getInteger("x");
@@ -135,19 +133,9 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		return handler.getMaxEnergyStored() / MJ;
 	}
 
-	public Map<Integer, Map<String, Integer>> getTargets() {
+	public Target[] getTargets() {
 		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
-		final Map<Integer, Map<String, Integer>> table = new HashMap<Integer, Map<String, Integer>>();
-		final int index = 0;
-		for (final Target target : targets) {
-			final Map<String, Integer> map = new HashMap<String, Integer>();
-			map.put("x", target.position.x);
-			map.put("y", target.position.y);
-			map.put("z", target.position.z);
-			map.put("dimension", target.dimension);
-			table.put(index, map);
-		}
-		return table;
+		return targets.toArray(new Target[targets.size()]);
 	}
 
 	@Override

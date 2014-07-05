@@ -1,11 +1,11 @@
 package anzac.peripherals.peripheral;
 
 import java.util.List;
-import java.util.Map;
 
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
 import anzac.peripherals.tiles.TeleporterTileEntity;
+import anzac.peripherals.tiles.TeleporterTileEntity.Target;
 import anzac.peripherals.utils.ClassUtils;
 
 @Peripheral(type = "Teleporter")
@@ -45,7 +45,7 @@ public class TeleporterPeripheral extends BasePeripheral {
 	 * @return
 	 */
 	@PeripheralMethod
-	public Map<Integer, Map<String, Integer>> getTargets() {
+	public Target[] getTargets() {
 		return getEntity().getTargets();
 	}
 

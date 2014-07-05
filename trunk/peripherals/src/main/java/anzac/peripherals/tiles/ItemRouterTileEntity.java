@@ -19,6 +19,16 @@ import buildcraft.api.inventory.ISpecialInventory;
 public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory,
 		ISpecialInventory {
 
+	public static class StackInfo {
+		public int uuid;
+		public int size;
+
+		public StackInfo(int uuid, int stackSize) {
+			this.uuid = uuid;
+			this.size = stackSize;
+		}
+	}
+
 	public ItemRouterTileEntity() throws Exception {
 		super(ItemRouterPeripheral.class);
 	}
@@ -39,7 +49,7 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		return slots;
 	}
 
-	public Map<Integer, Integer> contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
+	public StackInfo[] contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
 		final TileEntity te;
 		if (direction == ForgeDirection.UNKNOWN) {
 			te = this;
@@ -53,22 +63,23 @@ public class ItemRouterTileEntity extends BaseRouterTileEntity implements IInven
 		}
 		final IInventory handler = (IInventory) te;
 		final int[] slots = accessibleSlots(dir, handler);
-		final Map<Integer, Integer> table = new HashMap<Integer, Integer>();
+		final Map<Integer, StackInfo> table = new HashMap<Integer, StackInfo>();
 		for (final int i : slots) {
 			final ItemStack stackInSlot = handler.getStackInSlot(i);
 			if (stackInSlot != null) {
 				final int uuid = Utils.getUUID(stackInSlot);
 				final int amount = stackInSlot.stackSize;
 				if (table.containsKey(uuid)) {
-					final int a = table.get(uuid);
-					table.put(uuid, a + amount);
+					final StackInfo stackInfo = table.get(uuid);
+					stackInfo.size += amount;
 				} else {
-					table.put(uuid, amount);
+					StackInfo stackInfo = new StackInfo(uuid, amount);
+					table.put(uuid, stackInfo);
 				}
 			}
 		}
 		AnzacPeripheralsCore.logger.info("table:" + table);
-		return table;
+		return table.values().toArray(new StackInfo[table.size()]);
 	}
 
 	public int extractFrom(final ForgeDirection fromDir, final int uuid, final int amount,

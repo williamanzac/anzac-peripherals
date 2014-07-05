@@ -1,10 +1,10 @@
 package anzac.peripherals.peripheral;
 
 import java.util.List;
-import java.util.Map;
 
 import anzac.peripherals.annotations.Peripheral;
 import anzac.peripherals.annotations.PeripheralMethod;
+import anzac.peripherals.tiles.FluidRouterTileEntity.TankInfo;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
 import anzac.peripherals.utils.ClassUtils;
 
@@ -30,7 +30,7 @@ public class FluidStoragePeripheral extends BaseStoragePeripheral {
 	 * @throws Exception
 	 */
 	@PeripheralMethod
-	public Map<Integer, Map<String, Integer>> contents() throws Exception {
+	public TankInfo[] contents() throws Exception {
 		return getEntity().contents();
 	}
 }

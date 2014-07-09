@@ -8,16 +8,16 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.Packet5PlayerInventory;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 import anzac.peripherals.annotations.Items;
-import anzac.peripherals.network.PacketHandler;
 import anzac.peripherals.tiles.TeleporterTileEntity;
 import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 
 @Items(key = "item.anzac.component", value = { ItemType.BASIC_PROCESSOR, ItemType.ADVANCED_PROCESSOR, ItemType.PLATTER,
 		ItemType.SPINDLE, ItemType.TELEPORTER_CARD, ItemType.BASIC_PERIPHERAL_FRAME,
@@ -74,7 +74,7 @@ public class ComponentItem extends Item {
 			if (stack.hasTagCompound() && player.isSneaking()) {
 				stack.setTagCompound(null);
 				player.sendChatToPlayer(ChatMessageComponent.createFromText("clearing stored coordinates"));
-				player.inventory.setInventorySlotContents(player.inventory.currentItem, stack);
+				updateInventory(player, stack);
 			}
 			return false;
 		}
@@ -92,26 +92,17 @@ public class ComponentItem extends Item {
 			tagCompound.setInteger("linky", entity.yCoord);
 			tagCompound.setInteger("linkz", entity.zCoord);
 			tagCompound.setInteger("linkd", entity.worldObj.provider.dimensionId);
-			final Packet packet = PacketHandler.createTileEntityPacket("anzac", PacketHandler.ID_TILE_ENTITY,
-					tileEntity);
-			PacketDispatcher.sendPacketToServer(packet);
-			player.inventory.setInventorySlotContents(player.inventory.currentItem, stack);
+			updateInventory(player, stack);
 			return true;
-		} else {
-			if (stack.hasTagCompound()) {
-				tagCompound = stack.getTagCompound();
-				final int x = tagCompound.getInteger("linkx");
-				final int y = tagCompound.getInteger("linky");
-				final int z = tagCompound.getInteger("linkz");
-				final int d = tagCompound.getInteger("linkd");
-				entity.addRemoveTarget(x, y, z, d, player);
-				final Packet packet = PacketHandler.createTileEntityPacket("anzac", PacketHandler.ID_TILE_ENTITY,
-						tileEntity);
-				PacketDispatcher.sendPacketToServer(packet);
-				return true;
-			}
 		}
 		return false;
+	}
+
+	private void updateInventory(final EntityPlayer player, final ItemStack stack) {
+		final Packet5PlayerInventory packet = new Packet5PlayerInventory(player.entityId, player.inventory.currentItem,
+				stack);
+		PacketDispatcher.sendPacketToPlayer(packet, (Player) player);
+		player.inventory.setInventorySlotContents(player.inventory.currentItem, stack);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

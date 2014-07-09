@@ -1,7 +1,5 @@
 package anzac.peripherals.blocks;
 
-import java.util.Map;
-
 import net.minecraft.tileentity.TileEntity;
 import anzac.peripherals.peripheral.BasePeripheral;
 import anzac.peripherals.peripheral.CraftingRouterPeripheral;
@@ -28,10 +26,11 @@ public enum BlockType {
 	/**
 	 * This block allows you to craft items via a connected computer. The interface has a crafting area that can only be
 	 * set via a connected Computer, it also has an internal input and output cache. This block is only usable when
-	 * connected to a Computer. Use the {@link WorkbenchPeripheral#setRecipe(Map)} method to set the desired item to
-	 * craft. The required items can be injected in to the internal cache or you can manually input the items. Use the
-	 * {@link WorkbenchPeripheral#craft()} method to craft the item. The crafted item will automatically go in to the
-	 * output cache. This peripheral should ignore item metadata of the supplied input items.
+	 * connected to a Computer. Use the
+	 * {@link WorkbenchPeripheral#setRecipe(anzac.peripherals.tiles.RecipeStorageTileEntity.Recipe)} method to set the
+	 * desired item to craft. The required items can be injected in to the internal cache or you can manually input the
+	 * items. Use the {@link WorkbenchPeripheral#craft()} method to craft the item. The crafted item will automatically
+	 * go in to the output cache. This peripheral should ignore item metadata of the supplied input items.
 	 */
 	WORKBENCH(0, "item.anzac.workbench", "Computerised Workbench", WorkbenchTileEntity.class, WorkbenchPeripheral.class),
 	/**
@@ -41,7 +40,8 @@ public enum BlockType {
 	 * fired when a valid recipe has been defined. To save the recipe you need to call the
 	 * {@link RecipeStoragePeripheral#storeRecipe()} method from a connected Computer.The
 	 * {@link RecipeStoragePeripheral#loadRecipe(int)} method can be used to load a recipe in to a variable. That
-	 * variable can then be used to {@link WorkbenchPeripheral#setRecipe(Map)} on a connected
+	 * variable can then be used to
+	 * {@link WorkbenchPeripheral#setRecipe(anzac.peripherals.tiles.RecipeStorageTileEntity.Recipe)} on a connected
 	 * {@link WorkbenchPeripheral}.
 	 */
 	RECIPE_STORAGE(1, "item.anzac.recipestorage", "Recipe Storage", RecipeStorageTileEntity.class,

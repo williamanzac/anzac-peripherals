@@ -73,35 +73,34 @@ public class PacketHandler implements IPacketHandler {
 	}
 
 	public static TileEntity handleTileEntityPacket(final World world, final boolean readId, final DataInputStream dis) {
-		int x;
-		int y;
-		int z;
-		try {
-			if (readId) {
-				dis.readInt();
-			}
-			x = dis.readInt();
-			y = dis.readInt();
-			z = dis.readInt();
-		} catch (final IOException e) {
-			FMLCommonHandler.instance().raiseException(e, "PacketUtil.readTileEntityPacket", false);
-			return null;
-		}
-		final NBTTagCompound tags = readNBTTagCompound(dis);
-
 		if (world == null) {
 			AnzacPeripheralsCore.logger
 					.warning("PacketUtil.handleTileEntityPacket: Null world recieved when processing tile entity packet.");
 			return null;
 		}
-		final TileEntity te = world.getBlockTileEntity(x, y, z);
-		if (te == null) {
-			AnzacPeripheralsCore.logger
-					.warning("PacketUtil.handleTileEntityPacket: TileEntity null when processing tile entity packet.");
+
+		try {
+			if (readId) {
+				dis.readInt();
+			}
+			final int x = dis.readInt();
+			final int y = dis.readInt();
+			final int z = dis.readInt();
+
+			final NBTTagCompound tags = readNBTTagCompound(dis);
+
+			final TileEntity te = world.getBlockTileEntity(x, y, z);
+			if (te == null) {
+				AnzacPeripheralsCore.logger
+						.warning("PacketUtil.handleTileEntityPacket: TileEntity null when processing tile entity packet.");
+				return null;
+			}
+			te.readFromNBT(tags);
+			return te;
+		} catch (final IOException e) {
+			FMLCommonHandler.instance().raiseException(e, "PacketUtil.readTileEntityPacket", false);
 			return null;
 		}
-		te.readFromNBT(tags);
-		return te;
 	}
 
 	public static byte[] readByteArray(final int length, final DataInputStream dataIn) throws IOException {

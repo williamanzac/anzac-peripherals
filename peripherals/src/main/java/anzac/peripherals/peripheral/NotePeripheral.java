@@ -38,16 +38,28 @@ public class NotePeripheral extends BasePeripheral {
 		getEntity().playNote(instrument, note);
 	}
 
+	/**
+	 * @param sound
+	 */
 	@PeripheralMethod
 	public void playSound(final String sound) {
 		playSound(sound, 1f, 1f);
 	}
 
+	/**
+	 * @param sound
+	 * @param volume
+	 */
 	@PeripheralMethod
 	public void playSound(final String sound, final float volume) {
 		playSound(sound, volume, 1f);
 	}
 
+	/**
+	 * @param sound
+	 * @param volume
+	 * @param pitch
+	 */
 	@PeripheralMethod
 	public void playSound(final String sound, final float volume, final float pitch) {
 		getEntity().playSound(sound, volume, pitch);

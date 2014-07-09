@@ -1,21 +1,21 @@
 package anzac.peripherals.tiles;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.peripheral.TeleporterPeripheral;
 import anzac.peripherals.utils.ClassUtils;
 import anzac.peripherals.utils.Position;
+import anzac.peripherals.utils.Utils;
+import buildcraft.api.inventory.ISpecialInventory;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
@@ -27,7 +27,8 @@ import dan200.computercraft.api.turtle.ITurtleAccess;
  * @author Tony
  * 
  */
-public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler {
+public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler,
+		IInventory, ISpecialInventory, ISidedInventory {
 
 	public static class Target {
 		public int dimension;
@@ -90,7 +91,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 	private final PowerHandler handler = new PowerHandler(this, Type.MACHINE);
 	private int type;
-	private final List<Target> targets = new ArrayList<Target>();
+	private SimpleTargetInventory targetInv;
 
 	public TeleporterTileEntity() throws Exception {
 		super(TeleporterPeripheral.class);
@@ -102,23 +103,12 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		configure();
 	}
 
-	private int maxTargets() {
-		switch (type) {
-		case 1:
-			return 1;
-		case 2:
-			return 2;
-		case 3:
-			return 4;
-		}
-		return 0;
-	}
-
 	private void configure() {
 		final double maxStorage = 500 * Math.pow(10, type);
 		final double maxIn = Math.max(Math.pow(2, type + 6), maxStorage * 0.01);
 		handler.configure(1f, (float) maxIn, MJ, (float) maxStorage);
 		handler.configurePowerPerdition(0, 0);
+		targetInv = new SimpleTargetInventory(type, this);
 	}
 
 	public float getStoredEnergy() {
@@ -135,7 +125,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 	public Target[] getTargets() {
 		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
-		return targets.toArray(new Target[targets.size()]);
+		return targetInv.getTargets();
 	}
 
 	@Override
@@ -160,7 +150,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 	public void teleport(final int index) throws Exception {
 		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
-		final Target target = targets.get(index);
+		final Target target = getTargets()[index];
 		ITurtleAccess turtle = null;
 		final Position position = new Position(target.position);
 		for (final ForgeDirection direction : ForgeDirection.values()) {
@@ -230,13 +220,7 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		configure();
 
 		if (par1nbtTagCompound.hasKey("targets")) {
-			targets.clear();
-			final NBTTagList tagList = par1nbtTagCompound.getTagList("targets");
-			for (int i = 0; i < tagList.tagCount(); i++) {
-				final Target target = new Target();
-				target.readFromNBT((NBTTagCompound) tagList.tagAt(i));
-				targets.add(target);
-			}
+			targetInv.readFromNBT(par1nbtTagCompound.getCompoundTag("targets"));
 		}
 	}
 
@@ -246,58 +230,17 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 
 		handler.writeToNBT(par1nbtTagCompound);
 		par1nbtTagCompound.setInteger("type", type);
-		if (!targets.isEmpty()) {
-			// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
-			final NBTTagList list = new NBTTagList();
-			for (final Target target : targets) {
-				final NBTTagCompound targetTag = new NBTTagCompound();
-				target.writeToNBT(targetTag);
-				list.appendTag(targetTag);
-			}
-			par1nbtTagCompound.setTag("targets", list);
-		}
-	}
-
-	public void addRemoveTarget(final int x, final int y, final int z, final int d, final EntityPlayer player) {
-		final World destWorld = MinecraftServer.getServer().worldServerForDimension(d);
-		if (destWorld == null) {
-			player.sendChatToPlayer(ChatMessageComponent.createFromText("Destination world does not exist"));
-			return;
-		}
-		final TileEntity entity = destWorld.getBlockTileEntity(x, y, z);
-		if (!(entity instanceof TeleporterTileEntity)) {
-			player.sendChatToPlayer(ChatMessageComponent.createFromText("Destination is not a Teleporter"));
-			return;
-		}
-		final Target target = new Target();
-		target.dimension = d;
-		target.position = new Position(x, y, z);
-		if (targets.contains(target)) {
-			targets.remove(target);
-			player.sendChatToPlayer(ChatMessageComponent.createFromText("Removed target; x:" + x + ",y:" + y + ",z:"
-					+ z + ", d:" + d));
-			return;
-		}
-		if (targets.size() >= maxTargets()) {
-			player.sendChatToPlayer(ChatMessageComponent.createFromText("Maximum targets reached"));
-			return;
-		}
-		final double requiredPower = requiredPower(x, y, z, d);
-		// AnzacPeripheralsCore.logger.info("requiredPower:" + requiredPower);
-		if (requiredPower <= handler.getMaxEnergyStored()) {
-			targets.add(target);
-			player.sendChatToPlayer(ChatMessageComponent.createFromText("Added target; x:" + x + ",y:" + y + ",z:" + z
-					+ ", d:" + d));
-			// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
-			return;
-		}
+		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
+		final NBTTagCompound targetsTag = new NBTTagCompound();
+		targetInv.writeToNBT(targetsTag);
+		par1nbtTagCompound.setTag("targets", targetsTag);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((targets == null) ? 0 : targets.hashCode());
+		result = prime * result + ((targetInv == null) ? 0 : targetInv.hashCode());
 		result = prime * result + type;
 		return result;
 	}
@@ -311,10 +254,10 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 		if (getClass() != obj.getClass())
 			return false;
 		final TeleporterTileEntity other = (TeleporterTileEntity) obj;
-		if (targets == null) {
-			if (other.targets != null)
+		if (targetInv == null) {
+			if (other.targetInv != null)
 				return false;
-		} else if (!targets.equals(other.targets))
+		} else if (!targetInv.equals(other.targetInv))
 			return false;
 		if (type != other.type)
 			return false;
@@ -352,5 +295,91 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			}
 		}
 		return (int) (handler.addEnergy(quantity) * RF_TO_MJ);
+	}
+
+	@Override
+	public int addItem(ItemStack stack, boolean doAdd, ForgeDirection from) {
+		return Utils.addItem(this, stack, doAdd, from);
+	}
+
+	@Override
+	public ItemStack[] extractItem(boolean doRemove, ForgeDirection from, int maxItemCount) {
+		return null;
+	}
+
+	@Override
+	public int getSizeInventory() {
+		return targetInv.getSizeInventory();
+	}
+
+	@Override
+	public ItemStack getStackInSlot(int i) {
+		return targetInv.getStackInSlot(i);
+	}
+
+	@Override
+	public ItemStack decrStackSize(int i, int j) {
+		return targetInv.decrStackSize(i, j);
+	}
+
+	@Override
+	public ItemStack getStackInSlotOnClosing(int i) {
+		return targetInv.getStackInSlotOnClosing(i);
+	}
+
+	@Override
+	public void setInventorySlotContents(int i, ItemStack itemstack) {
+		targetInv.setInventorySlotContents(i, itemstack);
+	}
+
+	@Override
+	public String getInvName() {
+		return getLabel();
+	}
+
+	@Override
+	public boolean isInvNameLocalized() {
+		return hasLabel();
+	}
+
+	@Override
+	public int getInventoryStackLimit() {
+		return targetInv.getInventoryStackLimit();
+	}
+
+	@Override
+	public boolean isUseableByPlayer(EntityPlayer entityplayer) {
+		return isConnected() && worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this
+				&& entityplayer.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 64.0D;
+	}
+
+	@Override
+	public void openChest() {
+		targetInv.openChest();
+	}
+
+	@Override
+	public void closeChest() {
+		targetInv.closeChest();
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int i, ItemStack itemstack) {
+		return targetInv.isItemValidForSlot(i, itemstack);
+	}
+
+	@Override
+	public int[] getAccessibleSlotsFromSide(int var1) {
+		return Utils.createSlotArray(0, targetInv.getSizeInventory());
+	}
+
+	@Override
+	public boolean canInsertItem(int i, ItemStack itemstack, int j) {
+		return targetInv.isItemValidForSlot(i, itemstack);
+	}
+
+	@Override
+	public boolean canExtractItem(int i, ItemStack itemstack, int j) {
+		return false;
 	}
 }

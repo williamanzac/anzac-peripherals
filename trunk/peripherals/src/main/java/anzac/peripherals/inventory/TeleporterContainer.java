@@ -12,11 +12,30 @@ import anzac.peripherals.utils.Utils;
 public class TeleporterContainer extends Container {
 	private final TeleporterTileEntity te;
 	private float lastStored;
+	private final int numRows = 2;
+	private final int numCols = 2;
 
 	public TeleporterContainer(final InventoryPlayer inventoryPlayer, final TeleporterTileEntity te) {
 		this.te = te;
 		int row;
 		int col;
+
+		final int sizeInventory = te.getSizeInventory();
+		for (row = 0; row < numRows; row++) {
+			for (col = 0; col < numCols; col++) {
+				final int slot = row * numCols + col;
+				final int x = 116 + 18 * col;
+				final int y = 19 + 18 * row;
+				if (slot < sizeInventory) {
+					addSlotToContainer(new Slot(te, slot, x, y) {
+						@Override
+						public boolean isItemValid(final ItemStack itemStack) {
+							return inventory.isItemValidForSlot(getSlotIndex(), itemStack);
+						}
+					});
+				}
+			}
+		}
 
 		for (row = 0; row < 3; ++row) {
 			for (col = 0; col < 9; ++col) {
@@ -52,7 +71,7 @@ public class TeleporterContainer extends Container {
 	}
 
 	@Override
-	public void updateProgressBar(int index, int value) {
+	public void updateProgressBar(final int index, final int value) {
 		switch (index) {
 		case 0:
 			te.setStoredEnergy(value);

@@ -16,7 +16,7 @@ public enum ItemType {
 	/**  */
 	SPINDLE(3, "item.anzac.spindle", "Spindle", "anzac:discs"),
 	/**  */
-	TELEPORTER_CARD(4, "item.anzac.teleportercard", "Teleporter Card", "anzac:teleport_card"),
+	TELEPORTER_CARD(4, "item.anzac.teleportercard", "Memory Card", "anzac:teleport_card"),
 	/**  */
 	BASIC_PERIPHERAL_FRAME(5, "item.anzac.basicframe", "Basic Peripheral Frame", "anzac:basic_frame"),
 	/**  */

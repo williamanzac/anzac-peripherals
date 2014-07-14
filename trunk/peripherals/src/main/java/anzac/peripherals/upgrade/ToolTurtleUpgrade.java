@@ -14,6 +14,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.ForgeHooks;
+import anzac.peripherals.annotations.TurtleUpgrade;
 import anzac.peripherals.proxy.CommonProxy;
 import anzac.peripherals.tiles.InternalPlayer;
 import anzac.peripherals.utils.Position;
@@ -30,13 +31,17 @@ public abstract class ToolTurtleUpgrade implements ITurtleUpgrade {
 
 	private final ItemStack toolStack;
 	private final int upgradeId;
-	private final String adjective;
+	private String adjective;
 
 	public ToolTurtleUpgrade(final ItemStack toolStack, final int upgradeId, final String adjective) {
+		this(toolStack, upgradeId);
+		this.adjective = adjective;
+	}
+
+	public ToolTurtleUpgrade(final ItemStack toolStack, final int upgradeId) {
 		super();
 		this.toolStack = toolStack;
 		this.upgradeId = upgradeId;
-		this.adjective = adjective;
 	}
 
 	@Override
@@ -46,6 +51,9 @@ public abstract class ToolTurtleUpgrade implements ITurtleUpgrade {
 
 	@Override
 	public final String getAdjective() {
+		if (adjective == null) {
+			adjective = getClass().getAnnotation(TurtleUpgrade.class).adjective();
+		}
 		return adjective;
 	}
 

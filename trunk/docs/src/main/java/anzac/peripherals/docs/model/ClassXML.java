@@ -66,7 +66,9 @@ public class ClassXML {
 		builder.appendln("</thead>");
 		builder.appendln("<tbody>");
 		for (final MethodXML methodXML : methods) {
-			builder.append(methodXML.toSummaryXML(name));
+			if (methodXML.isPeripheralMethod()) {
+				builder.append(methodXML.toSummaryXML(name));
+			}
 		}
 		builder.appendln("</tbody>");
 		builder.appendln("</table>");
@@ -82,7 +84,9 @@ public class ClassXML {
 		builder.appendln("<section id=\"detail\">");
 		builder.appendln("<h3>Method Detail</h3>");
 		for (final MethodXML methodXML : methods) {
-			builder.append(methodXML.toDetailXML(name));
+			if (methodXML.isPeripheralMethod()) {
+				builder.append(methodXML.toDetailXML(name));
+			}
 		}
 
 		if (!events.isEmpty()) {

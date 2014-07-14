@@ -10,14 +10,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.IShearable;
+import anzac.peripherals.annotations.TurtleUpgrade;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.api.turtle.TurtleCommandResult;
 
+@TurtleUpgrade(adjective = "Shearing")
 public class ShearingUpgrade extends ToolTurtleUpgrade {
 	private static final List<Block> SHEAR_DIG = Arrays.asList(new Block[] { Block.cloth, Block.web });
 
 	public ShearingUpgrade(final ItemShears shears, final int id) {
-		super(new ItemStack(shears), id, "Shearing");
+		super(new ItemStack(shears), id);
 	}
 
 	@Override

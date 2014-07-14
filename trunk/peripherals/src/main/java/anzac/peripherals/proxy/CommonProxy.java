@@ -15,7 +15,6 @@ import static anzac.peripherals.AnzacPeripheralsCore.teleporterBlockId;
 import static anzac.peripherals.utils.Utils.nextUpgradeId;
 import static dan200.computercraft.api.ComputerCraftAPI.registerBundledRedstoneProvider;
 import static dan200.computercraft.api.ComputerCraftAPI.registerPeripheralProvider;
-import static dan200.computercraft.api.ComputerCraftAPI.registerTurtleUpgrade;
 import static net.minecraftforge.client.MinecraftForgeClient.registerItemRenderer;
 
 import java.util.ArrayList;
@@ -65,6 +64,7 @@ import anzac.peripherals.render.RenderComponentItem;
 import anzac.peripherals.render.RenderHDD;
 import anzac.peripherals.upgrade.DropConsumer;
 import anzac.peripherals.upgrade.FlintUpgrade;
+import anzac.peripherals.upgrade.FurnaceUpgrade;
 import anzac.peripherals.upgrade.GenericToolUpgrade;
 import anzac.peripherals.upgrade.HoeUpgrade;
 import anzac.peripherals.upgrade.ShearingUpgrade;
@@ -77,6 +77,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.common.registry.GameRegistry;
+import dan200.computercraft.api.ComputerCraftAPI;
+import dan200.computercraft.api.turtle.ITurtleUpgrade;
 
 public class CommonProxy {
 	private final static Map<Entity, DropConsumer> dropConsumers = new WeakHashMap<Entity, DropConsumer>();
@@ -167,6 +169,11 @@ public class CommonProxy {
 				registerTurtleUpgrade(new FlintUpgrade((ItemFlintAndSteel) item, nextUpgradeId()));
 			}
 		}
+		registerTurtleUpgrade(new FurnaceUpgrade(nextUpgradeId()));
+	}
+
+	protected void registerTurtleUpgrade(ITurtleUpgrade upgrade) {
+		ComputerCraftAPI.registerTurtleUpgrade(upgrade);
 	}
 
 	private void registerRecpies() {
@@ -343,7 +350,7 @@ public class CommonProxy {
 		addShapelessRecipe(output, objects);
 	}
 
-	private void registerForgeHandlers() {
+	protected void registerForgeHandlers() {
 		final ForgeHandlers handlers = new ForgeHandlers();
 		MinecraftForge.EVENT_BUS.register(handlers);
 	}

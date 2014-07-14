@@ -1,7 +1,11 @@
 package anzac.peripherals.upgrade;
 
+import java.lang.reflect.Constructor;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Icon;
+import anzac.peripherals.annotations.TurtleUpgrade;
+import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.api.turtle.ITurtleUpgrade;
 import dan200.computercraft.api.turtle.TurtleCommandResult;
@@ -12,13 +16,13 @@ import dan200.computercraft.api.turtle.TurtleVerb;
 public abstract class PeripheralTurtleUpgrade implements ITurtleUpgrade {
 	private final ItemStack itemStack;
 	private final int upgradeId;
-	private final String adjective;
+	private String adjective;
+	private Constructor<? extends IPeripheral> constructor;
 
-	public PeripheralTurtleUpgrade(final ItemStack itemStack, final int upgradeId, final String adjective) {
+	public PeripheralTurtleUpgrade(final ItemStack itemStack, final int upgradeId) {
 		super();
 		this.itemStack = itemStack;
 		this.upgradeId = upgradeId;
-		this.adjective = adjective;
 	}
 
 	@Override
@@ -28,6 +32,11 @@ public abstract class PeripheralTurtleUpgrade implements ITurtleUpgrade {
 
 	@Override
 	public final String getAdjective() {
+		if (adjective == null) {
+			final Class<? extends PeripheralTurtleUpgrade> class1 = getClass();
+			final TurtleUpgrade annotation = class1.getAnnotation(TurtleUpgrade.class);
+			adjective = annotation.adjective();
+		}
 		return adjective;
 	}
 
@@ -38,7 +47,7 @@ public abstract class PeripheralTurtleUpgrade implements ITurtleUpgrade {
 
 	@Override
 	public final ItemStack getCraftingItem() {
-		return itemStack;
+		return itemStack.copy();
 	}
 
 	@Override
@@ -48,7 +57,23 @@ public abstract class PeripheralTurtleUpgrade implements ITurtleUpgrade {
 	}
 
 	@Override
-	public final Icon getIcon(final ITurtleAccess turtle, final TurtleSide side) {
-		return itemStack.getIconIndex();
+	public Icon getIcon(final ITurtleAccess turtle, final TurtleSide side) {
+		return getCraftingItem().getIconIndex();
+	}
+
+	@Override
+	public IPeripheral createPeripheral(final ITurtleAccess turtle, final TurtleSide side) {
+		try {
+			if (constructor == null) {
+				final Class<? extends PeripheralTurtleUpgrade> class1 = getClass();
+				final TurtleUpgrade annotation = class1.getAnnotation(TurtleUpgrade.class);
+				final Class<? extends IPeripheral> peripheralType = annotation.peripheralType();
+				constructor = peripheralType.getConstructor(ITurtleAccess.class);
+			}
+			return constructor.newInstance(turtle);
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

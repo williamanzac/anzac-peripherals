@@ -15,6 +15,7 @@ import anzac.peripherals.docs.model.BlockXML;
 import anzac.peripherals.docs.model.ClassXML;
 import anzac.peripherals.docs.model.ItemXML;
 import anzac.peripherals.docs.model.MethodXML;
+import anzac.peripherals.docs.model.UpgradeXML;
 
 import com.sun.javadoc.DocErrorReporter;
 import com.sun.javadoc.LanguageVersion;
@@ -54,6 +55,18 @@ public class APIDoclet {
 			try {
 				final String document = itemXML.toXML();
 				final String classFileName = itemName(itemXML);
+				final File file = new File(classFileName);
+				FileUtils.writeStringToFile(file, document);
+			} catch (final Exception e) {
+				e.printStackTrace();
+				rootDoc.printError(e.getMessage());
+				return false;
+			}
+		}
+		for (final UpgradeXML upgradeXML : ModelGenerator.upgradeClasses) {
+			try {
+				final String document = upgradeXML.toXML();
+				final String classFileName = upgradeXML.getName();
 				final File file = new File(classFileName);
 				FileUtils.writeStringToFile(file, document);
 			} catch (final Exception e) {

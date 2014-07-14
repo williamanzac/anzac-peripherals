@@ -17,6 +17,7 @@ public class MethodXML implements Comparable<MethodXML> {
 	private String returnType;
 	private final List<ParameterXML> parameters = new ArrayList<ParameterXML>();
 	private Tag[] returnDescription;
+	private boolean peripheralMethod;
 
 	public String getName() {
 		return name;
@@ -147,5 +148,13 @@ public class MethodXML implements Comparable<MethodXML> {
 			builder.appendln("</dl>");
 		}
 		return builder.toString();
+	}
+
+	public boolean isPeripheralMethod() {
+		return peripheralMethod;
+	}
+
+	public void setPeripheralMethod(boolean peripheralMethod) {
+		this.peripheralMethod = peripheralMethod;
 	}
 }

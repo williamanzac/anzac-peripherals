@@ -20,6 +20,7 @@ import anzac.peripherals.docs.model.EventXML;
 import anzac.peripherals.docs.model.ItemXML;
 import anzac.peripherals.docs.model.MethodXML;
 import anzac.peripherals.docs.model.ParameterXML;
+import anzac.peripherals.docs.model.UpgradeXML;
 
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.AnnotationDesc.ElementValuePair;
@@ -37,6 +38,7 @@ public class ModelGenerator {
 	protected static final List<ClassXML> peripheralClasses = new ArrayList<>();
 	protected static final List<ItemXML> itemClasses = new ArrayList<>();
 	protected static final List<BlockXML> blockClasses = new ArrayList<>();
+	protected static final List<UpgradeXML> upgradeClasses = new ArrayList<>();
 
 	protected static void generateModel(final RootDoc rootDoc) {
 		for (final ClassDoc classDoc : rootDoc.classes()) {
@@ -44,8 +46,7 @@ public class ModelGenerator {
 				if (annotationDesc.annotationType().toString().contains("Peripheral")) {
 					final ClassXML processClass = toClassXML(classDoc, annotationDesc);
 					peripheralClasses.add(processClass);
-				}
-				if (annotationDesc.annotationType().toString().endsWith("Items")) {
+				} else if (annotationDesc.annotationType().toString().endsWith("Items")) {
 					final List<ItemXML> processClasses = toItemXMLs(classDoc, annotationDesc);
 					for (final ItemXML itemXML : processClasses) {
 						itemClasses.add(itemXML);
@@ -60,9 +61,31 @@ public class ModelGenerator {
 					for (final BlockXML blockXML : processClasses) {
 						blockClasses.add(blockXML);
 					}
+				} else if (annotationDesc.annotationType().toString().endsWith("Upgrade")) {
+					final UpgradeXML blockXML = toUpgradeXML(classDoc, annotationDesc);
+					upgradeClasses.add(blockXML);
 				}
 			}
 		}
+	}
+
+	private static UpgradeXML toUpgradeXML(final ClassDoc classDoc, final AnnotationDesc annotationDesc) {
+		String peripheralClass = null;
+		String adjective = null;
+		for (final ElementValuePair pair : annotationDesc.elementValues()) {
+			if (pair.element().name().equals("adjective")) {
+				adjective = (String) pair.value().value();
+			}
+			if (pair.element().name().equals("peripheralType")) {
+				peripheralClass = ((ClassDoc) pair.value().value()).simpleTypeName();
+			}
+		}
+		final ClassXML classXML = findClassXML(peripheralClass);
+		final UpgradeXML upgradeXML = new UpgradeXML();
+		upgradeXML.setPeripheral(classXML);
+		upgradeXML.setAdjective(adjective);
+		upgradeXML.setName(classDoc.simpleTypeName());
+		return upgradeXML;
 	}
 
 	private static List<BlockXML> toBlockXMLs(final ClassDoc classDoc, final AnnotationDesc annotationDesc) {
@@ -299,12 +322,8 @@ public class ModelGenerator {
 	private static Set<MethodXML> generateMethodModel(final ClassDoc classDoc) {
 		final Set<MethodXML> methods = new HashSet<MethodXML>();
 		for (final MethodDoc methodDoc : classDoc.methods()) {
-			for (final AnnotationDesc annotationDesc : methodDoc.annotations()) {
-				if (annotationDesc.annotationType().toString().contains("Peripheral")) {
-					final MethodXML methodXML = toMethodXML(methodDoc);
-					methods.add(methodXML);
-				}
-			}
+			final MethodXML methodXML = toMethodXML(methodDoc);
+			methods.add(methodXML);
 		}
 		final ClassDoc superclass = classDoc.superclass();
 		if (superclass != null) {
@@ -320,10 +339,17 @@ public class ModelGenerator {
 		methodXML.setDescription(methodDoc.inlineTags());
 		methodXML.setReturnType(javaToLUA(methodDoc.returnType()));
 		methodXML.getParameters().addAll(generateParameterModel(methodDoc));
+		for (final AnnotationDesc annotationDesc : methodDoc.annotations()) {
+			if (annotationDesc.annotationType().toString().contains("Peripheral")) {
+				methodXML.setPeripheralMethod(true);
+				break;
+			}
+		}
 		for (final Tag tag : methodDoc.tags()) {
 			final String tagName = tag.name();
 			if (tagName.equals("@return")) {
 				methodXML.setReturnDescription(tag.inlineTags());
+				break;
 			}
 		}
 		return methodXML;
@@ -340,10 +366,13 @@ public class ModelGenerator {
 		}
 		for (final Parameter parameter : methodDoc.parameters()) {
 			final String name = parameter.name();
-			final ParameterXML parameterXML = parameters.get(name);
-			if (parameterXML != null) {
-				parameterXML.setType(javaToLUA(parameter.type()));
+			ParameterXML parameterXML = parameters.get(name);
+			if (parameterXML == null) {
+				parameterXML = new ParameterXML();
+				parameterXML.setName(parameter.name());
+				parameters.put(parameterXML.getName(), parameterXML);
 			}
+			parameterXML.setType(javaToLUA(parameter.type()));
 		}
 		return parameters.values();
 	}

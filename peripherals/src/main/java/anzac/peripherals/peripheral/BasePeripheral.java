@@ -2,6 +2,7 @@ package anzac.peripherals.peripheral;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -26,6 +27,10 @@ public abstract class BasePeripheral implements IPeripheral {
 
 	public BasePeripheral(final BasePeripheralTileEntity entity) {
 		this.entity = entity;
+	}
+
+	public BasePeripheral(final ITurtleAccess turtle) {
+		this.turtle = turtle;
 	}
 
 	protected abstract BasePeripheralTileEntity getEntity();
@@ -108,10 +113,42 @@ public abstract class BasePeripheral implements IPeripheral {
 	}
 
 	@Override
-	public boolean equals(IPeripheral other) {
+	public boolean equals(final IPeripheral other) {
 		if (other instanceof BasePeripheral) {
-			return entity.equals(((BasePeripheral) other).entity);
+			return Objects.equals(entity, ((BasePeripheral) other).entity)
+					&& Objects.equals(turtle, ((BasePeripheral) other).turtle);
 		}
 		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((entity == null) ? 0 : entity.hashCode());
+		result = prime * result + ((turtle == null) ? 0 : turtle.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final BasePeripheral other = (BasePeripheral) obj;
+		if (entity == null) {
+			if (other.entity != null)
+				return false;
+		} else if (!entity.equals(other.entity))
+			return false;
+		if (turtle == null) {
+			if (other.turtle != null)
+				return false;
+		} else if (!turtle.equals(other.turtle))
+			return false;
+		return true;
 	}
 }

@@ -9,11 +9,13 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
+import anzac.peripherals.annotations.TurtleUpgrade;
 
+@TurtleUpgrade(adjective = "Farming")
 public class HoeUpgrade extends ToolTurtleUpgrade {
 
 	public HoeUpgrade(final ItemHoe tool, final int upgradeId) {
-		super(new ItemStack(tool), upgradeId, "Farming");
+		super(new ItemStack(tool), upgradeId);
 	}
 
 	@Override

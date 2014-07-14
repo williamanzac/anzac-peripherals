@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
+import anzac.peripherals.annotations.TurtleUpgrade;
 import anzac.peripherals.tiles.InternalPlayer;
 import anzac.peripherals.utils.Position;
 import anzac.peripherals.utils.Utils;
@@ -13,10 +14,11 @@ import buildcraft.api.tools.IToolWrench;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.api.turtle.TurtleCommandResult;
 
+@TurtleUpgrade(adjective = "Wrench")
 public class WrenchUpgrade extends ToolTurtleUpgrade {
 
 	public WrenchUpgrade(final IToolWrench tool, final int upgradeId) {
-		super(new ItemStack((Item) tool), upgradeId, "Wrench");
+		super(new ItemStack((Item) tool), upgradeId);
 	}
 
 	@Override

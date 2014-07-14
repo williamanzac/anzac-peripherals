@@ -481,6 +481,12 @@
 								<AdvancedPeripheralFrame>270</AdvancedPeripheralFrame>
 								<BasicPeripheralFrame>268</BasicPeripheralFrame>
 								<TurtleTeleporterFrame>272</TurtleTeleporterFrame>
+								<FlintUpgrade>251</FlintUpgrade>
+								<FurnaceUpgrade>347</FurnaceUpgrade>
+								<HoeUpgrade>253</HoeUpgrade>
+								<ShearingUpgrade>255</ShearingUpgrade>
+								<SwordUpgrade>257</SwordUpgrade>
+								<WrenchUpgrade>259</WrenchUpgrade>
 							</idToFile>
 						</configuration>
 					</execution>

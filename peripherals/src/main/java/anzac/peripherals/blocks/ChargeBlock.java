@@ -19,6 +19,14 @@ import anzac.peripherals.tiles.ChargeStationTileEntity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+/**
+ * This peripheral will transfer it's internal power to any turtles parked next to it. It can accept either MJ or RF
+ * power. An Iron Charge Station can store a maximum of 25 units of fuel. A Gold Charge Station can store a maximum of
+ * 250 units of fuel. A Diamond Charge Station can store up to 2500 units of fuel. By default 1 unit of fuel is equal to
+ * 20 MJ.
+ * 
+ * @author Tony
+ */
 @Blocks(itemType = ChargeItem.class, key = "block.anzac.chargestation", tool = "pickaxe", toolLevel = 1, tileType = ChargeStationTileEntity.class, peripheralType = ChargeStationPeripheral.class)
 public class ChargeBlock extends BlockContainer {
 

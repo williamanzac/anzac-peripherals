@@ -18,10 +18,6 @@ import buildcraft.api.power.PowerHandler.Type;
 import cofh.api.energy.IEnergyHandler;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
-/**
- * @author Tony
- * 
- */
 public class ChargeStationTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler {
 
 	private static final int MJ = AnzacPeripheralsCore.mjMultiplier;

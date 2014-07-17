@@ -23,10 +23,6 @@ import buildcraft.api.power.PowerHandler.Type;
 import cofh.api.energy.IEnergyHandler;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
-/**
- * @author Tony
- * 
- */
 public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler,
 		IInventory, ISpecialInventory, ISidedInventory {
 

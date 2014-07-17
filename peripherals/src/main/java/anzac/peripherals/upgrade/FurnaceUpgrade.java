@@ -11,6 +11,13 @@ import cpw.mods.fml.relauncher.SideOnly;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.api.turtle.TurtleSide;
 
+/**
+ * This Turtle Upgrade allows the turtle to smelt the currently selected item in it's inventory. <br/>
+ * One piece of coal provides a turtle with 80 fuel and also allows 8 items to be smelted in a furnace, therefore for
+ * each item smelted by the turtle 10 units of fuel are used.
+ * 
+ * @author Tony
+ */
 @TurtleUpgrade(adjective = "Smelting", peripheralType = FurnaceUpgradePeripheral.class)
 public class FurnaceUpgrade extends PeripheralTurtleUpgrade implements UpgradeIcon {
 

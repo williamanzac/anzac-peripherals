@@ -37,10 +37,20 @@ public class UpgradeXML {
 		builder.appendln("<dd>" + adjective + "</dd>");
 		builder.appendln("</dl>");
 		builder.appendln("</section>");
+		builder.appendln("<section id=\"recipe\">");
+		builder.appendln("<h3>Recipe</h3>");
+		builder.appendln(toRecipeXML());
+		builder.appendln("</section>");
 		if (peripheral != null) {
 			builder.append(peripheral.toXML());
 		}
 		return builder.toString();
+	}
+
+	protected String toRecipeXML() {
+		return "<img alt=\"Recipe for " + APIDoclet.camelCase(name)
+				+ "\" src=\"http://files.anzacgaming.co.uk/images/recipe_" + APIDoclet.lowerUnderscore(name)
+				+ ".png\" />";
 	}
 
 	public ClassXML getPeripheral() {

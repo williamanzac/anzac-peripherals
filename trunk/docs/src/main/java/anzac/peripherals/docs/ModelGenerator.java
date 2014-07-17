@@ -85,6 +85,7 @@ public class ModelGenerator {
 		upgradeXML.setPeripheral(classXML);
 		upgradeXML.setAdjective(adjective);
 		upgradeXML.setName(classDoc.simpleTypeName());
+		upgradeXML.setDescription(classDoc.inlineTags());
 		return upgradeXML;
 	}
 

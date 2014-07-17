@@ -20,7 +20,9 @@ public class ChargeStationPeripheral extends BasePeripheral {
 	}
 
 	/**
-	 * @return
+	 * Get the amount of stored energy inside of this peripheral.
+	 * 
+	 * @return Returns how many units of fuel are currently stored in it.
 	 */
 	@PeripheralMethod
 	public float getStoredEnergy() {
@@ -28,7 +30,9 @@ public class ChargeStationPeripheral extends BasePeripheral {
 	}
 
 	/**
-	 * @return
+	 * Get the maximum amount of energy that can be stored inside of this peripheral.
+	 * 
+	 * @return Returns how many units of fuel can be stored in it.
 	 */
 	@PeripheralMethod
 	public float getMaxEnergy() {

@@ -26,7 +26,9 @@ public class TeleporterPeripheral extends BasePeripheral {
 	}
 
 	/**
-	 * @return
+	 * Get the amount of stored energy inside of this peripheral.
+	 * 
+	 * @return Returns how many units of fuel are currently stored in it.
 	 */
 	@PeripheralMethod
 	public float getStoredEnergy() {
@@ -34,7 +36,9 @@ public class TeleporterPeripheral extends BasePeripheral {
 	}
 
 	/**
-	 * @return
+	 * Get the maximum amount of energy that can be stored inside of this peripheral.
+	 * 
+	 * @return Returns how many units of fuel can be stored in it.
 	 */
 	@PeripheralMethod
 	public float getMaxEnergy() {
@@ -42,7 +46,9 @@ public class TeleporterPeripheral extends BasePeripheral {
 	}
 
 	/**
-	 * @return
+	 * Get a list of the currently configured targets.
+	 * 
+	 * @return Returns an array of teleporter targets.
 	 */
 	@PeripheralMethod
 	public Target[] getTargets() {
@@ -50,8 +56,13 @@ public class TeleporterPeripheral extends BasePeripheral {
 	}
 
 	/**
+	 * Teleport a turtle next to this peripheral to the specified target.
+	 * 
 	 * @param index
+	 *            The numerical index of the target in the array.
 	 * @throws Exception
+	 *             Returns an error if the destination is blocked or invalid, there are no turtles next to it or if
+	 *             there is not enough power.
 	 */
 	@PeripheralMethod
 	public void teleport(final int index) throws Exception {

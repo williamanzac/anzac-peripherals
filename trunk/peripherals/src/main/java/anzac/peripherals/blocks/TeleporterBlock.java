@@ -20,6 +20,14 @@ import anzac.peripherals.tiles.TeleporterTileEntity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+/**
+ * This peripheral can use it internal power to teleport any turtle next to it. It can accept either MJ or RF power. A
+ * memory card must be placed inside with the desired destination. It can even be in another dimension. An Iron
+ * Teleporter can only have 1 destination and can store up to 250 fuel units. A Gold Teleporter can have 2 destinations
+ * and stores up to 2500 units. A Diamond Teleporter can have 4 destination and stores up to 25000 units.
+ * 
+ * @author Tony
+ */
 @Blocks(itemType = TeleporterItem.class, key = "block.anzac.teleporter", tool = "pickaxe", toolLevel = 2, tileType = TeleporterTileEntity.class, peripheralType = TeleporterPeripheral.class)
 public class TeleporterBlock extends BlockContainer {
 

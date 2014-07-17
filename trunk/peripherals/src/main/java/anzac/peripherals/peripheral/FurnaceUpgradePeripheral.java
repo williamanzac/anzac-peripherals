@@ -35,6 +35,16 @@ public class FurnaceUpgradePeripheral extends BasePeripheral {
 		return ClassUtils.getMethodNames(FurnaceUpgradePeripheral.class);
 	}
 
+	/**
+	 * Smelt the currently selected item from the turtle's inventory. The output will be put in to the first available
+	 * slot or it will be dropped on to the ground.
+	 * 
+	 * @param amount
+	 *            How many of the item to smelt.
+	 * @throws Exception
+	 *             Return an error if the currently selected slot is empty, if there is not enough fuel left to smelt an
+	 *             item or if the current item cannot be smelted.
+	 */
 	@PeripheralMethod
 	public void smelt(final int amount) throws Exception {
 		final int selectedSlot = turtle.getSelectedSlot();
@@ -79,10 +89,12 @@ public class FurnaceUpgradePeripheral extends BasePeripheral {
 
 	@Override
 	public String getLabel() {
+		// override as this peripheral does not need a label, it is part of a turtle
 		return null;
 	}
 
 	@Override
 	public void setLabel(final String label) {
+		// override as this peripheral does not need a label, it is part of a turtle
 	}
 }

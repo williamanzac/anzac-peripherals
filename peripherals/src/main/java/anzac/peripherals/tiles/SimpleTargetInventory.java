@@ -9,9 +9,9 @@ import anzac.peripherals.utils.Position;
 
 public class SimpleTargetInventory extends SimpleInventory {
 	private final Target[] targets;
-	private final TeleporterTileEntity entity;
+	private final TeleporterTarget entity;
 
-	public SimpleTargetInventory(final int type, final TeleporterTileEntity entity) {
+	public SimpleTargetInventory(final int type, final TeleporterTarget entity) {
 		super(maxTargets(type));
 		targets = new Target[maxTargets(type)];
 		this.entity = entity;

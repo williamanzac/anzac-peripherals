@@ -15,7 +15,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 import anzac.peripherals.annotations.Items;
-import anzac.peripherals.tiles.TeleporterTileEntity;
+import anzac.peripherals.tiles.TeleporterTarget;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
@@ -70,7 +70,7 @@ public class ComponentItem extends Item {
 	private boolean handleCard(final ItemStack current, final TileEntity tileEntity, final EntityPlayer player) {
 		final ItemStack stack = current.copy();
 		// AnzacPeripheralsCore.logger.info("isRemote: " + tileEntity.worldObj.isRemote);
-		if (tileEntity == null || !(tileEntity instanceof TeleporterTileEntity)) {
+		if (tileEntity == null || !(tileEntity instanceof TeleporterTarget)) {
 			if (stack.hasTagCompound() && player.isSneaking()) {
 				stack.setTagCompound(null);
 				player.sendChatToPlayer(ChatMessageComponent.createFromText("clearing stored coordinates"));
@@ -78,7 +78,6 @@ public class ComponentItem extends Item {
 			}
 			return false;
 		}
-		final TeleporterTileEntity entity = (TeleporterTileEntity) tileEntity;
 		// is card
 		NBTTagCompound tagCompound;
 		if (player.isSneaking()) {
@@ -86,12 +85,12 @@ public class ComponentItem extends Item {
 				stack.setTagCompound(new NBTTagCompound());
 			}
 			tagCompound = stack.getTagCompound();
-			player.sendChatToPlayer(ChatMessageComponent.createFromText("storing; x:" + entity.xCoord + ",y:"
-					+ entity.yCoord + ",z:" + entity.zCoord));
-			tagCompound.setInteger("linkx", entity.xCoord);
-			tagCompound.setInteger("linky", entity.yCoord);
-			tagCompound.setInteger("linkz", entity.zCoord);
-			tagCompound.setInteger("linkd", entity.worldObj.provider.dimensionId);
+			player.sendChatToPlayer(ChatMessageComponent.createFromText("storing; x:" + tileEntity.xCoord + ",y:"
+					+ tileEntity.yCoord + ",z:" + tileEntity.zCoord));
+			tagCompound.setInteger("linkx", tileEntity.xCoord);
+			tagCompound.setInteger("linky", tileEntity.yCoord);
+			tagCompound.setInteger("linkz", tileEntity.zCoord);
+			tagCompound.setInteger("linkd", tileEntity.worldObj.provider.dimensionId);
 			updateInventory(player, stack);
 			return true;
 		}

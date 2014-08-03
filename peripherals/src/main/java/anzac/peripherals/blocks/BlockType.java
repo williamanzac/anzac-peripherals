@@ -5,8 +5,10 @@ import anzac.peripherals.peripheral.BasePeripheral;
 import anzac.peripherals.peripheral.CraftingRouterPeripheral;
 import anzac.peripherals.peripheral.FluidRouterPeripheral;
 import anzac.peripherals.peripheral.FluidStoragePeripheral;
+import anzac.peripherals.peripheral.FluidSupplierPeripheral;
 import anzac.peripherals.peripheral.ItemRouterPeripheral;
 import anzac.peripherals.peripheral.ItemStoragePeripheral;
+import anzac.peripherals.peripheral.ItemSupplierPeripheral;
 import anzac.peripherals.peripheral.NotePeripheral;
 import anzac.peripherals.peripheral.RecipeStoragePeripheral;
 import anzac.peripherals.peripheral.RedstonePeripheral;
@@ -14,8 +16,10 @@ import anzac.peripherals.peripheral.WorkbenchPeripheral;
 import anzac.peripherals.tiles.CraftingRouterTileEntity;
 import anzac.peripherals.tiles.FluidRouterTileEntity;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
+import anzac.peripherals.tiles.FluidSupplierTileEntity;
 import anzac.peripherals.tiles.ItemRouterTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
+import anzac.peripherals.tiles.ItemSupplierTileEntity;
 import anzac.peripherals.tiles.NoteTileEntity;
 import anzac.peripherals.tiles.PeripheralEvent;
 import anzac.peripherals.tiles.RecipeStorageTileEntity;
@@ -67,8 +71,12 @@ public enum BlockType {
 			CraftingRouterPeripheral.class),
 	/**  */
 	NOTE_BLOCK(8, "item.anzac.noteblock", "Note Block", NoteTileEntity.class, NotePeripheral.class),
-
-	;
+	/**  */
+	ITEM_SUPPLIER(9, "item.anzac.itemsupplier", "Item Supplier", ItemSupplierTileEntity.class,
+			ItemSupplierPeripheral.class),
+	/**  */
+	FLUID_SUPPLIER(10, "item.anzac.fluidsupplier", "Fluid Supplier", FluidSupplierTileEntity.class,
+			FluidSupplierPeripheral.class), ;
 	private final String key;
 
 	private final String title;

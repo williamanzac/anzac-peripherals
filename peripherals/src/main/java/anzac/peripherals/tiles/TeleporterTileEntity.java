@@ -24,7 +24,7 @@ import cofh.api.energy.IEnergyHandler;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 
 public class TeleporterTileEntity extends BasePeripheralTileEntity implements IPowerReceptor, IEnergyHandler,
-		IInventory, ISpecialInventory, ISidedInventory {
+		IInventory, ISpecialInventory, ISidedInventory, TeleporterTarget {
 
 	public static class Target {
 		public int dimension;
@@ -43,14 +43,6 @@ public class TeleporterTileEntity extends BasePeripheralTileEntity implements IP
 			tag.setInteger("y", position.y);
 			tag.setInteger("z", position.z);
 			tag.setInteger("d", dimension);
-		}
-
-		public int getDimension() {
-			return dimension;
-		}
-
-		public Position getPosition() {
-			return position;
 		}
 
 		@Override

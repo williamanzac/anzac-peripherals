@@ -67,6 +67,7 @@ import anzac.peripherals.upgrade.FlintUpgrade;
 import anzac.peripherals.upgrade.FurnaceUpgrade;
 import anzac.peripherals.upgrade.GenericToolUpgrade;
 import anzac.peripherals.upgrade.HoeUpgrade;
+import anzac.peripherals.upgrade.ItemSupplyUpgrade;
 import anzac.peripherals.upgrade.ShearingUpgrade;
 import anzac.peripherals.upgrade.SwordUpgrade;
 import anzac.peripherals.upgrade.WrenchUpgrade;
@@ -170,6 +171,7 @@ public class CommonProxy {
 			}
 		}
 		registerTurtleUpgrade(new FurnaceUpgrade(nextUpgradeId()));
+		registerTurtleUpgrade(new ItemSupplyUpgrade(nextUpgradeId()));
 	}
 
 	protected void registerTurtleUpgrade(ITurtleUpgrade upgrade) {
@@ -199,6 +201,8 @@ public class CommonProxy {
 				BlockType.REDSTONE_CONTROL.getMeta());
 		final ItemStack craftingRouterStack = new ItemStack(peripheralBlockId, 1, BlockType.CRAFTING_ROUTER.getMeta());
 		final ItemStack noteBlockStack = new ItemStack(peripheralBlockId, 1, BlockType.NOTE_BLOCK.getMeta());
+		final ItemStack itemSupplierStack = new ItemStack(peripheralBlockId, 1, BlockType.ITEM_SUPPLIER.getMeta());
+		final ItemStack fluidSupplierStack = new ItemStack(peripheralBlockId, 1, BlockType.FLUID_SUPPLIER.getMeta());
 
 		final ItemStack chargeIronStack = new ItemStack(chargeBlockId, 1, ItemType.CHARGE_IRON.getMeta());
 		final ItemStack chargeGoldStack = new ItemStack(chargeBlockId, 1, ItemType.CHARGE_GOLD.getMeta());
@@ -246,6 +250,11 @@ public class CommonProxy {
 
 		addShapedRecipe(noteBlockStack, "wns", "nbn", "gna", 'n', Block.music, 'w', "plankWood", 's', "stone", 'b',
 				basicFrameStack, 'g', Block.glass, 'a', Block.sand);
+
+		addShapedRecipe(itemSupplierStack, "t", "p", "r", 'w', teleporterFrameStack, 'p', advancedFrameStack, 'r',
+				itemRouterStack);
+		addShapedRecipe(fluidSupplierStack, "t", "p", "r", 'w', teleporterFrameStack, 'p', advancedFrameStack, 'r',
+				fluidRouterStack);
 
 		addShapedRecipe(chargeIronStack, "i i", " f ", "i i", 'i', "ingotIron", 'f', redstonePeripheralStack);
 		addShapedRecipe(chargeGoldStack, "g g", " f ", "g g", 'f', chargeIronStack, 'g', "ingotGold");

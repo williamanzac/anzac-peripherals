@@ -48,6 +48,10 @@ public enum ItemType {
 	/**  */
 	NOTE_BLOCK(8, "item.anzac.noteblock", "Computerized Note Block", ""),
 	/**  */
+	ITEM_SUPPLIER(9, "item.anzac.itemsupplier", "Item Supplier", ""),
+	/**  */
+	FLUID_SUPPLIER(10, "item.anzac.fluidsupplier", "Fluid Supplier", ""),
+	/**  */
 	TELEPORTER_IRON(1, "item.anzac.teleportiron", "Iron Turtle Teleporter", ""),
 	/**  */
 	TELEPORTER_GOLD(2, "item.anzac.teleportgold", "Gold Turtle Teleporter", ""),

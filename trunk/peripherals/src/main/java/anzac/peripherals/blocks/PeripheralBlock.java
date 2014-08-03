@@ -37,7 +37,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 @Blocks(itemType = PeripheralItem.class, key = "block.anzac.peripheral", tool = "pickaxe", value = {
 		BlockType.WORKBENCH, BlockType.RECIPE_STORAGE, BlockType.ITEM_ROUTER, BlockType.FLUID_ROUTER,
 		BlockType.ITEM_STORAGE, BlockType.FLUID_STORAGE, BlockType.REDSTONE_CONTROL, BlockType.CRAFTING_ROUTER,
-		BlockType.NOTE_BLOCK })
+		BlockType.NOTE_BLOCK, BlockType.ITEM_SUPPLIER, BlockType.FLUID_SUPPLIER })
 public class PeripheralBlock extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
@@ -60,6 +60,10 @@ public class PeripheralBlock extends BlockContainer {
 	private Icon redstoneSide;
 	@SideOnly(Side.CLIENT)
 	private Icon noteSide;
+	@SideOnly(Side.CLIENT)
+	private Icon itemSupplierSide;
+	@SideOnly(Side.CLIENT)
+	private Icon fluidSupplierSide;
 
 	public PeripheralBlock(final int blockId) {
 		super(blockId, Material.rock);
@@ -126,6 +130,10 @@ public class PeripheralBlock extends BlockContainer {
 			}
 		case 8: // note
 			return noteSide;
+		case 9:
+			return itemSupplierSide;
+		case 10:
+			return fluidSupplierSide;
 		}
 		return genericSide;
 	}
@@ -144,6 +152,8 @@ public class PeripheralBlock extends BlockContainer {
 		genericSide = par1IconRegister.registerIcon("anzac:generic_side");
 		redstoneSide = par1IconRegister.registerIcon("anzac:redstone_side");
 		noteSide = par1IconRegister.registerIcon("anzac:note_side");
+		itemSupplierSide = par1IconRegister.registerIcon("anzac:item_supplier");
+		fluidSupplierSide = par1IconRegister.registerIcon("anzac:fluid_supplier");
 	}
 
 	@Override

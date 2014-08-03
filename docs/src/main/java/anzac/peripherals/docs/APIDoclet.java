@@ -43,8 +43,10 @@ public class APIDoclet {
 			try {
 				final String document = blockXML.toXML();
 				final String classFileName = blockName(blockXML);
-				final File file = new File(classFileName);
-				FileUtils.writeStringToFile(file, document);
+				if (classFileName != null) {
+					final File file = new File(classFileName);
+					FileUtils.writeStringToFile(file, document);
+				}
 			} catch (final Exception e) {
 				e.printStackTrace();
 				rootDoc.printError(e.getMessage());
@@ -55,8 +57,10 @@ public class APIDoclet {
 			try {
 				final String document = itemXML.toXML();
 				final String classFileName = itemName(itemXML);
-				final File file = new File(classFileName);
-				FileUtils.writeStringToFile(file, document);
+				if (classFileName != null) {
+					final File file = new File(classFileName);
+					FileUtils.writeStringToFile(file, document);
+				}
 			} catch (final Exception e) {
 				e.printStackTrace();
 				rootDoc.printError(e.getMessage());
@@ -67,8 +71,10 @@ public class APIDoclet {
 			try {
 				final String document = upgradeXML.toXML();
 				final String classFileName = upgradeXML.getName();
-				final File file = new File(classFileName);
-				FileUtils.writeStringToFile(file, document);
+				if (classFileName != null) {
+					final File file = new File(classFileName);
+					FileUtils.writeStringToFile(file, document);
+				}
 			} catch (final Exception e) {
 				e.printStackTrace();
 				rootDoc.printError(e.getMessage());
@@ -79,6 +85,9 @@ public class APIDoclet {
 	}
 
 	public static String camelCase(final String input) {
+		if (input == null) {
+			return null;
+		}
 		final StrBuilder builder = new StrBuilder();
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
@@ -108,6 +117,9 @@ public class APIDoclet {
 	}
 
 	public static String camelCaseItemName(final String input) {
+		if (input == null) {
+			return null;
+		}
 		boolean lastSpace = true;
 		final StrBuilder builder = new StrBuilder();
 		for (int i = 0; i < input.length(); i++) {
@@ -126,10 +138,16 @@ public class APIDoclet {
 	}
 
 	public static String lowerUnderscoreItemName(final String input) {
+		if (input == null) {
+			return null;
+		}
 		return input.replaceAll("\\s", "_").toLowerCase();
 	}
 
 	public static String lowerDash(final String input) {
+		if (input == null) {
+			return null;
+		}
 		final StrBuilder builder = new StrBuilder();
 		for (int i = 0; i < input.length(); i++) {
 			char c = input.charAt(i);

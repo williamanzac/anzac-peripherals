@@ -10,7 +10,7 @@
 	<name>docs</name>
 	<packaging>maven-plugin</packaging>
 	<properties>
-		<jdk.lib.dir>C:/Program Files/Java/jdk1.7.0_51/lib</jdk.lib.dir>
+		<jdk.lib.dir>C:/Program Files/Java/jdk1.8.0_11/lib</jdk.lib.dir>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>com.sun</groupId>
 			<artifactId>tools</artifactId>
-			<version>1.7.0_51</version>
+			<version>1.8.0_11</version>
 			<scope>system</scope>
 			<systemPath>${jdk.lib.dir}/tools.jar</systemPath>
 		</dependency>

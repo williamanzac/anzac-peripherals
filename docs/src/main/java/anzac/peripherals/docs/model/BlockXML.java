@@ -65,7 +65,9 @@ public class BlockXML {
 	public String toXML() {
 		final StrBuilder builder = new StrBuilder();
 		builder.appendln("<section id=\"description\">");
-		builder.appendln(APIDoclet.processText(peripheral.getName(), description));
+		if (peripheral != null) {
+			builder.appendln(APIDoclet.processText(peripheral.getName(), description));
+		}
 		builder.appendln("</section>");
 		if (!items.isEmpty()) {
 			builder.appendln("<section id=\"recipe\">");

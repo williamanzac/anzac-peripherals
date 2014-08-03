@@ -268,6 +268,7 @@ public class ModelGenerator {
 			final Field f = fieldDoc.getClass().getSuperclass().getSuperclass().getDeclaredField("tree");
 			f.setAccessible(true);
 			final String enumConstantDeclaration = f.get(fieldDoc).toString();
+			System.out.println(enumConstantDeclaration);
 			final Matcher matcher = itemPattern.matcher(enumConstantDeclaration);
 			if (matcher.matches()) {
 				meta = matcher.group(2);

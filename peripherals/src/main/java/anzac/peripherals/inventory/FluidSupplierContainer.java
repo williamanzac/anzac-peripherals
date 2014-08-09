@@ -6,6 +6,7 @@ import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTankInfo;
 import anzac.peripherals.tiles.FluidSupplierTileEntity;
 
 public class FluidSupplierContainer extends BaseItemContainer<FluidSupplierTileEntity> {
@@ -50,7 +51,8 @@ public class FluidSupplierContainer extends BaseItemContainer<FluidSupplierTileE
 
 	private void sendUpdate(final ICrafting par1iCrafting) {
 		par1iCrafting.sendProgressBarUpdate(this, 0, (int) te.getStoredEnergy());
-		final FluidStack fluid = te.getInfo().fluid;
+		final FluidTankInfo info = te.getInfo();
+		final FluidStack fluid = info != null ? info.fluid : null;
 		if (fluid != null) {
 			par1iCrafting.sendProgressBarUpdate(this, 1, fluid.amount);
 		} else {
@@ -62,7 +64,8 @@ public class FluidSupplierContainer extends BaseItemContainer<FluidSupplierTileE
 	public void detectAndSendChanges() {
 		super.detectAndSendChanges();
 		final float storedEnergy = te.getStoredEnergy();
-		final FluidStack fluid = te.getInfo().fluid;
+		final FluidTankInfo info = te.getInfo();
+		final FluidStack fluid = info != null ? info.fluid : null;
 		final int amount = fluid != null ? fluid.amount : 0;
 		if (lastStored != storedEnergy || lastAmount != amount) {
 			for (final Object crafting : crafters) {
@@ -80,7 +83,8 @@ public class FluidSupplierContainer extends BaseItemContainer<FluidSupplierTileE
 			te.setStoredEnergy(value);
 			break;
 		case 1:
-			final FluidStack fluid = te.getInfo().fluid;
+			final FluidTankInfo info = te.getInfo();
+			final FluidStack fluid = info != null ? info.fluid : null;
 			if (fluid != null) {
 				fluid.amount = value;
 			}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -15,8 +16,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
+
+import org.apache.commons.lang3.StringUtils;
+
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.peripheral.ItemSupplierPeripheral;
+import anzac.peripherals.supplier.SupplierTarget;
 import anzac.peripherals.tiles.ItemRouterTileEntity.StackInfo;
 import anzac.peripherals.tiles.TeleporterTileEntity.Target;
 import anzac.peripherals.utils.Position;
@@ -29,7 +34,7 @@ import buildcraft.api.power.PowerHandler.Type;
 import cofh.api.energy.IEnergyHandler;
 
 public class ItemSupplierTileEntity extends BaseRouterTileEntity implements IInventory, ISidedInventory,
-		ISpecialInventory, IPowerReceptor, IEnergyHandler, TeleporterTarget {
+		ISpecialInventory, IPowerReceptor, IEnergyHandler, SupplierTarget {
 
 	protected ItemStack itemSlot;
 	private static final int MJ = AnzacPeripheralsCore.mjMultiplier;
@@ -37,6 +42,7 @@ public class ItemSupplierTileEntity extends BaseRouterTileEntity implements IInv
 
 	private final PowerHandler handler = new PowerHandler(this, Type.MACHINE);
 	private SimpleTargetInventory targetInv;
+	private UUID id = UUID.randomUUID();
 
 	private List<Target> multiblock;
 	private boolean multiblockDirty = false;
@@ -162,6 +168,10 @@ public class ItemSupplierTileEntity extends BaseRouterTileEntity implements IInv
 		} else {
 			multiblock = null;
 		}
+
+		if (StringUtils.isNotBlank(tagCompound.getString("uuid"))) {
+			id = UUID.fromString(tagCompound.getString("uuid"));
+		}
 	}
 
 	@Override
@@ -193,6 +203,8 @@ public class ItemSupplierTileEntity extends BaseRouterTileEntity implements IInv
 			}
 			tagCompound.setTag("multiblock", list);
 		}
+
+		tagCompound.setString("uuid", id.toString());
 	}
 
 	@Override
@@ -627,5 +639,10 @@ public class ItemSupplierTileEntity extends BaseRouterTileEntity implements IInv
 
 	public List<Target> getMultiblock() {
 		return multiblock;
+	}
+
+	@Override
+	public UUID getId() {
+		return id;
 	}
 }

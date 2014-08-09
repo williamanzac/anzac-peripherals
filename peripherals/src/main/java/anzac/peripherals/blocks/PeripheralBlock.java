@@ -27,6 +27,7 @@ import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.annotations.Blocks;
 import anzac.peripherals.items.PeripheralItem;
 import anzac.peripherals.tiles.FluidStorageTileEntity;
+import anzac.peripherals.tiles.FluidSupplierTileEntity;
 import anzac.peripherals.tiles.ItemStorageTileEntity;
 import anzac.peripherals.tiles.RedstoneTileEntity;
 import anzac.peripherals.utils.Position;
@@ -163,7 +164,7 @@ public class PeripheralBlock extends BlockContainer {
 		if (tileEntity == null || player.isSneaking()) {
 			return false;
 		}
-		if (tileEntity instanceof FluidStorageTileEntity) {
+		if (tileEntity instanceof FluidStorageTileEntity || tileEntity instanceof FluidSupplierTileEntity) {
 			final IFluidHandler tank = (IFluidHandler) tileEntity;
 			if (handleFluids(player, tank)) {
 				return true;

@@ -45,30 +45,33 @@ public class FluidSupplierGUI extends GuiContainer {
 
 		final FluidTankInfo info = tileEntity.getInfo();
 		// AnzacPeripheralsCore.logger.info("info: " + info);
-		final int capacity = info.capacity;
-		final int amount;
-		if (info.fluid != null) {
-			// AnzacPeripheralsCore.logger.info("fluid: " + info.fluid);
-			amount = info.fluid.amount;
-			float scale = Math.min(amount, capacity) / (float) capacity;
-			// AnzacPeripheralsCore.logger.info("amount: " + amount + ", capacity: " + capacity + ", ratio: " + energy);
-			mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
-			final Icon stillIcon = info.fluid.getFluid().getStillIcon();
-			// AnzacPeripheralsCore.logger.info("icon: " + stillIcon);
-			if (stillIcon != null) {
-				for (int row = 0; row <= 47 / 16; row++) {
-					// AnzacPeripheralsCore.logger.info("col: " + col + ", row: " + row);
-					drawTexturedModelRectFromIcon(x + 26, 21 + y + row * 16, stillIcon, 16, 16);
+		if (info != null) {
+			final int capacity = info.capacity;
+			final int amount;
+			if (info.fluid != null) {
+				// AnzacPeripheralsCore.logger.info("fluid: " + info.fluid);
+				amount = info.fluid.amount;
+				float scale = Math.min(amount, capacity) / (float) capacity;
+				// AnzacPeripheralsCore.logger.info("amount: " + amount + ", capacity: " + capacity + ", ratio: " +
+				// energy);
+				mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
+				final Icon stillIcon = info.fluid.getFluid().getStillIcon();
+				// AnzacPeripheralsCore.logger.info("icon: " + stillIcon);
+				if (stillIcon != null) {
+					for (int row = 0; row <= 47 / 16; row++) {
+						// AnzacPeripheralsCore.logger.info("col: " + col + ", row: " + row);
+						drawTexturedModelRectFromIcon(x + 26, 21 + y + row * 16, stillIcon, 16, 16);
+					}
+					this.mc.renderEngine.bindTexture(gui);
+					drawTexturedModalRect(x + 26, y + 21, 26, 21, 16, 47 - (int) Math.floor(47 * scale) + 1);
+					drawTexturedModalRect(x + 26, y + 22, 176, 0, 16, 47);
 				}
-				this.mc.renderEngine.bindTexture(gui);
-				drawTexturedModalRect(x + 26, y + 21, 26, 21, 16, 47 - (int) Math.floor(47 * scale) + 1);
-				drawTexturedModalRect(x + 26, y + 22, 176, 0, 16, 47);
+			} else {
+				amount = 0;
 			}
-		} else {
-			amount = 0;
-		}
-		if (isPointInRegion(26, 22, 16, 47, i, j)) {
-			drawCreativeTabHoveringText("Stored: " + amount + " / " + capacity, i, j);
+			if (isPointInRegion(26, 22, 16, 47, i, j)) {
+				drawCreativeTabHoveringText("Stored: " + amount + " / " + capacity, i, j);
+			}
 		}
 	}
 

@@ -62,6 +62,8 @@ import anzac.peripherals.providers.AnzacBundledRedstoneProvider;
 import anzac.peripherals.providers.AnzacPeripheralProvider;
 import anzac.peripherals.render.RenderComponentItem;
 import anzac.peripherals.render.RenderHDD;
+import anzac.peripherals.supplier.FulidSupplierFactory;
+import anzac.peripherals.supplier.SupplierManager;
 import anzac.peripherals.upgrade.DropConsumer;
 import anzac.peripherals.upgrade.FlintUpgrade;
 import anzac.peripherals.upgrade.FurnaceUpgrade;
@@ -91,6 +93,7 @@ public class CommonProxy {
 	public void init() {
 		registerTileEntities();
 		registerForgeHandlers();
+		SupplierManager.registerStorageFactory(new FulidSupplierFactory());
 	}
 
 	public void postInit() {
@@ -174,7 +177,7 @@ public class CommonProxy {
 		registerTurtleUpgrade(new ItemSupplyUpgrade(nextUpgradeId()));
 	}
 
-	protected void registerTurtleUpgrade(ITurtleUpgrade upgrade) {
+	protected void registerTurtleUpgrade(final ITurtleUpgrade upgrade) {
 		ComputerCraftAPI.registerTurtleUpgrade(upgrade);
 	}
 
@@ -362,6 +365,8 @@ public class CommonProxy {
 	protected void registerForgeHandlers() {
 		final ForgeHandlers handlers = new ForgeHandlers();
 		MinecraftForge.EVENT_BUS.register(handlers);
+		final SupplierManager.SupplierManagerSaveHandler saveHandler = new SupplierManager.SupplierManagerSaveHandler();
+		MinecraftForge.EVENT_BUS.register(saveHandler);
 	}
 
 	public static void setEntityDropConsumer(final Entity entity, final DropConsumer consumer) {

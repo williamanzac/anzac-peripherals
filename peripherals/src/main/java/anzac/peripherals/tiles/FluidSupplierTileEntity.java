@@ -1,28 +1,31 @@
 package anzac.peripherals.tiles;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
+
+import org.apache.commons.lang3.StringUtils;
+
 import anzac.peripherals.AnzacPeripheralsCore;
 import anzac.peripherals.peripheral.FluidSupplierPeripheral;
+import anzac.peripherals.supplier.FulidSupplierFactory.FluidSupplierStorage;
+import anzac.peripherals.supplier.SupplierManager;
+import anzac.peripherals.supplier.SupplierStorageType;
+import anzac.peripherals.supplier.SupplierTarget;
 import anzac.peripherals.tiles.FluidRouterTileEntity.TankInfo;
 import anzac.peripherals.tiles.TeleporterTileEntity.Target;
 import anzac.peripherals.utils.Position;
@@ -31,35 +34,49 @@ import buildcraft.api.inventory.ISpecialInventory;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
-import buildcraft.api.power.PowerHandler.Type;
 import cofh.api.energy.IEnergyHandler;
 
 public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFluidHandler, IPowerReceptor,
-		IEnergyHandler, IInventory, ISpecialInventory, ISidedInventory, TeleporterTarget {
-
-	public FluidTank fluidTank = new FluidTank(FluidContainerRegistry.BUCKET_VOLUME);
+		IEnergyHandler, IInventory, ISpecialInventory, ISidedInventory, SupplierTarget {
 	private static final int MJ = AnzacPeripheralsCore.mjMultiplier;
-	private static final int RF_TO_MJ = 10;
 
-	private final PowerHandler handler = new PowerHandler(this, Type.MACHINE);
-	private SimpleTargetInventory targetInv;
-
-	private List<Target> multiblock;
-	private boolean multiblockDirty = false;
+	private final SimpleTargetInventory targetInv = new SimpleTargetInventory(1, this);
+	private UUID id = UUID.randomUUID();
 
 	public FluidSupplierTileEntity() throws Exception {
 		super(FluidSupplierPeripheral.class);
-		configure();
+		targetInv.addListner(new InventoryListener() {
+			@Override
+			public void inventoryChanged() {
+				final Target target = getTarget();
+				if (worldObj != null) {
+					final SupplierManager instance = SupplierManager.instance(worldObj.isRemote);
+					if (target == null) {
+						instance.removeLink(FluidSupplierTileEntity.this);
+					} else {
+						instance.linkTarget(FluidSupplierTileEntity.this, target);
+					}
+				}
+			}
+		});
+		// if (worldObj != null) {
+		// final SupplierManager instance = SupplierManager.instance(worldObj.isRemote);
+		// instance.registerTarget(this);
+		// final Target target = getTarget();
+		// if (target != null) {
+		// instance.linkTarget(this, target);
+		// }
+		// }
 	}
 
 	public int routeTo(final ForgeDirection toDir, final ForgeDirection insetDir, final int amount) throws Exception {
-		final FluidStack copy = getTank().getFluid().copy();
+		final FluidStack copy = getFluidStorage().fluidTank.getFluid().copy();
 		copy.amount = amount;
 		final int amount1 = copy.amount;
 		copy.amount -= Utils.addToFluidHandler(worldObj, xCoord, yCoord, zCoord, toDir, insetDir, copy);
 		final int toDrain = amount1 - copy.amount;
 		if (toDrain > 0) {
-			getTank().drain(toDrain, true);
+			getFluidStorage().fluidTank.drain(toDrain, true);
 		}
 		return amount - copy.amount;
 	}
@@ -68,33 +85,28 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 	public void readFromNBT(final NBTTagCompound tagCompound) {
 		super.readFromNBT(tagCompound);
 
-		// read tank
-		if (tagCompound.hasKey("fluid")) {
-			final NBTTagCompound tagFluid = (NBTTagCompound) tagCompound.getTag("fluid");
-			fluidTank.readFromNBT(tagFluid);
-		}
-
-		// if (tagCompound.hasKey("type")) {
-		// type = tagCompound.getInteger("type");
+		// if (tagCompound.hasKey("storage")) {
+		// final NBTTagCompound tag = (NBTTagCompound) tagCompound.getTag("storage");
+		// final FluidSupplierStorage fluidStorage = getFluidStorage();
+		// if (fluidStorage != null) {
+		// fluidStorage.readFromNBT(tag);
 		// }
-		handler.readFromNBT(tagCompound);
-		configure();
+		// }
 
 		if (tagCompound.hasKey("targets")) {
 			targetInv.readFromNBT(tagCompound.getCompoundTag("targets"));
 		}
 
-		if (tagCompound.getBoolean("isMultiblock")) {
-			multiblock = new ArrayList<Target>();
-			final NBTTagList tagList = tagCompound.getTagList("multiblock");
-			for (int i = 0; i < tagList.tagCount(); i++) {
-				final NBTTagCompound tagAt = (NBTTagCompound) tagList.tagAt(i);
-				final Target target = new Target();
-				target.readFromNBT(tagAt);
-				multiblock.add(target);
+		if (StringUtils.isNotBlank(tagCompound.getString("uuid"))) {
+			id = UUID.fromString(tagCompound.getString("uuid"));
+		}
+		if (worldObj != null) {
+			final SupplierManager instance = SupplierManager.instance(worldObj.isRemote);
+			instance.registerTarget(this);
+			final Target target = getTarget();
+			if (target != null) {
+				instance.linkTarget(this, target);
 			}
-		} else {
-			multiblock = null;
 		}
 	}
 
@@ -102,31 +114,18 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 	public void writeToNBT(final NBTTagCompound tagCompound) {
 		super.writeToNBT(tagCompound);
 
-		// write tank
-		if (fluidTank != null) {
-			final NBTTagCompound tagFluid = new NBTTagCompound();
-			fluidTank.writeToNBT(tagFluid);
-			tagCompound.setTag("fluid", tagFluid);
-		}
+		// final FluidSupplierStorage fluidStorage = getFluidStorage();
+		// if (fluidStorage != null && fluidStorage.owner.equals(id)) {
+		// final NBTTagCompound tag = new NBTTagCompound();
+		// fluidStorage.writeToNBT(tag);
+		// tagCompound.setTag("storage", tag);
+		// }
 
-		handler.writeToNBT(tagCompound);
-		// tagCompound.setInteger("type", type);
-		// AnzacPeripheralsCore.logger.info("targets: " + targets + "isRemote: " + worldObj.isRemote);
 		final NBTTagCompound targetsTag = new NBTTagCompound();
 		targetInv.writeToNBT(targetsTag);
 		tagCompound.setTag("targets", targetsTag);
 
-		tagCompound.setBoolean("isMultiblock", isMultiblock());
-		if (isMultiblock()) {
-			final NBTTagList list = new NBTTagList();
-			for (final Target target : multiblock) {
-				if (target != null) {
-					final NBTTagCompound targetTag = new NBTTagCompound();
-					target.writeToNBT(targetTag);
-				}
-			}
-			tagCompound.setTag("multiblock", list);
-		}
+		tagCompound.setString("uuid", id.toString());
 	}
 
 	@Override
@@ -137,45 +136,56 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 
 	@Override
 	public int fill(final ForgeDirection from, final FluidStack resource, final boolean doFill) {
-		if (resource == null) {
-			return 0;
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.fill(from, resource, doFill);
 		}
-		final int fill = getTank().fill(resource, doFill);
-		if (fill > 0 && doFill) {
-			queueEvent(PeripheralEvent.fluid_route, Utils.getUUID(resource), fill);
-		}
-		return fill;
+		return 0;
 	}
 
 	@Override
 	public FluidStack drain(final ForgeDirection from, final FluidStack resource, final boolean doDrain) {
-		// cannot drain
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.drain(from, resource, doDrain);
+		}
 		return null;
 	}
 
 	@Override
 	public FluidStack drain(final ForgeDirection from, final int maxDrain, final boolean doDrain) {
-		// cannot drain
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.drain(from, maxDrain, doDrain);
+		}
 		return null;
 	}
 
 	@Override
 	public boolean canFill(final ForgeDirection from, final Fluid fluid) {
-		return isConnected();
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return isConnected() && storage.canFill(from, fluid);
+		}
+		return false;
 	}
 
 	@Override
 	public boolean canDrain(final ForgeDirection from, final Fluid fluid) {
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.canDrain(from, fluid);
+		}
 		return false;
-	}
-
-	public FluidTankInfo getInfo() {
-		return getTank().getInfo();
 	}
 
 	@Override
 	public FluidTankInfo[] getTankInfo(final ForgeDirection from) {
-		return new FluidTankInfo[] { getTank().getInfo() };
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.getTankInfo(from);
+		}
+		return new FluidTankInfo[] { new FluidTankInfo(null, FluidContainerRegistry.BUCKET_VOLUME) };
 	}
 
 	public TankInfo[] contents(final ForgeDirection direction, final ForgeDirection dir) throws Exception {
@@ -235,7 +245,7 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 	}
 
 	public int sendTo(final String label, final int amount) throws Exception {
-		if (getTank().getFluid() == null) {
+		if (getFluidStorage().fluidTank.getFluid() == null) {
 			throw new Exception("No fluid to transfer");
 		}
 		if (amount <= 0) {
@@ -249,15 +259,15 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 			throw new Exception("Invalid target for label " + label);
 		}
 		final IFluidHandler tank = (IFluidHandler) entity;
-		final FluidStack copy = getTank().getFluid().copy();
-		if (amount < getTank().getFluidAmount()) {
+		final FluidStack copy = getFluidStorage().fluidTank.getFluid().copy();
+		if (amount < getFluidStorage().fluidTank.getFluidAmount()) {
 			copy.amount = amount;
 		}
 		final int amount1 = copy.amount;
 		copy.amount -= tank.fill(ForgeDirection.UNKNOWN, copy, true);
 		final int toDrain = amount1 - copy.amount;
 		if (toDrain > 0) {
-			getTank().drain(toDrain, true);
+			getFluidStorage().fluidTank.drain(toDrain, true);
 		}
 		return amount - copy.amount;
 	}
@@ -283,38 +293,35 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 		return 0;
 	}
 
-	private void configure() {
-		final double maxStorage = 5000;
-		final double maxIn = 500;
-		handler.configure(1f, (float) maxIn, MJ, (float) maxStorage);
-		handler.configurePowerPerdition(0, 0);
-		targetInv = new SimpleTargetInventory(1, this);
-		targetInv.addListner(new InventoryListener() {
-			@Override
-			public void inventoryChanged() {
-				multiblockDirty = true;
-			}
-		});
-	}
-
-	private PowerHandler getPowerHandler() {
-		return getController().handler;
-	}
-
-	private FluidTank getTank() {
-		return getController().fluidTank;
+	private FluidSupplierStorage getFluidStorage() {
+		if (worldObj != null) {
+			return (FluidSupplierStorage) SupplierManager.instance(worldObj.isRemote).getStorage(this,
+					SupplierStorageType.FLUID);
+		}
+		return null;
 	}
 
 	public float getStoredEnergy() {
-		return getPowerHandler().getEnergyStored() / MJ;
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.getHandler().getEnergyStored() / MJ;
+		}
+		return 0;
 	}
 
 	public void setStoredEnergy(final float stored) {
-		getPowerHandler().setEnergy(stored * MJ);
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			storage.getHandler().setEnergy(stored * MJ);
+		}
 	}
 
 	public float getMaxEnergy() {
-		return getPowerHandler().getMaxEnergyStored() / MJ;
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.getHandler().getMaxEnergyStored() / MJ;
+		}
+		return 0;
 	}
 
 	public Target getTarget() {
@@ -324,30 +331,20 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 
 	@Override
 	public PowerReceiver getPowerReceiver(final ForgeDirection side) {
-		return getPowerHandler().getPowerReceiver();
+		final FluidSupplierStorage fluidStorage = getFluidStorage();
+		if (fluidStorage != null) {
+			return fluidStorage.getPowerReceiver(side);
+		}
+		return null;
 	}
 
 	@Override
 	public void doWork(final PowerHandler workProvider) {
-		if (isMaster()) {
-			final Target target = getTarget();
-			if (target != null) {
-				final Position pos = target.position;
-				final float requiredPower = (float) requiredPower(pos.x, pos.y, pos.z, target.dimension);
-				workProvider.useEnergy(requiredPower, requiredPower, true);
-			}
-		}
 	}
 
 	@Override
 	public World getWorld() {
 		return this.worldObj;
-	}
-
-	private double requiredPower(final int x, final int y, final int z, final int d) {
-		final double samed = Math.abs(worldObj.provider.dimensionId - d) + 1;
-		final double dist = Math.sqrt(getDistanceFrom(x, y, z));
-		return dist * samed * MJ;
 	}
 
 	@Override
@@ -362,25 +359,29 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 
 	@Override
 	public int getEnergyStored(final ForgeDirection arg0) {
-		return (int) (getPowerHandler().getEnergyStored() * RF_TO_MJ);
+		final FluidSupplierStorage fluidStorage = getFluidStorage();
+		if (fluidStorage != null) {
+			return fluidStorage.getEnergyStored(arg0);
+		}
+		return 0;
 	}
 
 	@Override
 	public int getMaxEnergyStored(final ForgeDirection arg0) {
-		return (int) (getPowerHandler().getMaxEnergyStored() * RF_TO_MJ);
+		final FluidSupplierStorage fluidStorage = getFluidStorage();
+		if (fluidStorage != null) {
+			return fluidStorage.getMaxEnergyStored(arg0);
+		}
+		return 0;
 	}
 
 	@Override
 	public int receiveEnergy(final ForgeDirection arg0, final int arg1, final boolean arg2) {
-		final int quantity = arg1 / RF_TO_MJ;
-		if (arg2) {
-			if (getPowerHandler().getEnergyStored() + quantity <= getPowerHandler().getMaxEnergyStored()) {
-				return quantity;
-			} else {
-				return (int) ((getPowerHandler().getMaxEnergyStored() - getPowerHandler().getEnergyStored()) * RF_TO_MJ);
-			}
+		final FluidSupplierStorage fluidStorage = getFluidStorage();
+		if (fluidStorage != null) {
+			return fluidStorage.receiveEnergy(arg0, arg1, arg2);
 		}
-		return (int) (getPowerHandler().addEnergy(quantity) * RF_TO_MJ);
+		return 0;
 	}
 
 	@Override
@@ -467,7 +468,7 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((fluidTank == null) ? 0 : fluidTank.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
 
@@ -480,10 +481,10 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 		if (getClass() != obj.getClass())
 			return false;
 		final FluidSupplierTileEntity other = (FluidSupplierTileEntity) obj;
-		if (fluidTank == null) {
-			if (other.fluidTank != null)
+		if (id == null) {
+			if (other.id != null)
 				return false;
-		} else if (!fluidTank.equals(other.fluidTank))
+		} else if (!id.equals(other.id))
 			return false;
 		return true;
 	}
@@ -492,138 +493,47 @@ public class FluidSupplierTileEntity extends BaseRouterTileEntity implements IFl
 	public void updateEntity() {
 		super.updateEntity();
 
-		if (multiblockDirty) {
-			multiblockDirty = false;
-			formMultiblock();
-		}
-
-		if (!isMaster()) {
+		if (worldObj.isRemote) {
 			return;
 		}
 
 		if (worldObj.getTotalWorldTime() % 10 == 0) {
+			// final SupplierManager instance = SupplierManager.instance(worldObj);
+			// instance.registerTarget(this);
+			// final Target target = getTarget();
+			// if (target != null) {
+			// instance.linkTarget(this, target);
+			// }
 			// worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 			// onInventoryChanged();
-			doWork(getPowerHandler());
-		}
-	}
-
-	private void clearCurrentMultiblock() {
-		if (multiblock == null || multiblock.isEmpty()) {
-			return;
-		}
-		for (final Target bc : multiblock) {
-			final FluidSupplierTileEntity storage = getStorage(bc);
-			if (storage != null) {
-				storage.setMultiblock(null);
-			}
-		}
-		multiblock = null;
-	}
-
-	private void formMultiblock() {
-		final List<FluidSupplierTileEntity> blocks = new ArrayList<FluidSupplierTileEntity>();
-		blocks.add(this);
-		Target target = getTarget();
-		if (target != null) {
-			final FluidSupplierTileEntity cb1 = getStorage(target);
-			if (cb1 != null && !blocks.contains(cb1)) {
-				blocks.add(cb1);
-			}
-		}
-
-		if (blocks.size() < 2) {
-			return;
-		}
-		for (final FluidSupplierTileEntity cb : blocks) {
-			cb.clearCurrentMultiblock();
-		}
-		final List<Target> mb = new ArrayList<Target>(blocks.size());
-		for (final FluidSupplierTileEntity cb : blocks) {
-			target = new Target();
-			target.position = new Position(cb);
-			target.dimension = cb.worldObj.provider.dimensionId;
-			mb.add(target);
-		}
-
-		for (final FluidSupplierTileEntity cb : blocks) {
-			cb.setMultiblock(mb);
-		}
-	}
-
-	private void setMultiblock(final List<Target> mb) {
-		multiblock = mb;
-		if (multiblock != null && isMaster()) {
-			for (final Target bc : multiblock) {
-				final FluidSupplierTileEntity storage = getStorage(bc);
-				if (storage != null) {
-					storage.multiblockDirty = true;
+			final FluidSupplierStorage fluidStorage = getFluidStorage();
+			if (fluidStorage != null && fluidStorage.getOwner().equals(id)) {
+				final Target target = getTarget();
+				if (target != null) {
+					final Position pos = target.position;
+					final float requiredPower = (float) requiredPower(pos.x, pos.y, pos.z, target.dimension);
+					fluidStorage.getHandler().useEnergy(requiredPower, requiredPower, true);
 				}
 			}
 		}
-
-		// Forces an update
-		worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-		// worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, isMultiblock() ? 1 : 0, 2);
 	}
 
-	public FluidSupplierTileEntity getController() {
-		if (multiblock == null || multiblock.isEmpty()) {
-			return this;
-		}
-		final Target position = multiblock.get(0);
-		final FluidSupplierTileEntity res = getStorage(position);
-		return res != null ? res : this;
+	private double requiredPower(final int x, final int y, final int z, final int d) {
+		final double samed = Math.abs(worldObj.provider.dimensionId - d) + 1;
+		final double dist = Math.sqrt(getDistanceFrom(x, y, z));
+		return dist * samed;
 	}
 
-	boolean isContoller() {
-		return multiblock == null || multiblock.isEmpty() ? true : isMaster();
+	@Override
+	public UUID getId() {
+		return id;
 	}
 
-	boolean isMaster() {
-		if (multiblock != null && !multiblock.isEmpty()) {
-			return getStorage(multiblock.get(0)).equals(this);
-		}
-		return false;
-	}
-
-	public boolean isMultiblock() {
-		return isCurrentMultiblockValid();
-	}
-
-	private boolean isCurrentMultiblockValid() {
-		if (multiblock == null || multiblock.isEmpty()) {
-			return false;
-		}
-		final Target target = getTarget();
-		if (target == null) {
-			return false;
-		}
-		final FluidSupplierTileEntity res = getStorage(target);
-		if (res == null || res.multiblock == null || res.multiblock.isEmpty() || res.getTarget() == null) {
-			return false;
-		}
-		final FluidSupplierTileEntity storage = getStorage(res.getTarget());
-		if (storage == null || !storage.equals(this)) {
-			return false;
-		}
-		return true;
-	}
-
-	public FluidSupplierTileEntity getStorage(final Target bc) {
-		return getStorage(bc.position.x, bc.position.y, bc.position.z, bc.dimension);
-	}
-
-	private FluidSupplierTileEntity getStorage(final int x, final int y, final int z, final int dim) {
-		final World destWorld = MinecraftServer.getServer().worldServerForDimension(dim);
-		final TileEntity te = destWorld.getBlockTileEntity(x, y, z);
-		if (te instanceof FluidSupplierTileEntity) {
-			return (FluidSupplierTileEntity) te;
+	public FluidTankInfo getInfo() {
+		final FluidSupplierStorage storage = getFluidStorage();
+		if (storage != null) {
+			return storage.fluidTank.getInfo();
 		}
 		return null;
-	}
-
-	public List<Target> getMultiblock() {
-		return multiblock;
 	}
 }
